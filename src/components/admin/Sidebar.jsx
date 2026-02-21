@@ -1,16 +1,16 @@
 import React, { useState, useContext } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { Users, FileText, Code, CheckSquare, Send, UserPlus, LogOut, Layout, Clock, BarChart2, ChevronDown, ChevronRight, ClipboardList, PenTool } from 'lucide-react'
+import { Users, FileText, Code, CheckSquare, Send, UserPlus, LogOut, Layout, Clock, BarChart2, ChevronDown, ChevronRight, ClipboardList, PenTool, LayoutDashboard } from 'lucide-react'
 import { AuthContext } from '../../context/AuthProvider'
 
-const Sidebar = ({ changeUser }) => {
+const Sidebar = ({ changeUser, isCollapsed, setIsCollapsed }) => {
     const [tasksOpen, setTasksOpen] = useState(true)
-    const [isCollapsed, setIsCollapsed] = useState(false)
     const navigate = useNavigate()
     const location = useLocation()
     const { setCurrentUser } = useContext(AuthContext)
 
     const menuItems = [
+        { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard', path: '/admin/dashboard' },
         { id: 'employees', icon: Users, label: 'Employees', path: '/admin/employees' },
         { id: 'departments', icon: Layout, label: 'Departments', path: '/admin/departments' },
         {
@@ -109,7 +109,7 @@ const Sidebar = ({ changeUser }) => {
                         }
 
                         // Handle Regular Items
-                        const isActive = location.pathname.includes(item.path) || (item.id === 'employees' && location.pathname === '/admin')
+                        const isActive = location.pathname.includes(item.path) || (item.id === 'dashboard' && location.pathname === '/admin')
                         return (
                             <button
                                 key={item.id}

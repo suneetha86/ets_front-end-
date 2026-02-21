@@ -11,10 +11,12 @@ import GithubRepo from './views/GithubRepo'
 import Attendance from './views/Attendance'
 
 const Dashboard = (props) => {
+  const [isCollapsed, setIsCollapsed] = useState(false)
+
   return (
     <div className='flex h-screen w-full bg-white overflow-hidden'>
-      <div className='w-64 flex-shrink-0'>
-        <Sidebar changeUser={props.changeUser} firstName={props.data?.firstName} />
+      <div className={`flex-shrink-0 transition-all duration-300 ease-in-out ${isCollapsed ? 'w-20' : 'w-64'}`}>
+        <Sidebar changeUser={props.changeUser} firstName={props.data?.firstName} isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
       </div>
 
       <div className='flex-1 p-8 overflow-hidden h-full'>

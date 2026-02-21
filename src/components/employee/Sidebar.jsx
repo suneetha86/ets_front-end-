@@ -1,10 +1,9 @@
-import React, { useState, useContext } from 'react'
+import React, { useContext } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { User, FileText, Code, CheckSquare, Github, LogOut, Clock, LayoutDashboard, ChevronLeft, ChevronRight } from 'lucide-react'
 import { AuthContext } from '../../context/AuthProvider'
 
-const Sidebar = ({ changeUser, firstName }) => {
-    const [isCollapsed, setIsCollapsed] = useState(false)
+const Sidebar = ({ changeUser, firstName, isCollapsed, setIsCollapsed }) => {
     const navigate = useNavigate()
     const location = useLocation()
     const { setCurrentUser } = useContext(AuthContext)
