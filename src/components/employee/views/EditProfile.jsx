@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import userAvatar from "../../../assets/chinnu.jpeg";
 
 const EditProfile = ({ data, onSave }) => {
   const navigate = useNavigate();
+  const userId = data?.id || 1; // fallback if id not present
 
-  // Debug logging
   useEffect(() => {
     console.log("EditProfile rendered. Data:", data);
   }, [data]);
@@ -21,21 +22,42 @@ const EditProfile = ({ data, onSave }) => {
     github: data?.github || "",
   });
 
+  const [loading, setLoading] = useState(false);
+
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = () => {
-    console.log("Updated:", form);
+  // ================= UPDATE API =================
+  const handleSubmit = async () => {
+    setLoading(true);
 
-    // Merge original data with form data to keep fields we didn't edit (like id, tasks, etc.)
-    const updatedData = { ...data, ...form };
+    try {
+      const updatedData = { ...data, ...form };
 
-    if (onSave) {
-      onSave(updatedData);
+      const response = await axios.put(
+        `http://localhost:8081/api/profiles/update/${userId}`,
+        updatedData
+      );
+
+      console.log("Updated Profile:", response.data);
+
+      if (onSave) {
+        onSave(updatedData);
+      }
+
+      alert("Profile updated successfully");
+
+      navigate("/employee/profile");
+    } catch (error) {
+      console.error("Update failed:", error);
+      alert(
+        error.response?.data?.message ||
+        "Failed to update profile. Check backend."
+      );
+    } finally {
+      setLoading(false);
     }
-
-    navigate('/employee/profile');
   };
 
   return (
@@ -51,16 +73,12 @@ const EditProfile = ({ data, onSave }) => {
                 src={userAvatar}
                 alt="Profile"
                 className="w-full h-full object-cover"
-                onError={(e) => {
-                  e.target.onerror = null;
-                  e.target.src = "https://ui-avatars.com/api/?name=User&background=random"; // Fallback
-                }}
               />
             </div>
           </div>
         </div>
 
-        {/* ================= FORM ================= */}
+        {/* FORM */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Input label="First Name" name="firstName" value={form.firstName} onChange={handleChange} />
           <Input label="Last Name" name="lastName" value={form.lastName} onChange={handleChange} />
@@ -72,20 +90,21 @@ const EditProfile = ({ data, onSave }) => {
           <Input label="GitHub" name="github" value={form.github} onChange={handleChange} />
         </div>
 
-        {/* ================= BUTTONS ================= */}
+        {/* BUTTONS */}
         <div className="flex justify-end gap-4 mt-8 pt-4 border-t border-gray-100">
           <button
-            onClick={() => navigate('/employee/profile')}
-            className="px-6 py-2.5 rounded-xl border border-gray-300 font-medium hover:bg-gray-50 transition-colors"
+            onClick={() => navigate("/employee/profile")}
+            className="px-6 py-2.5 rounded-xl border border-gray-300 font-medium hover:bg-gray-50"
           >
             Cancel
           </button>
 
           <button
             onClick={handleSubmit}
-            className="px-6 py-2.5 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 shadow-md shadow-blue-600/20 transition-all"
+            disabled={loading}
+            className="px-6 py-2.5 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700"
           >
-            Save Changes
+            {loading ? "Updating..." : "Save Changes"}
           </button>
         </div>
       </div>
@@ -93,15 +112,16 @@ const EditProfile = ({ data, onSave }) => {
   );
 };
 
-// reusable input
 const Input = ({ label, name, value, onChange }) => (
   <div className="flex flex-col gap-1.5">
-    <label className="text-xs font-semibold text-gray-600 uppercase tracking-wider">{label}</label>
+    <label className="text-xs font-semibold text-gray-600 uppercase">
+      {label}
+    </label>
     <input
       name={name}
       value={value}
       onChange={onChange}
-      className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all font-medium text-gray-800 placeholder:text-gray-500"
+      className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl"
       placeholder={`Enter ${label}`}
     />
   </div>

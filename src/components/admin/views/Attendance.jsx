@@ -130,7 +130,7 @@ const Attendance = () => {
             <div className='flex justify-between items-center mb-8'>
                 <div>
                     <h2 className='text-3xl font-bold text-purple-900'>Attendance Monitor</h2>
-                    <p className='text-gray-500 text-xs mt-1'>Monitor real-time উপস্থিতি and detailed historical scores</p>
+                    <p className='text-gray-500 text-xs mt-1'>Monitor real-time and detailed historical scores</p>
                 </div>
                 <div className="flex items-center gap-3 bg-purple-50 px-4 py-2 rounded-xl border border-purple-100">
                     <Calendar size={18} className="text-purple-600" />

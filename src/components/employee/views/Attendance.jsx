@@ -51,17 +51,6 @@ const Attendance = ({ data }) => {
                 <div className='w-full max-w-md'>
                     <div className='flex justify-between items-center mb-8 text-gray-600'>
 
-
-
-
-                       <div className='flex flex-col'>
-                            <span className='text-xs uppercase font-bold tracking-wider text-gray-400'>Name</span>
-                            <span className='text-xl font-bold text-gray-800'>{name || '-----'}</span>
-                        </div>
-
-
-
-                        
                         <div className='flex flex-col'>
                             <span className='text-xs uppercase font-bold tracking-wider text-gray-400'>Login Time</span>
                             <span className='text-xl font-bold text-gray-800'>{loginTime || '--:--'}</span>
