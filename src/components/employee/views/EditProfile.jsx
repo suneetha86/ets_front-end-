@@ -37,8 +37,8 @@ const EditProfile = ({ data, onSave }) => {
     setForm({ ...form, [name]: value });
   };
 
-<<<<<<< HEAD
   const handleSubmit = async () => {
+    setLoading(true);
     console.log("Submitting Profile Update (PUT):", form);
 
     const apiPayload = {
@@ -58,12 +58,12 @@ const EditProfile = ({ data, onSave }) => {
     try {
       // User requested PUT to http://localhost:8081/api/profiles/9
       const targetId = String(data?.id || form.employeeId).replace("EMP-", "");
-      
+
       console.log(`Calling Profile Update API (PUT /profiles/${targetId}) with payload:`, apiPayload);
       const result = await updateProfile(targetId, apiPayload);
       console.log("API Result:", result);
 
-      // Merge original data with form data to keep fields we didn't edit (like id, tasks, etc.)
+      // Merge original data with form data to keep fields we didn't edit
       const updatedData = {
         ...data,
         ...form,
@@ -76,45 +76,21 @@ const EditProfile = ({ data, onSave }) => {
           coding: form.codingScore
         }
       };
-=======
-  // ================= UPDATE API =================
-  const handleSubmit = async () => {
-    setLoading(true);
-
-    try {
-      const updatedData = { ...data, ...form };
-
-      const response = await axios.put(
-        `http://localhost:8081/api/profiles/update/${userId}`,
-        updatedData
-      );
-
-      console.log("Updated Profile:", response.data);
->>>>>>> 740923c89b925ef6cd1989df69e17797a278e662
 
       if (onSave) {
         onSave(updatedData);
       }
 
-<<<<<<< HEAD
       alert("Profile updated successfully via PUT!");
-      navigate('/employee/profile');
-    } catch (error) {
-      console.error("Failed to update profile:", error);
-      alert("Error updating profile. Check console for details.");
-=======
-      alert("Profile updated successfully");
-
       navigate("/employee/profile");
     } catch (error) {
-      console.error("Update failed:", error);
+      console.error("Failed to update profile:", error);
       alert(
         error.response?.data?.message ||
         "Failed to update profile. Check backend."
       );
     } finally {
       setLoading(false);
->>>>>>> 740923c89b925ef6cd1989df69e17797a278e662
     }
   };
 
@@ -163,16 +139,10 @@ const EditProfile = ({ data, onSave }) => {
 
           <button
             onClick={handleSubmit}
-<<<<<<< HEAD
-            className="px-6 py-2.5 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 shadow-md shadow-blue-600/20 transition-all font-bold"
-          >
-            Update Profile (PUT)
-=======
             disabled={loading}
-            className="px-6 py-2.5 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700"
+            className="px-6 py-2.5 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 shadow-md shadow-blue-600/20 transition-all font-bold disabled:opacity-50"
           >
-            {loading ? "Updating..." : "Save Changes"}
->>>>>>> 740923c89b925ef6cd1989df69e17797a278e662
+            {loading ? "Updating..." : "Update Profile (PUT)"}
           </button>
         </div>
       </div>
@@ -180,12 +150,8 @@ const EditProfile = ({ data, onSave }) => {
   );
 };
 
-<<<<<<< HEAD
 // reusable input
 const Input = ({ label, name, value, onChange, type = "text" }) => (
-=======
-const Input = ({ label, name, value, onChange }) => (
->>>>>>> 740923c89b925ef6cd1989df69e17797a278e662
   <div className="flex flex-col gap-1.5">
     <label className="text-xs font-semibold text-gray-600 uppercase">
       {label}

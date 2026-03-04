@@ -18,7 +18,7 @@ const Attendance = () => {
         try {
             setLoading(true)
             setDashLoading(true)
-            
+
             // Fetch basic attendance logs
             const logsData = await fetchAllAttendance()
             setAttendanceRecords(Array.isArray(logsData) ? logsData : [])
@@ -44,7 +44,7 @@ const Attendance = () => {
 
     const handleMarkAttendance = async (emp) => {
         if (isMarking) return
-        
+
         const confirmMark = window.confirm(`Establish manual "PRESENT" status for ${emp.name} today?`)
         if (!confirmMark) return
 
@@ -62,7 +62,7 @@ const Attendance = () => {
             console.log("Navigating mark command for node:", payload)
             const response = await markAdminAttendance(payload)
             console.log("Marking Sequence Response:", response)
-            
+
             alert(`🚀 Node "${emp.name}" status updated to PRESENT. Sync complete.`)
             loadData() // Refresh directory telemetry
 
@@ -183,7 +183,7 @@ const Attendance = () => {
         const employee = record.employee || {}
         const loginStr = record.loginTime ? new Date(record.loginTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : '--:--'
         const logoutStr = record.logoutTime ? new Date(record.logoutTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : 'Still Active'
-        
+
         return (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={onClose}>
                 <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden transform transition-all animate-in zoom-in-95 duration-300" onClick={e => e.stopPropagation()}>
@@ -222,7 +222,7 @@ const Attendance = () => {
                                     <p className="text-lg font-black text-gray-800">{logoutStr}</p>
                                 </div>
                             </div>
-                            
+
                             <div className="pt-4 border-t border-gray-100 flex items-center justify-between">
                                 <span className="text-xs font-black text-gray-400 uppercase tracking-widest">Total Duration</span>
                                 <span className="px-4 py-2 bg-blue-50 text-blue-700 rounded-xl font-black text-sm">{record.workingHours || '0h 0m'}</span>
@@ -233,7 +233,7 @@ const Attendance = () => {
                             <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest">Contact Information</p>
                             <p className="text-sm font-bold text-gray-700">{employee.email}</p>
                         </div>
-                        
+
                         <button onClick={onClose} className="w-full py-4 bg-gray-900 text-white rounded-2xl font-black hover:bg-black transition-all shadow-xl shadow-gray-200">
                             Dismiss Record
                         </button>
@@ -247,28 +247,23 @@ const Attendance = () => {
         <div className='bg-white shadow-sm border border-gray-200 p-8 rounded-2xl h-full overflow-hidden flex flex-col'>
             <div className='flex justify-between items-center mb-10'>
                 <div>
-<<<<<<< HEAD
                     <h2 className='text-3xl font-black text-gray-900 flex items-center gap-3'>
-                        {viewMode === 'list' ? <History className="text-blue-600" /> : <LayoutDashboard className="text-purple-600" />} 
+                        {viewMode === 'list' ? <History className="text-blue-600" /> : <LayoutDashboard className="text-purple-600" />}
                         {viewMode === 'list' ? 'Attendance Ledger' : 'Team Presence Hub'}
                     </h2>
                     <p className='text-gray-500 text-xs mt-1 font-bold uppercase tracking-widest'>
                         {viewMode === 'list' ? 'Review comprehensive employee entrance activity' : 'Real-time overview of organizational presence'}
                     </p>
-=======
-                    <h2 className='text-3xl font-bold text-purple-900'>Attendance Monitor</h2>
-                    <p className='text-gray-500 text-xs mt-1'>Monitor real-time and detailed historical scores</p>
->>>>>>> 740923c89b925ef6cd1989df69e17797a278e662
                 </div>
                 <div className="flex items-center gap-4">
                     <div className="flex bg-gray-100 p-1 rounded-2xl border border-gray-200">
-                        <button 
+                        <button
                             onClick={() => setViewMode('list')}
                             className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'list' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
                         >
                             Log View
                         </button>
-                        <button 
+                        <button
                             onClick={() => setViewMode('dashboard')}
                             className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'dashboard' ? 'bg-white text-purple-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
                         >
@@ -323,7 +318,7 @@ const Attendance = () => {
                                     const employee = record.employee || {}
                                     const lTime = record.loginTime ? new Date(record.loginTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : '--'
                                     const oTime = record.logoutTime ? new Date(record.logoutTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : '--'
-                                    
+
                                     return (
                                         <tr key={idx} className='hover:bg-blue-50/30 group transition-all duration-300'>
                                             <td className='p-6'>
@@ -359,8 +354,7 @@ const Attendance = () => {
                                                 {record.workingHours}
                                             </td>
                                             <td className='p-6 text-center'>
-                                                <span className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-[0.1em] shadow-sm border ${
-                                                    record.status === 'Present'
+                                                <span className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-[0.1em] shadow-sm border ${record.status === 'Present'
                                                         ? 'bg-green-50 text-green-600 border-green-100'
                                                         : record.status === 'Half Day'
                                                             ? 'bg-yellow-50 text-yellow-600 border-yellow-100'
@@ -370,7 +364,7 @@ const Attendance = () => {
                                                 </span>
                                             </td>
                                             <td className='p-6 text-right'>
-                                                <button 
+                                                <button
                                                     onClick={() => setSelectedRecord(record)}
                                                     className="p-3 bg-white border border-gray-100 rounded-xl text-gray-400 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 transition-all shadow-sm active:scale-95"
                                                 >
@@ -406,16 +400,15 @@ const Attendance = () => {
                                         </div>
                                     </div>
                                     <div className="flex items-center justify-between mt-auto gap-2">
-                                        <div className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border transition-all ${
-                                            emp.todayStatus === 'PRESENT' 
-                                                ? 'bg-green-50 text-green-700 border-green-100' 
+                                        <div className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border transition-all ${emp.todayStatus === 'PRESENT'
+                                                ? 'bg-green-50 text-green-700 border-green-100'
                                                 : 'bg-red-50 text-red-700 border-red-100'
-                                        }`}>
+                                            }`}>
                                             {emp.todayStatus === 'PRESENT' ? 'Present Today' : 'Not Marked'}
                                         </div>
-                                        
+
                                         <div className="flex items-center gap-2">
-                                            <button 
+                                            <button
                                                 onClick={() => handleViewStats(emp)}
                                                 className="p-2.5 bg-purple-50 text-purple-600 rounded-xl hover:bg-purple-600 hover:text-white transition-all shadow-sm active:scale-90"
                                                 title="Analytical Profile"
@@ -424,7 +417,7 @@ const Attendance = () => {
                                             </button>
 
                                             {emp.todayStatus === 'NOT_MARKED' && (
-                                                <button 
+                                                <button
                                                     onClick={() => handleMarkAttendance(emp)}
                                                     disabled={isMarking}
                                                     className="bg-gray-900 text-white p-2.5 rounded-xl hover:bg-black transition-all shadow-md active:scale-90 disabled:opacity-50 flex items-center gap-2 group/mark"
@@ -445,7 +438,7 @@ const Attendance = () => {
 
             {selectedRecord && <AttendanceModal record={selectedRecord} onClose={() => setSelectedRecord(null)} />}
             {selectedStats && <EmployeeStatsModal stats={selectedStats} onClose={() => setSelectedStats(null)} />}
-            
+
             {statsLoading && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm">
                     <div className="bg-white p-10 rounded-[2.5rem] shadow-2xl flex flex-col items-center gap-4 border border-gray-100">
