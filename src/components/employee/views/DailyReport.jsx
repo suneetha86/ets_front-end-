@@ -1,7 +1,9 @@
 import React, { useState } from 'react'
-import { Calendar, Clock, FileText, AlertTriangle, Upload, CheckCircle, File, Image as ImageIcon, ExternalLink, History } from 'lucide-react'
+import { Calendar, Clock, FileText, AlertTriangle, Upload, CheckCircle, File, Image as ImageIcon, ExternalLink, History, Loader2 } from 'lucide-react'
+import { createTask } from '../../../api/taskApi'
 
 const DailyReport = ({ onViewHistory }) => {
+    const [submitting, setSubmitting] = useState(false);
     const [formData, setFormData] = useState({
         date: new Date().toISOString().split('T')[0],
         time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
@@ -24,43 +26,58 @@ const DailyReport = ({ onViewHistory }) => {
         }
     }
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault()
+        
+        if (!formData.description.trim()) {
+            alert("Please provide a task description.");
+            return;
+        }
 
-        const challengesFilesProcessed = files.challenges.map(file => ({
-            name: file.name,
-            type: file.type,
-            url: URL.createObjectURL(file)
-        }))
+        setSubmitting(true);
 
-        const solutionFilesProcessed = files.solution.map(file => ({
-            name: file.name,
-            type: file.type,
-            url: URL.createObjectURL(file)
-        }))
+        // Map files to filenames (as API example shows static string filename)
+        const screenshotsFilenames = files.challenges.map(f => f.name).join(', ') || "pending_upload.png";
+        const docsFilenames = files.solution.map(f => f.name).join(', ') || "pending_solution.pdf";
 
-        // In a real app, here we would send the data to a backend
-        console.log("Submitting:", {
-            ...formData,
-            challengesFiles: challengesFilesProcessed,
-            solutionFiles: solutionFilesProcessed
-        })
+        const apiPayload = {
+            date: formData.date,
+            time: formData.time,
+            taskDescription: formData.description,
+            challengesFaced: formData.challenges || "No major challenges",
+            uploadScreenshots: screenshotsFilenames,
+            solutionImplemented: formData.solution || "Working on it",
+            uploadSolutionDocuments: docsFilenames,
+            status: "PENDING"
+        };
 
-        // Reset form
-        setFormData({
-            date: new Date().toISOString().split('T')[0],
-            time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
-            description: '',
-            challenges: '',
-            solution: '',
-        })
-        setFiles({ challenges: [], solution: [] })
+        try {
+            console.log("Calling Task Create API with payload:", apiPayload);
+            const response = await createTask(apiPayload);
+            console.log("API Response:", response);
 
-        // Reset file inputs manually
-        document.getElementById('challenges-upload').value = ''
-        document.getElementById('solution-upload').value = ''
+            alert("Daily Report Submitted Successfully to Server!");
 
-        alert("Daily Report Submitted Successfully!")
+            // Reset form
+            setFormData({
+                date: new Date().toISOString().split('T')[0],
+                time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
+                description: '',
+                challenges: '',
+                solution: '',
+            })
+            setFiles({ challenges: [], solution: [] })
+
+            // Reset file inputs manually
+            if (document.getElementById('challenges-upload')) document.getElementById('challenges-upload').value = ''
+            if (document.getElementById('solution-upload')) document.getElementById('solution-upload').value = ''
+            
+        } catch (error) {
+            console.error("Failed to submit task:", error);
+            alert("Error submitting report. Please check the backend connection.");
+        } finally {
+            setSubmitting(false);
+        }
     }
 
     const handleChange = (e) => {
@@ -68,7 +85,7 @@ const DailyReport = ({ onViewHistory }) => {
     }
 
     return (
-        <div className='p-6 bg-gray-50 h-full overflow-y-auto rounded-xl custom-scrollbar'>
+        <div className='p-6 bg-gray-50 h-full overflow-y-auto rounded-xl custom-scrollbar pb-24'>
             <div className='max-w-4xl mx-auto'>
                 <div className='bg-white p-8 rounded-2xl shadow-sm border border-gray-200 mb-8'>
                     <div className='flex justify-between items-center mb-8'>
@@ -120,6 +137,7 @@ const DailyReport = ({ onViewHistory }) => {
                             <label className='text-sm font-bold text-gray-700'>Task Description</label>
                             <textarea
                                 name="description"
+                                required
                                 value={formData.description}
                                 onChange={handleChange}
                                 className='w-full h-32 p-4 bg-gray-50 border border-gray-200 rounded-xl focus:border-blue-500 outline-none transition-colors text-gray-700 resize-none'
@@ -162,8 +180,12 @@ const DailyReport = ({ onViewHistory }) => {
                                     </label>
                                 </div>
                                 {files.challenges.length > 0 && (
-                                    <div className='text-xs text-yellow-700 font-medium'>
-                                        {files.challenges.length} file(s) selected
+                                    <div className='flex flex-wrap gap-2 mt-2'>
+                                        {files.challenges.map((f, idx) => (
+                                            <span key={idx} className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded border border-yellow-200 italic">
+                                                {f.name}
+                                            </span>
+                                        ))}
                                     </div>
                                 )}
                             </div>
@@ -204,16 +226,28 @@ const DailyReport = ({ onViewHistory }) => {
                                     </label>
                                 </div>
                                 {files.solution.length > 0 && (
-                                    <div className='text-xs text-green-700 font-medium'>
-                                        {files.solution.length} file(s) selected
+                                    <div className='flex flex-wrap gap-2 mt-2'>
+                                        {files.solution.map((f, idx) => (
+                                            <span key={idx} className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded border border-green-200 italic">
+                                                {f.name}
+                                            </span>
+                                        ))}
                                     </div>
                                 )}
                             </div>
                         </div>
 
                         <div className='flex justify-end pt-4 gap-4'>
-                            <button className='bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-10 rounded-xl transition-all shadow-lg shadow-blue-200 hover:shadow-blue-300 transform hover:-translate-y-1'>
-                                Submit Report
+                            <button 
+                                disabled={submitting}
+                                className={`flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-10 rounded-xl transition-all shadow-lg shadow-blue-200 hover:shadow-blue-300 transform hover:-translate-y-1 ${submitting ? 'opacity-70 cursor-not-allowed' : ''}`}
+                            >
+                                {submitting ? (
+                                    <>
+                                        <Loader2 className="animate-spin" size={20} />
+                                        Submitting...
+                                    </>
+                                ) : "Submit Report"}
                             </button>
                         </div>
 

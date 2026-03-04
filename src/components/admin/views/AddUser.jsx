@@ -1,6 +1,8 @@
 import React, { useState, useContext, useEffect } from 'react'
 import { AuthContext } from '../../../context/AuthProvider'
 import { getLocalStorage } from '../../../utils/localStorage'
+import { createAdminEmployee } from '../../../api/employeeApi'
+import { Loader2, UserPlus } from 'lucide-react'
 
 const AddUser = () => {
 
@@ -9,6 +11,7 @@ const AddUser = () => {
     const [password, setPassword] = useState('')
     const [department, setDepartment] = useState('')
     const [phone, setPhone] = useState('')
+    const [isSubmitting, setIsSubmitting] = useState(false)
     const { userData, setUserData } = useContext(AuthContext)
 
     const [deptOptions, setDeptOptions] = useState([])
@@ -18,105 +21,138 @@ const AddUser = () => {
         if (departments) setDeptOptions(departments)
     }, [])
 
-    const submitHandler = (e) => {
+    const submitHandler = async (e) => {
         e.preventDefault()
+        setIsSubmitting(true)
 
-        const newUser = {
-            id: Date.now(),
-            firstName,
-            email,
-            password,
-            phone,
-            department,
-            active: true,
-            role: "employee",
-            taskCounts: {
-                active: 0,
-                newTask: 0,
-                completed: 0,
-                failed: 0
-            },
-            tasks: [],
-            attendance: []
+        try {
+            // Prepare high-density payload for admin-specific backend API
+            const adminEmployeePayload = {
+                name: firstName,
+                designation: department || "Developer",
+                email: email,
+                phone: phone,
+                pendingTasks: 0,
+                completedTasks: 0,
+                failedTasks: 0,
+                active: true
+            }
+
+            console.log("Syncing with Admin Repository:", adminEmployeePayload)
+            const response = await createAdminEmployee(adminEmployeePayload)
+            console.log("Admin API Response:", response)
+
+            // Update local state for immediate UI feedback
+            const newUser = {
+                ...response,
+                firstName: response.name || firstName,
+                id: response.id || Date.now(),
+                active: true,
+                taskCounts: { 
+                    active: response.pendingTasks || 0, 
+                    newTask: 0, 
+                    completed: response.completedTasks || 0, 
+                    failed: response.failedTasks || 0 
+                }
+            }
+
+            const updatedData = [...userData, newUser]
+            setUserData(updatedData)
+            localStorage.setItem('employees', JSON.stringify(updatedData))
+
+            alert(`🚀 Node "${firstName}" successfully established in the administrative directory.`)
+
+            // Reset Form Layer
+            setFirstName('')
+            setEmail('')
+            setPassword('')
+            setDepartment('')
+            setPhone('')
+
+        } catch (error) {
+            console.error("Administrative Sync Failure:", error)
+            alert("⚠️ Critical Link Error: Unable to synchronize with the Administrative Gateway.")
+        } finally {
+            setIsSubmitting(false)
         }
-
-        const updatedData = [...userData, newUser]
-        setUserData(updatedData)
-        localStorage.setItem('employees', JSON.stringify(updatedData))
-
-        setFirstName('')
-        setEmail('')
-        setPassword('')
-        setDepartment('')
-        setPhone('')
-
-        alert("User Created Successfully")
     }
 
     return (
-        <div className='p-8 bg-white shadow-sm border border-gray-200 rounded-xl flex justify-center items-center h-full overflow-auto'>
-            <form onSubmit={submitHandler} className='flex flex-col w-full max-w-lg p-10 border border-purple-100 rounded-2xl bg-white shadow-2xl relative overflow-hidden'>
-                <div className='absolute top-0 left-0 w-full h-1 bg-purple-600'></div>
-                <h2 className='text-3xl font-bold mb-8 text-purple-900 text-center'>Create New Employee</h2>
+        <div className='p-8 bg-gray-50/30 shadow-sm border border-gray-100 rounded-xl flex justify-center items-center h-full overflow-auto'>
+            <form onSubmit={submitHandler} className='flex flex-col w-full max-w-lg p-10 border border-purple-100 rounded-3xl bg-white shadow-2xl relative overflow-hidden transition-all duration-500 hover:shadow-purple-100/50'>
+                <div className='absolute top-0 left-0 w-full h-1.5 bg-purple-600 animate-pulse'></div>
+                <h2 className='text-3xl font-black mb-2 text-purple-900 text-center tracking-tight'>Employee Registration</h2>
+                <p className='text-center text-gray-400 text-xs font-bold uppercase tracking-widest mb-10'>Add new member to the workspace</p>
 
-                <div className='w-full mb-4'>
-                    <label className='text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5 block'>First Name</label>
+                <div className='w-full mb-6'>
+                    <label className='text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2 block ml-1'>Name / Username</label>
                     <input
                         required
                         value={firstName}
+                        disabled={isSubmitting}
                         onChange={(e) => { setFirstName(e.target.value) }}
-                        className='w-full py-3.5 px-4 rounded-xl bg-gray-50 border border-gray-200 focus:border-purple-500 focus:ring-4 focus:ring-purple-500/10 outline-none text-gray-800 placeholder-gray-400 transition-all font-medium' type="text" placeholder='e.g. John'
+                        className='w-full py-4 px-5 rounded-2xl bg-gray-50 border border-gray-100 focus:bg-white focus:border-purple-500 focus:ring-4 focus:ring-purple-500/10 outline-none text-gray-800 placeholder-gray-300 transition-all font-bold text-sm' type="text" placeholder='e.g. Keerthi'
                     />
                 </div>
 
-                <div className='w-full mb-4'>
-                    <label className='text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5 block'>Email Address</label>
+                <div className='w-full mb-6'>
+                    <label className='text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2 block ml-1'>Email Address</label>
                     <input
                         required
                         value={email}
+                        disabled={isSubmitting}
                         onChange={(e) => { setEmail(e.target.value) }}
-                        className='w-full py-3.5 px-4 rounded-xl bg-gray-50 border border-gray-200 focus:border-purple-500 focus:ring-4 focus:ring-purple-500/10 outline-none text-gray-800 placeholder-gray-400 transition-all font-medium' type="email" placeholder='john@example.com'
+                        className='w-full py-4 px-5 rounded-2xl bg-gray-50 border border-gray-100 focus:bg-white focus:border-purple-500 focus:ring-4 focus:ring-purple-500/10 outline-none text-gray-800 placeholder-gray-300 transition-all font-bold text-sm' type="email" placeholder='keerthi@example.com'
                     />
                 </div>
 
-                <div className='w-full mb-4'>
-                    <label className='text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5 block'>Password</label>
+                <div className='w-full mb-6'>
+                    <label className='text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2 block ml-1'>Access Password</label>
                     <input
                         required
                         value={password}
+                        disabled={isSubmitting}
                         onChange={(e) => { setPassword(e.target.value) }}
-                        className='w-full py-3.5 px-4 rounded-xl bg-gray-50 border border-gray-200 focus:border-purple-500 focus:ring-4 focus:ring-purple-500/10 outline-none text-gray-800 placeholder-gray-400 transition-all font-medium' type="password" placeholder='******'
+                        className='w-full py-4 px-5 rounded-2xl bg-gray-50 border border-gray-100 focus:bg-white focus:border-purple-500 focus:ring-4 focus:ring-purple-500/10 outline-none text-gray-800 placeholder-gray-300 transition-all font-bold text-sm' type="password" placeholder='Minimum 6 characters'
                     />
                 </div>
 
-                <div className='w-full mb-4'>
-                    <label className='text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5 block'>Phone Number</label>
-                    <input
-                        required
-                        value={phone}
-                        onChange={(e) => { setPhone(e.target.value) }}
-                        className='w-full py-3.5 px-4 rounded-xl bg-gray-50 border border-gray-200 focus:border-purple-500 focus:ring-4 focus:ring-purple-500/10 outline-none text-gray-800 placeholder-gray-400 transition-all font-medium' type="text" placeholder='+91 99999 99999'
-                    />
+                <div className='grid grid-cols-2 gap-4 mb-10'>
+                    <div className='w-full'>
+                        <label className='text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2 block ml-1'>Phone</label>
+                        <input
+                            required
+                            value={phone}
+                            disabled={isSubmitting}
+                            onChange={(e) => { setPhone(e.target.value) }}
+                            className='w-full py-4 px-5 rounded-2xl bg-gray-50 border border-gray-100 focus:bg-white focus:border-purple-500 focus:ring-4 focus:ring-purple-500/10 outline-none text-gray-800 placeholder-gray-300 transition-all font-bold text-sm' type="text" placeholder='+91 999...'
+                        />
+                    </div>
+                    <div className='w-full'>
+                        <label className='text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2 block ml-1'>Dept</label>
+                        <select
+                            required
+                            value={department}
+                            disabled={isSubmitting}
+                            onChange={(e) => { setDepartment(e.target.value) }}
+                            className='w-full py-4 px-5 rounded-2xl bg-gray-50 border border-gray-100 focus:bg-white focus:border-purple-500 focus:ring-4 focus:ring-purple-500/10 outline-none text-gray-800 transition-all font-bold text-sm appearance-none cursor-pointer'
+                        >
+                            <option value="" className='text-gray-500'>Select</option>
+                            {deptOptions.map(dept => (
+                                <option key={dept.id} value={dept.name}>{dept.name}</option>
+                            ))}
+                            {!deptOptions.length && <option value="General">General</option>}
+                        </select>
+                    </div>
                 </div>
 
-                <div className='w-full mb-8'>
-                    <label className='text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5 block'>Department</label>
-                    <select
-                        required
-                        value={department}
-                        onChange={(e) => { setDepartment(e.target.value) }}
-                        className='w-full py-3.5 px-4 rounded-xl bg-gray-50 border border-gray-200 focus:border-purple-500 focus:ring-4 focus:ring-purple-500/10 outline-none text-gray-800 transition-all font-medium appearance-none cursor-pointer'
-                    >
-                        <option value="" className='text-gray-500'>Select Department</option>
-                        {deptOptions.map(dept => (
-                            <option key={dept.id} value={dept.name}>{dept.name}</option>
-                        ))}
-                        {!deptOptions.length && <option value="General">General (Default)</option>}
-                    </select>
-                </div>
-
-                <button className='w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 px-4 rounded-xl transition-all shadow-lg shadow-purple-200 hover:-translate-y-0.5 transform active:scale-[0.98]'>
-                    Create Account
+                <button 
+                    disabled={isSubmitting}
+                    className='w-full bg-purple-600 hover:bg-purple-700 disabled:bg-purple-300 text-white font-black py-5 px-4 rounded-2xl transition-all shadow-xl shadow-purple-200 hover:-translate-y-1 transform active:scale-[0.98] flex items-center justify-center gap-3 group'
+                >
+                    {isSubmitting ? <Loader2 className="animate-spin" /> : null}
+                    {isSubmitting ? 'Finalizing Setup...' : 'Register Employee'}
+                    {!isSubmitting && <div className='w-2 h-2 rounded-full bg-white group-hover:scale-150 transition-all'></div>}
                 </button>
             </form>
         </div>
