@@ -119,6 +119,7 @@ const Attendance = ({ data }) => {
             </div>
 
             {/* Today's Status Card */}
+<<<<<<< HEAD
             <div className='bg-white p-8 rounded-2xl shadow-sm border border-gray-100 mb-10 flex flex-col items-center justify-center text-center relative overflow-hidden group hover:shadow-xl hover:shadow-blue-50 transition-all duration-500'>
                 <div className='absolute top-0 right-0 p-4 opacity-5'>
                     <Clock size={120} />
@@ -134,6 +135,15 @@ const Attendance = ({ data }) => {
                         <div className='flex flex-col items-center justify-center p-2 rounded-xl border border-transparent transition-all group-hover:bg-white'>
                             <span className='text-[10px] uppercase font-black tracking-widest text-gray-400 mb-1 flex items-center gap-1'><Clock size={10} className="text-green-500" /> Login Time</span>
                             <span className='text-lg font-black text-gray-800'>{loginTime || '--:--'}</span>
+=======
+            <div className='bg-white p-8 rounded-2xl shadow-sm border border-gray-200 mb-8 flex flex-col items-center justify-center text-center'>
+                <div className='w-full max-w-md'>
+                    <div className='flex justify-between items-center mb-8 text-gray-600'>
+
+                        <div className='flex flex-col'>
+                            <span className='text-xs uppercase font-bold tracking-wider text-gray-400'>Login Time</span>
+                            <span className='text-xl font-bold text-gray-800'>{loginTime || '--:--'}</span>
+>>>>>>> 740923c89b925ef6cd1989df69e17797a278e662
                         </div>
                         
                         <div className='flex flex-col items-center justify-center p-2 rounded-xl border border-transparent transition-all group-hover:bg-white'>

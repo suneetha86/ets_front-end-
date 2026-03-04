@@ -247,6 +247,7 @@ const Attendance = () => {
         <div className='bg-white shadow-sm border border-gray-200 p-8 rounded-2xl h-full overflow-hidden flex flex-col'>
             <div className='flex justify-between items-center mb-10'>
                 <div>
+<<<<<<< HEAD
                     <h2 className='text-3xl font-black text-gray-900 flex items-center gap-3'>
                         {viewMode === 'list' ? <History className="text-blue-600" /> : <LayoutDashboard className="text-purple-600" />} 
                         {viewMode === 'list' ? 'Attendance Ledger' : 'Team Presence Hub'}
@@ -254,6 +255,10 @@ const Attendance = () => {
                     <p className='text-gray-500 text-xs mt-1 font-bold uppercase tracking-widest'>
                         {viewMode === 'list' ? 'Review comprehensive employee entrance activity' : 'Real-time overview of organizational presence'}
                     </p>
+=======
+                    <h2 className='text-3xl font-bold text-purple-900'>Attendance Monitor</h2>
+                    <p className='text-gray-500 text-xs mt-1'>Monitor real-time and detailed historical scores</p>
+>>>>>>> 740923c89b925ef6cd1989df69e17797a278e662
                 </div>
                 <div className="flex items-center gap-4">
                     <div className="flex bg-gray-100 p-1 rounded-2xl border border-gray-200">

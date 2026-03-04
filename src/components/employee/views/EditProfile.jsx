@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import userAvatar from "../../../assets/chinnu.jpeg";
 import { updateProfile } from "../../../api/employeeApi";
 
 const EditProfile = ({ data, onSave }) => {
   const navigate = useNavigate();
+  const userId = data?.id || 1; // fallback if id not present
 
-  // Debug logging
   useEffect(() => {
     console.log("EditProfile rendered. Data:", data);
   }, [data]);
@@ -29,11 +30,14 @@ const EditProfile = ({ data, onSave }) => {
     systemName: data?.project || "AJABench System"
   });
 
+  const [loading, setLoading] = useState(false);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm({ ...form, [name]: value });
   };
 
+<<<<<<< HEAD
   const handleSubmit = async () => {
     console.log("Submitting Profile Update (PUT):", form);
 
@@ -72,16 +76,45 @@ const EditProfile = ({ data, onSave }) => {
           coding: form.codingScore
         }
       };
+=======
+  // ================= UPDATE API =================
+  const handleSubmit = async () => {
+    setLoading(true);
+
+    try {
+      const updatedData = { ...data, ...form };
+
+      const response = await axios.put(
+        `http://localhost:8081/api/profiles/update/${userId}`,
+        updatedData
+      );
+
+      console.log("Updated Profile:", response.data);
+>>>>>>> 740923c89b925ef6cd1989df69e17797a278e662
 
       if (onSave) {
         onSave(updatedData);
       }
 
+<<<<<<< HEAD
       alert("Profile updated successfully via PUT!");
       navigate('/employee/profile');
     } catch (error) {
       console.error("Failed to update profile:", error);
       alert("Error updating profile. Check console for details.");
+=======
+      alert("Profile updated successfully");
+
+      navigate("/employee/profile");
+    } catch (error) {
+      console.error("Update failed:", error);
+      alert(
+        error.response?.data?.message ||
+        "Failed to update profile. Check backend."
+      );
+    } finally {
+      setLoading(false);
+>>>>>>> 740923c89b925ef6cd1989df69e17797a278e662
     }
   };
 
@@ -98,16 +131,12 @@ const EditProfile = ({ data, onSave }) => {
                 src={userAvatar}
                 alt="Profile"
                 className="w-full h-full object-cover"
-                onError={(e) => {
-                  e.target.onerror = null;
-                  e.target.src = "https://ui-avatars.com/api/?name=User&background=random"; // Fallback
-                }}
               />
             </div>
           </div>
         </div>
 
-        {/* ================= FORM ================= */}
+        {/* FORM */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Input label="First Name" name="firstName" value={form.firstName} onChange={handleChange} />
           <Input label="Last Name" name="lastName" value={form.lastName} onChange={handleChange} />
@@ -123,20 +152,27 @@ const EditProfile = ({ data, onSave }) => {
           <Input label="GitHub" name="github" value={form.github} onChange={handleChange} />
         </div>
 
-        {/* ================= BUTTONS ================= */}
+        {/* BUTTONS */}
         <div className="flex justify-end gap-4 mt-8 pt-4 border-t border-gray-100">
           <button
-            onClick={() => navigate('/employee/profile')}
-            className="px-6 py-2.5 rounded-xl border border-gray-300 font-medium hover:bg-gray-50 transition-colors"
+            onClick={() => navigate("/employee/profile")}
+            className="px-6 py-2.5 rounded-xl border border-gray-300 font-medium hover:bg-gray-50"
           >
             Cancel
           </button>
 
           <button
             onClick={handleSubmit}
+<<<<<<< HEAD
             className="px-6 py-2.5 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 shadow-md shadow-blue-600/20 transition-all font-bold"
           >
             Update Profile (PUT)
+=======
+            disabled={loading}
+            className="px-6 py-2.5 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700"
+          >
+            {loading ? "Updating..." : "Save Changes"}
+>>>>>>> 740923c89b925ef6cd1989df69e17797a278e662
           </button>
         </div>
       </div>
@@ -144,16 +180,22 @@ const EditProfile = ({ data, onSave }) => {
   );
 };
 
+<<<<<<< HEAD
 // reusable input
 const Input = ({ label, name, value, onChange, type = "text" }) => (
+=======
+const Input = ({ label, name, value, onChange }) => (
+>>>>>>> 740923c89b925ef6cd1989df69e17797a278e662
   <div className="flex flex-col gap-1.5">
-    <label className="text-xs font-semibold text-gray-600 uppercase tracking-wider">{label}</label>
+    <label className="text-xs font-semibold text-gray-600 uppercase">
+      {label}
+    </label>
     <input
       type={type}
       name={name}
       value={value}
       onChange={onChange}
-      className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all font-medium text-gray-800 placeholder:text-gray-500"
+      className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl"
       placeholder={`Enter ${label}`}
     />
   </div>
