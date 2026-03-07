@@ -251,24 +251,13 @@ const employees = [
             "coding": "120"
         },
         "taskCounts": {
-            "active": 1,
-            "newTask": 1,
+            "active": 0,
+            "newTask": 0,
             "completed": 0,
             "failed": 0
         },
         "attendance": [],
-        "tasks": [
-            {
-                "active": true,
-                "newTask": true,
-                "completed": false,
-                "failed": false,
-                "taskTitle": "Welcome Task",
-                "taskDescription": "Complete your profile and onboarding",
-                "taskDate": "2026-02-10",
-                "category": "Onboarding"
-            }
-        ]
+        "tasks": []
     },
     {
         "id": 7,

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import userAvatar from "../../../assets/chinnu.jpeg";
+import { Code, CheckCircle } from "lucide-react";
 import { updateProfile } from "../../../api/employeeApi";
 
 const EditProfile = ({ data, onSave }) => {
@@ -95,16 +96,48 @@ const EditProfile = ({ data, onSave }) => {
   };
 
   return (
-    <div className="p-6 md:p-8 h-full overflow-y-auto pb-20 w-full text-gray-900">
-      <div className="max-w-4xl mx-auto bg-white p-8 rounded-2xl shadow-lg border border-gray-200">
-        <h2 className="text-2xl font-bold mb-6 text-gray-800">Edit Profile</h2>
+    <div className="w-full text-gray-900">
+      <div className="mx-auto bg-white p-2 rounded-2xl">
+        {/* Modal Stats Theme */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+            <div className="bg-blue-50 border border-blue-100 p-4 rounded-2xl flex items-center justify-between shadow-sm">
+                <div>
+                    <label className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Attendance Status</label>
+                    <input 
+                        type="number" 
+                        name="attendance" 
+                        value={form.attendance} 
+                        onChange={handleChange}
+                        className="bg-transparent text-2xl font-black text-blue-700 w-24 outline-none"
+                    />
+                </div>
+                <div className="bg-blue-600/10 p-2 rounded-lg">
+                    <CheckCircle className="text-blue-600" size={20} />
+                </div>
+            </div>
+            <div className="bg-indigo-50 border border-indigo-100 p-4 rounded-2xl flex items-center justify-between shadow-sm">
+                <div>
+                    <label className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">AJA Coding Score</label>
+                    <input 
+                        type="number" 
+                        name="codingScore" 
+                        value={form.codingScore} 
+                        onChange={handleChange}
+                        className="bg-transparent text-2xl font-black text-indigo-700 w-24 outline-none"
+                    />
+                </div>
+                <div className="bg-indigo-600/10 p-2 rounded-lg">
+                    <Code className="text-indigo-600" size={20} />
+                </div>
+            </div>
+        </div>
 
         {/* Avatar */}
         <div className="flex justify-center mb-8">
           <div className="relative group">
             <div className="w-32 h-32 rounded-full overflow-hidden ring-4 ring-gray-100 shadow-lg">
               <img
-                src={userAvatar}
+                src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=1587&auto=format&fit=crop"
                 alt="Profile"
                 className="w-full h-full object-cover"
               />
@@ -123,8 +156,6 @@ const EditProfile = ({ data, onSave }) => {
           <Input label="Project / System Name" name="project" value={form.project} onChange={handleChange} />
           <Input label="Cohort" name="cohort" value={form.cohort} onChange={handleChange} />
           <Input label="Location" name="location" value={form.location} onChange={handleChange} />
-          <Input label="Attendance (%)" name="attendance" value={form.attendance} onChange={handleChange} type="number" />
-          <Input label="Coding Score" name="codingScore" value={form.codingScore} onChange={handleChange} type="number" />
           <Input label="GitHub" name="github" value={form.github} onChange={handleChange} />
         </div>
 
