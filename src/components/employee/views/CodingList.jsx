@@ -77,10 +77,20 @@ const CodingList = () => {
     }
 
     return (
-        <div className='bg-white p-6 rounded-xl h-full overflow-y-auto custom-scrollbar relative'>
-            <h2 className='text-3xl font-bold mb-8 text-gray-800 flex items-center gap-3'>
-                <Code className='text-blue-600' /> Coding Challenges
-            </h2>
+        <div className='bg-white h-full overflow-y-auto custom-scrollbar relative pb-20'>
+            <div className='bg-gradient-to-r from-blue-600 via-blue-400 to-white p-8 rounded-2xl shadow-lg border-b mb-8 flex flex-col md:flex-row items-center justify-between gap-6 animate-in fade-in slide-in-from-top-4 duration-500'>
+                <div className='flex items-center gap-4'>
+                    <div className='bg-white/20 p-3 rounded-2xl backdrop-blur-md border border-white/30 shadow-xl'>
+                        <Code className="text-white" size={32} />
+                    </div>
+                    <div>
+                        <h2 className='text-3xl font-black text-white tracking-tight drop-shadow-sm'>
+                            Coding Challenges
+                        </h2>
+                        <p className='text-blue-50 text-xs font-bold uppercase tracking-widest opacity-80'>AJA Engineering Intelligence</p>
+                    </div>
+                </div>
+            </div>
 
             <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
                 {problems.map(prob => (
@@ -99,14 +109,14 @@ const CodingList = () => {
                         <div className='flex gap-3'>
                             <button
                                 onClick={() => handleSolve(prob.link)}
-                                className='flex-1 py-2.5 bg-black hover:bg-gray-800 text-white rounded-lg transition-all font-medium text-sm flex items-center justify-center gap-2 shadow-lg shadow-gray-400/20'
+                                className='flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all font-black text-[10px] flex items-center justify-center gap-2 shadow-lg shadow-blue-200 uppercase tracking-widest'
                             >
                                 <ExternalLink size={16} /> Solve
                             </button>
                             {prob.status === 'Solved' && (
                                 <button
                                     onClick={() => handleViewSolution(prob)}
-                                    className='px-3 py-2.5 border border-gray-300 hover:bg-gray-100 text-gray-600 rounded-lg transition-all'
+                                    className='px-3 py-2.5 bg-blue-500 text-white hover:bg-blue-600 rounded-lg transition-all shadow-md'
                                     title="View Solution"
                                 >
                                     <BookOpen size={18} />
@@ -136,7 +146,7 @@ const CodingList = () => {
                             </pre>
                         </div>
                         <div className='p-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3'>
-                            <button onClick={closeSolution} className='px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg font-medium transition-colors'>Close</button>
+                            <button onClick={closeSolution} className='px-6 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg font-black text-[10px] uppercase tracking-widest transition-colors'>Close Window</button>
                             <button onClick={() => {
                                 navigator.clipboard.writeText(selectedSolution.solutionCode)
                                 alert('Copied to clipboard!')

@@ -7,7 +7,18 @@ import EmployeeDashboard from '../components/employee/Dashboard'
 import { AuthContext } from '../context/AuthProvider'
 
 function AppRoutes() {
-  const { currentUser, setCurrentUser, userData, setUserData } = useContext(AuthContext)
+  const { currentUser, setCurrentUser, userData, setUserData, isAuthLoading } = useContext(AuthContext)
+
+  if (isAuthLoading) {
+    return (
+      <div className="h-screen w-screen flex items-center justify-center bg-white">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin shadow-xl"></div>
+          <p className="text-xs font-black text-slate-400 uppercase tracking-[0.3em] animate-pulse">Initializing AJA Core...</p>
+        </div>
+      </div>
+    )
+  }
 
   // Use currentUser from context which is reactive
   const role = currentUser?.role

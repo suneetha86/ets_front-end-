@@ -2,19 +2,19 @@ import React, { useState, useMemo } from 'react'
 import { DollarSign, Download, Eye, TrendingUp, CreditCard, PieChart, X, FileText, Filter, ChevronLeft, ChevronRight, ArrowUpDown } from 'lucide-react'
 
 const Salary = () => {
-    const [selectedYear, setSelectedYear] = useState('2025-26')
+    const [selectedYear, setSelectedYear] = useState('All Years')
     const [selectedMonth, setSelectedMonth] = useState('All Months')
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [currentSlip, setCurrentSlip] = useState(null)
 
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1)
-    const [itemsPerPage, setItemsPerPage] = useState(6)
+    const [itemsPerPage, setItemsPerPage] = useState(5)
 
     // Sorting state
     const [sortConfig, setSortConfig] = useState({ key: 'date', direction: 'desc' })
 
-    const years = ['2025-26', '2024-25', '2023-24']
+    const years = ['All Years', '2025-26', '2024-25']
     const months = ['All Months', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 
     // 12 Quality Static Records (Covering Every Month)
@@ -23,42 +23,60 @@ const Salary = () => {
         grossPay: 71700,
         totalDeductions: 6000,
         history: [
+            // 2025-26 Records
             { id: 1, month: "September 2025", year: "2025-26", netPay: 65700, status: "Paid", date: "2025-09-30", gross: 71700, deductions: 6000 },
             { id: 2, month: "August 2025", year: "2025-26", netPay: 65700, status: "Paid", date: "2025-08-31", gross: 71700, deductions: 6000 },
             { id: 3, month: "July 2025", year: "2025-26", netPay: 65700, status: "Paid", date: "2025-07-31", gross: 71700, deductions: 6000 },
             { id: 4, month: "June 2025", year: "2025-26", netPay: 64200, status: "Paid", date: "2025-06-30", gross: 70200, deductions: 6000 },
             { id: 5, month: "May 2025", year: "2025-26", netPay: 64200, status: "Paid", date: "2025-05-31", gross: 70200, deductions: 6000 },
             { id: 6, month: "April 2025", year: "2025-26", netPay: 64200, status: "Paid", date: "2025-04-30", gross: 70200, deductions: 6000 },
-            { id: 7, month: "March 2025", year: "2025-26", netPay: 62500, status: "Paid", date: "2025-03-31", gross: 68500, deductions: 6000 },
-            { id: 8, month: "February 2025", year: "2025-26", netPay: 62500, status: "Paid", date: "2025-02-28", gross: 68500, deductions: 6000 },
-            { id: 9, month: "January 2025", year: "2025-26", netPay: 62500, status: "Paid", date: "2025-01-31", gross: 68500, deductions: 6000 },
-            { id: 10, month: "December 2024", year: "2025-26", netPay: 60000, status: "Paid", date: "2024-12-31", gross: 66000, deductions: 6000 },
-            { id: 11, month: "November 2024", year: "2025-26", netPay: 60000, status: "Paid", date: "2024-11-30", gross: 66000, deductions: 6000 },
-            { id: 12, month: "October 2024", year: "2025-26", netPay: 60000, status: "Paid", date: "2024-10-31", gross: 66000, deductions: 6000 },
+            
+            // 2024-25 Records
+            { id: 7, month: "March 2025", year: "2024-25", netPay: 62500, status: "Paid", date: "2025-03-31", gross: 68500, deductions: 6000 },
+            { id: 8, month: "February 2025", year: "2024-25", netPay: 62500, status: "Paid", date: "2025-02-28", gross: 68500, deductions: 6000 },
+            { id: 9, month: "January 2025", year: "2024-25", netPay: 62500, status: "Paid", date: "2025-01-31", gross: 68500, deductions: 6000 },
+            { id: 10, month: "December 2024", year: "2024-25", netPay: 60000, status: "Paid", date: "2024-12-31", gross: 66000, deductions: 6000 },
+            { id: 11, month: "November 2024", year: "2024-25", netPay: 60000, status: "Paid", date: "2024-11-30", gross: 66000, deductions: 6000 },
+            { id: 12, month: "October 2024", year: "2024-25", netPay: 60000, status: "Paid", date: "2024-10-31", gross: 66000, deductions: 6000 },
+            { id: 13, month: "September 2024", year: "2024-25", netPay: 58500, status: "Paid", date: "2024-09-30", gross: 64500, deductions: 6000 },
+            { id: 14, month: "August 2024", year: "2024-25", netPay: 58500, status: "Paid", date: "2024-08-31", gross: 64500, deductions: 6000 },
         ]
     }
 
     // Filtering, Sorting and Pagination logic
     const processedHistory = useMemo(() => {
         let filtered = salaryData.history.filter(record => {
-            const matchesYear = record.year === selectedYear;
+            const matchesYear = selectedYear === 'All Years' || record.year === selectedYear;
             const matchesMonth = selectedMonth === 'All Months' || record.month.startsWith(selectedMonth);
             return matchesYear && matchesMonth;
         });
 
         if (sortConfig.key) {
             filtered.sort((a, b) => {
-                if (a[sortConfig.key] < b[sortConfig.key]) {
-                    return sortConfig.direction === 'asc' ? -1 : 1;
+                let aVal = a[sortConfig.key];
+                let bVal = b[sortConfig.key];
+                
+                // Special handling for ID/Date to ensure real 'Latest' data
+                if (sortConfig.key === 'date' || sortConfig.key === 'id') {
+                    return sortConfig.direction === 'asc' ? aVal - bVal : bVal - aVal;
                 }
-                if (a[sortConfig.key] > b[sortConfig.key]) {
-                    return sortConfig.direction === 'asc' ? 1 : -1;
-                }
+
+                if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
+                if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1;
                 return 0;
             });
         }
         return filtered;
     }, [selectedYear, selectedMonth, sortConfig]);
+
+    // Live Aggregate Totals based on filtered history
+    const aggregates = useMemo(() => {
+        return processedHistory.reduce((acc, curr) => ({
+            net: acc.net + curr.netPay,
+            gross: acc.gross + curr.gross,
+            deductions: acc.deductions + curr.deductions
+        }), { net: 0, gross: 0, deductions: 0 });
+    }, [processedHistory]);
 
     const totalPages = Math.ceil(processedHistory.length / itemsPerPage);
     const paginatedHistory = processedHistory.slice(
@@ -116,10 +134,9 @@ const Salary = () => {
 <body>
     <div class="payslip-card">
         <div class="header">
-            <h1>AJA Pvt. Ltd.</h1>
-            <p>4th Floor, Infinity Tower, Bangalore - 560001</p>
-            <p>CIN: U12345KA2D2DPTC123456</p>
-            <div class="payslip-badge">PAYSLIP — ${record.month.toUpperCase()}</div>
+            <h1>AJA CONSULTING SERVICRES LLP</h1>
+            <p>the square 4th floor , Gachibowli, Hyderabad • Official Payroll Statement</p>
+            <div class="payslip-badge">Salary Slip — ${record.month.toUpperCase()}</div>
         </div>
         
         <div class="info-grid">
@@ -178,7 +195,7 @@ const Salary = () => {
             </div>
         </div>
 
-        <div class="sys-footer">This is a system-generated payslip and does not require a physical signature. | AJA Pvt Ltd. - Confidential</div>
+        <div class="sys-footer">© 2026 AJA Employee Portal | This is an encrypted system document. | AJA CONSULTING SERVICRES LLP</div>
     </div>
 </body>
 </html>`;
@@ -193,33 +210,40 @@ const Salary = () => {
     }
 
     return (
-        <div className='flex flex-col gap-6 h-full overflow-y-auto pb-20 pr-2 custom-scrollbar scroll-smooth'>
+        <div 
+            className='flex flex-col gap-6 h-full overflow-y-auto pb-20 pr-2 custom-scrollbar scroll-smooth relative'
+        >
             {/* Header */}
-            <div className='flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-xl shadow-sm border border-slate-100'>
-                <div>
-                    <h2 className='text-2xl font-bold text-slate-800 flex items-center gap-2'>
-                        <DollarSign className="text-blue-600" /> Salary Management
-                    </h2>
-                    <p className='text-slate-500 text-sm'>Access your monthly remuneration and download financial records</p>
+            <div className='bg-gradient-to-r from-blue-600 via-blue-400 to-white p-8 rounded-2xl shadow-lg border-b mb-8 flex flex-col md:flex-row items-center justify-between gap-6 animate-in fade-in slide-in-from-top-4 duration-500'>
+                <div className='flex items-center gap-4'>
+                    <div className='bg-white/20 p-3 rounded-2xl backdrop-blur-md border border-white/30 shadow-xl'>
+                        <DollarSign className="text-white" size={32} />
+                    </div>
+                    <div>
+                        <h2 className='text-3xl font-black text-white tracking-tight drop-shadow-sm'>
+                            Salary Management
+                        </h2>
+                        <p className='text-blue-50 text-xs font-bold uppercase tracking-widest opacity-80'>AJA Payroll Hub</p>
+                    </div>
                 </div>
                 <div className='flex flex-wrap gap-3'>
-                    <div className='flex items-center gap-2 bg-slate-50 px-4 py-2 rounded-lg border border-slate-200 shadow-inner'>
-                        <Filter size={16} className='text-slate-400 ml-1' />
+                    <div className='flex items-center gap-2 bg-blue-600 px-4 py-2 rounded-xl border border-blue-400 text-white font-black shadow-xl'>
+                        <Filter size={16} className='text-white' />
                         <select
                             value={selectedYear}
                             onChange={(e) => { setSelectedYear(e.target.value); setCurrentPage(1); }}
-                            className='bg-transparent text-sm font-bold text-slate-700 outline-none cursor-pointer pr-2'
+                            className='bg-transparent text-sm font-black outline-none cursor-pointer pr-2'
                         >
-                            {years.map(y => <option key={y} value={y}>{y}</option>)}
+                            {years.map(y => <option key={y} value={y} className="text-slate-800">{y}</option>)}
                         </select>
                     </div>
-                    <div className='flex items-center gap-2 bg-slate-50 px-4 py-2 rounded-lg border border-slate-200 shadow-inner'>
+                    <div className='flex items-center gap-2 bg-blue-600 px-4 py-2 rounded-xl border border-blue-400 text-white font-black shadow-xl'>
                         <select
                             value={selectedMonth}
                             onChange={(e) => { setSelectedMonth(e.target.value); setCurrentPage(1); }}
-                            className='bg-transparent text-sm font-bold text-slate-700 outline-none cursor-pointer'
+                            className='bg-transparent text-sm font-black outline-none cursor-pointer'
                         >
-                            {months.map(m => <option key={m} value={m}>{m}</option>)}
+                            {months.map(m => <option key={m} value={m} className="text-slate-800">{m}</option>)}
                         </select>
                     </div>
                 </div>
@@ -232,8 +256,8 @@ const Salary = () => {
                         <CreditCard size={24} />
                     </div>
                     <div>
-                        <p className='text-slate-500 text-xs font-semibold uppercase tracking-wider'>Annual Net Package</p>
-                        <h3 className='text-2xl font-bold text-slate-800 tracking-tight'>₹{ (salaryData.netPay * 12).toLocaleString()}</h3>
+                        <p className='text-slate-500 text-[10px] font-black uppercase tracking-widest'>Total Net Value</p>
+                        <h3 className='text-3xl font-black text-slate-800 tracking-tighter'>₹{aggregates.net.toLocaleString()}</h3>
                     </div>
                 </div>
 
@@ -242,8 +266,8 @@ const Salary = () => {
                         <TrendingUp size={24} />
                     </div>
                     <div>
-                        <p className='text-slate-500 text-xs font-semibold uppercase tracking-wider'>Selected Period Gross</p>
-                        <h3 className='text-2xl font-bold text-slate-800 tracking-tight'>₹{salaryData.grossPay.toLocaleString()}</h3>
+                        <p className='text-slate-500 text-[10px] font-black uppercase tracking-widest'>Filtered Period Gross</p>
+                        <h3 className='text-3xl font-black text-slate-800 tracking-tighter'>₹{aggregates.gross.toLocaleString()}</h3>
                     </div>
                 </div>
 
@@ -252,8 +276,8 @@ const Salary = () => {
                         <PieChart size={24} />
                     </div>
                     <div>
-                        <p className='text-slate-500 text-xs font-semibold uppercase tracking-wider'>Selected Period Deductions</p>
-                        <h3 className='text-2xl font-bold text-slate-800 tracking-tight'>₹{salaryData.totalDeductions.toLocaleString()}</h3>
+                        <p className='text-slate-500 text-[10px] font-black uppercase tracking-widest'>Filtered Period Deductions</p>
+                        <h3 className='text-3xl font-black text-slate-800 tracking-tighter text-red-600'>₹{aggregates.deductions.toLocaleString()}</h3>
                     </div>
                 </div>
             </div>
@@ -270,48 +294,48 @@ const Salary = () => {
                     <table className='w-full text-left'>
                         <thead className='bg-slate-50/50 text-slate-500 text-[10px] font-bold uppercase tracking-wider'>
                             <tr>
-                                <th className='p-6 cursor-pointer hover:text-blue-600 transition-colors' onClick={() => handleSort('month')}>
-                                    <div className='flex items-center gap-2'>Cycle <ArrowUpDown size={12} /></div>
+                                <th className='px-6 py-8 cursor-pointer hover:text-blue-600 transition-colors' onClick={() => handleSort('month')}>
+                                    <div className='flex items-center gap-2'>Cycle <ArrowUpDown size={14} className='text-blue-400' /></div>
                                 </th>
-                                <th className='p-6 cursor-pointer hover:text-blue-600 transition-colors' onClick={() => handleSort('date')}>
-                                    <div className='flex items-center gap-2'>Transfer Date <ArrowUpDown size={12} /></div>
+                                <th className='px-6 py-8 cursor-pointer hover:text-blue-600 transition-colors' onClick={() => handleSort('date')}>
+                                    <div className='flex items-center gap-2'>Transfer Date <ArrowUpDown size={14} className='text-blue-400' /></div>
                                 </th>
-                                <th className='p-6 cursor-pointer hover:text-blue-600 transition-colors' onClick={() => handleSort('gross')}>
-                                    <div className='flex items-center gap-2'>Gross <ArrowUpDown size={12} /></div>
+                                <th className='px-6 py-8 cursor-pointer hover:text-blue-600 transition-colors' onClick={() => handleSort('gross')}>
+                                    <div className='flex items-center gap-2'>Gross <ArrowUpDown size={14} className='text-blue-400' /></div>
                                 </th>
-                                <th className='p-6'>Deductions</th>
-                                <th className='p-6 cursor-pointer hover:text-blue-600 transition-colors' onClick={() => handleSort('netPay')}>
-                                    <div className='flex items-center gap-2'>Net Amount <ArrowUpDown size={12} /></div>
+                                <th className='px-6 py-8'>Deductions</th>
+                                <th className='px-6 py-8 cursor-pointer hover:text-blue-600 transition-colors' onClick={() => handleSort('netPay')}>
+                                    <div className='flex items-center gap-2'>Net Amount <ArrowUpDown size={14} className='text-blue-400' /></div>
                                 </th>
-                                <th className='p-6'>Transaction</th>
-                                <th className='p-6 text-center'>Interface</th>
+                                <th className='px-6 py-8'>Transaction</th>
+                                <th className='px-6 py-8 text-center'>Interface</th>
                             </tr>
                         </thead>
                         <tbody className='text-slate-700 divide-y divide-slate-100 text-sm'>
                             {paginatedHistory.length > 0 ? paginatedHistory.map((record) => (
-                                <tr key={record.id} className='hover:bg-blue-50/20 transition-colors group'>
-                                    <td className='p-6 font-bold text-slate-800'>{record.month}</td>
-                                    <td className='p-6 font-medium text-slate-500'>{record.date}</td>
-                                    <td className='p-6 font-bold text-slate-600'>₹{record.gross.toLocaleString()}</td>
-                                    <td className='p-6 font-bold text-red-500'>₹{record.deductions.toLocaleString()}</td>
-                                    <td className='p-6 font-black text-blue-600 text-base'>₹{record.netPay.toLocaleString()}</td>
-                                    <td className='p-6'>
+                                <tr key={record.id} className='hover:bg-blue-50/20 transition-all group duration-300'>
+                                    <td className='px-6 py-10 font-black text-slate-800 text-base'>{record.month}</td>
+                                    <td className='px-6 py-10 font-bold text-slate-500'>{record.date}</td>
+                                    <td className='px-6 py-10 font-black text-slate-600'>₹{record.gross.toLocaleString()}</td>
+                                    <td className='px-6 py-10 font-black text-red-500'>₹{record.deductions.toLocaleString()}</td>
+                                    <td className='px-6 py-10 font-black text-blue-600 text-xl'>₹{record.netPay.toLocaleString()}</td>
+                                    <td className='px-6 py-10'>
                                         <div className='flex items-center gap-2'>
-                                            <span className='w-2 h-2 rounded-full bg-emerald-500'></span>
-                                            <span className='text-[10px] font-black uppercase text-slate-400'>{record.status}</span>
+                                            <span className='w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]'></span>
+                                            <span className='text-[10px] font-black uppercase text-slate-400 tracking-widest'>{record.status}</span>
                                         </div>
                                     </td>
-                                    <td className='p-6'>
+                                    <td className='px-6 py-10'>
                                         <div className='flex justify-center gap-3'>
                                             <button
                                                 onClick={() => handleViewSlip(record)}
-                                                className='p-2 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-lg transition-all shadow-sm flex items-center gap-1.5 text-[10px] font-black uppercase tracking-tighter whitespace-nowrap'
+                                                className='p-2 bg-blue-600 text-white hover:bg-blue-700 rounded-lg transition-all shadow-md flex items-center gap-1.5 text-[10px] font-black uppercase tracking-tighter whitespace-nowrap'
                                             >
                                                 <Eye size={14} /> View
                                             </button>
                                             <button
                                                 onClick={() => handleDownload(record)}
-                                                className='p-2 bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white rounded-lg transition-all shadow-sm flex items-center gap-1.5 text-[10px] font-black uppercase tracking-tighter whitespace-nowrap'
+                                                className='p-2 bg-blue-500 text-white hover:bg-blue-600 rounded-lg transition-all shadow-md flex items-center gap-1.5 text-[10px] font-black uppercase tracking-tighter whitespace-nowrap'
                                             >
                                                 <Download size={14} /> Download
                                             </button>
@@ -370,9 +394,11 @@ const Salary = () => {
                         <div className='bg-blue-600 p-8 text-white relative'>
                             <div className='flex justify-between items-start'>
                                 <div>
-                                    <h3 className='font-black text-3xl tracking-tight'>AJA Pvt. Ltd.</h3>
-                                    <p className='text-[10px] opacity-80 mt-1 uppercase font-bold tracking-widest'>4th Floor, Infinity Tower, Bangalore - 560001</p>
-                                    <p className='text-[10px] opacity-80 uppercase font-bold tracking-widest'>CIN: U12345KA2D2DPTC123456</p>
+                                    <h2 className="text-3xl font-black tracking-tighter mb-2">AJA CONSULTING SERVICRES LLP</h2>
+                                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-80 leading-relaxed max-w-xs">
+                                        Official Remuneration Receipt<br />
+                                        Employee Confidential Record
+                                    </p>
                                     <div className='mt-6 inline-block bg-white/20 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em]'>
                                         Payslip — {currentSlip.month}
                                     </div>
@@ -455,6 +481,7 @@ const Salary = () => {
                     </div>
                 </div>
             )}
+
         </div>
     )
 }

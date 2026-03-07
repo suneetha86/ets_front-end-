@@ -1,6 +1,6 @@
 import React, { useState, useContext } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { Users, FileText, Code, CheckSquare, Send, UserPlus, LogOut, Layout, Clock, BarChart2, ChevronDown, ChevronRight, ClipboardList, PenTool, LayoutDashboard } from 'lucide-react'
+import { Users, FileText, Code, CheckSquare, Send, UserPlus, LogOut, Layout, Clock, BarChart2, ChevronDown, ChevronRight, ClipboardList, PenTool, LayoutDashboard, DollarSign, Bell } from 'lucide-react'
 import { AuthContext } from '../../context/AuthProvider'
 
 const Sidebar = ({ changeUser, isCollapsed, setIsCollapsed }) => {
@@ -27,6 +27,8 @@ const Sidebar = ({ changeUser, isCollapsed, setIsCollapsed }) => {
         { id: 'coding', icon: Code, label: 'Coding Program', path: '/admin/coding' },
         { id: 'daily', icon: CheckSquare, label: 'Daily Tasks', path: '/admin/daily' },
         { id: 'submissions', icon: Send, label: 'Submissions', path: '/admin/submissions' },
+        { id: 'salary', icon: DollarSign, label: 'Salary Management', path: '/admin/salary' },
+        { id: 'notifications', icon: Bell, label: 'Notifications', path: '/admin/notifications' },
         { id: 'addUser', icon: UserPlus, label: 'Add Users', path: '/admin/addUser' },
     ]
 

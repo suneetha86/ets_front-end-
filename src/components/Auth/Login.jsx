@@ -98,7 +98,7 @@ const Login = () => {
                 <div className='w-full max-w-md'>
                     <div className='mb-10'>
                         <h2 className='text-4xl font-black text-slate-900 tracking-tight mb-2'>
-                            {isAdmin ? 'Commander Sync' : 'Access Terminal'}
+                            {isAdmin ? 'Admin' : 'EmployeeIn admin '}
                         </h2>
                         <p className='text-slate-500 font-medium'>
                             Input your encrypted credentials to initialize session.

@@ -109,43 +109,51 @@ const Attendance = ({ data }) => {
     return (
         <div className='p-6 bg-gray-50 h-full overflow-y-auto rounded-xl custom-scrollbar pb-24'>
 
-            <div className='flex justify-between items-center mb-8'>
-                <h2 className='text-3xl font-bold text-gray-800 flex items-center gap-3'>
-                    <Clock className="text-blue-600" /> Attendance Tracker
-                </h2>
-                <div className='text-sm bg-white px-5 py-2.5 rounded-xl shadow-sm border border-gray-200 text-gray-600 font-bold flex items-center gap-2'>
-                    <Calendar size={16} className="text-blue-400" /> {today}
+            <div className='bg-gradient-to-r from-blue-600 via-blue-400 to-white p-8 rounded-2xl shadow-lg border-b mb-8 flex flex-col md:flex-row items-center justify-between gap-6 animate-in fade-in slide-in-from-top-4 duration-500'>
+                <div className='flex items-center gap-4'>
+                    <div className='bg-white/20 p-3 rounded-2xl backdrop-blur-md border border-white/30 shadow-xl'>
+                        <Clock className="text-white" size={32} />
+                    </div>
+                    <div>
+                        <h2 className='text-3xl font-black text-white tracking-tight drop-shadow-sm'>
+                            Attendance Tracker
+                        </h2>
+                        <p className='text-blue-50 text-xs font-bold uppercase tracking-widest opacity-80'>AJA Workforce Intelligence</p>
+                    </div>
+                </div>
+                <div className='text-sm bg-blue-600 px-6 py-3 rounded-2xl border border-blue-400 text-white font-black flex items-center gap-2 shadow-xl'>
+                    <Calendar size={18} className="text-white" /> {today}
                 </div>
             </div>
 
             {/* Today's Status Card */}
-            <div className='bg-white p-8 rounded-2xl shadow-sm border border-gray-100 mb-10 flex flex-col items-center justify-center text-center relative overflow-hidden group hover:shadow-xl hover:shadow-blue-50 transition-all duration-500'>
-                <div className='absolute top-0 right-0 p-4 opacity-5'>
+            <div className='bg-white p-10 rounded-3xl shadow-2xl shadow-blue-100/50 border border-gray-100 mb-10 flex flex-col items-center justify-center text-center relative overflow-hidden group transition-all duration-500'>
+                <div className='absolute top-0 right-0 p-4 opacity-5 text-blue-600'>
                     <Clock size={120} />
                 </div>
 
                 <div className='w-full max-w-2xl'>
-                    <div className='grid grid-cols-1 md:grid-cols-3 gap-8 mb-10 text-gray-600 bg-gray-50/50 p-6 rounded-2xl border border-dashed border-gray-200'>
-                        <div className='flex flex-col items-center justify-center p-2 rounded-xl border border-transparent transition-all group-hover:bg-white'>
-                            <span className='text-[10px] uppercase font-black tracking-widest text-gray-400 mb-1 flex items-center gap-1'><User size={10} /> Employee</span>
-                            <span className='text-lg font-black text-gray-800'>{data?.fullName || data?.username || 'Attendee'}</span>
+                    <div className='grid grid-cols-1 md:grid-cols-3 gap-8 mb-10 text-gray-700 bg-gray-50 p-6 rounded-3xl border border-gray-100'>
+                        <div className='flex flex-col items-center justify-center p-2 rounded-xl'>
+                            <span className='text-[10px] uppercase font-black tracking-widest text-blue-500 mb-1 flex items-center gap-1'><User size={10} /> Attendance</span>
+                            <span className='bg-blue-600 text-white px-6 py-2 rounded-2xl text-lg font-black shadow-lg shadow-blue-100 border border-blue-400'>{data?.fullName || data?.username || 'Attendance'}</span>
                         </div>
 
-                        <div className='flex flex-col items-center justify-center p-2 rounded-xl border border-transparent transition-all group-hover:bg-white'>
-                            <span className='text-[10px] uppercase font-black tracking-widest text-gray-400 mb-1 flex items-center gap-1'><Clock size={10} className="text-green-500" /> Login Time</span>
-                            <span className='text-lg font-black text-gray-800'>{loginTime || '--:--'}</span>
+                        <div className='flex flex-col items-center justify-center p-4 rounded-3xl bg-[#9ce3e3] shadow-lg shadow-cyan-100'>
+                            <span className='text-[10px] uppercase font-black tracking-widest text-white mb-1 flex items-center gap-1'><Clock size={10} /> Login Time</span>
+                            <span className='text-2xl font-black text-white'>{loginTime || '--:--'}</span>
                         </div>
 
-                        <div className='flex flex-col items-center justify-center p-2 rounded-xl border border-transparent transition-all group-hover:bg-white'>
-                            <span className='text-[10px] uppercase font-black tracking-widest text-gray-400 mb-1 flex items-center gap-1'><Clock size={10} className="text-red-500" /> Logout Time</span>
-                            <span className='text-lg font-black text-gray-800'>{logoutTime || '--:--'}</span>
+                        <div className='flex flex-col items-center justify-center p-4 rounded-3xl bg-red-500 shadow-lg shadow-red-100'>
+                            <span className='text-[10px] uppercase font-black tracking-widest text-white mb-1 flex items-center gap-1'><Clock size={10} /> Logout Time</span>
+                            <span className='text-2xl font-black text-white'>{logoutTime || '--:--'}</span>
                         </div>
                     </div>
 
-                    <div className='bg-blue-50/30 p-8 rounded-full w-56 h-56 mx-auto flex items-center justify-center border-8 border-white shadow-inner mb-8 relative group'>
-                        <div className='absolute inset-0 bg-blue-100/20 rounded-full animate-pulse group-hover:animate-none'></div>
+                    <div className='bg-blue-50/50 p-8 rounded-full w-60 h-60 mx-auto flex items-center justify-center border-8 border-white shadow-xl mb-8 relative group'>
+                        <div className='absolute inset-0 bg-blue-100/20 rounded-full animate-pulse'></div>
                         <div className='text-center z-10'>
-                            <span className='block text-4xl font-black text-blue-600 leading-none mb-1'>{duration}</span>
+                            <span className='block text-5xl font-black text-blue-600 leading-none mb-1 tracking-tighter'>{duration}</span>
                             <span className='text-[10px] text-blue-400 font-black uppercase tracking-widest'>Working Hours</span>
                         </div>
                     </div>
@@ -165,7 +173,7 @@ const Attendance = ({ data }) => {
                                 <button
                                     onClick={handleCheckOut}
                                     disabled={actionLoading}
-                                    className={`bg-red-500 hover:bg-red-600 text-white px-10 py-4 rounded-2xl font-black shadow-xl shadow-red-200 transition-all hover:-translate-y-1 active:scale-95 flex items-center gap-2 ${actionLoading ? 'opacity-80' : ''}`}
+                                    className={`bg-blue-600 hover:bg-blue-700 text-white px-10 py-4 rounded-2xl font-black shadow-xl shadow-blue-200 transition-all hover:-translate-y-1 active:scale-95 flex items-center gap-2 ${actionLoading ? 'opacity-80' : ''}`}
                                 >
                                     {actionLoading ? <Loader2 className="animate-spin" size={20} /> : null}
                                     {actionLoading ? 'Clocking Out...' : 'Punch Out'}

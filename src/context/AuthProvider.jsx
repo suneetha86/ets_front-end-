@@ -7,17 +7,23 @@ const AuthProvider = ({ children }) => {
     // localStorage.clear()
 
     const [userData, setUserData] = useState(null)
-    const [currentUser, setCurrentUser] = useState(null)
+    const [currentUser, setCurrentUser] = useState(() => {
+        const loggedInUser = localStorage.getItem('loggedInUser')
+        return loggedInUser ? JSON.parse(loggedInUser) : null
+    })
+    const [isAuthLoading, setIsAuthLoading] = useState(true)
 
     useEffect(() => {
-        setLocalStorage()
+        // Only set default values if they don't exist to prevent wiping user progress
+        if (!localStorage.getItem('employees')) {
+            setLocalStorage()
+        }
+        
         const { employees } = getLocalStorage()
         setUserData(employees)
-
-        const loggedInUser = localStorage.getItem('loggedInUser')
-        if (loggedInUser) {
-            setCurrentUser(JSON.parse(loggedInUser))
-        }
+        
+        // Finalize loading
+        setIsAuthLoading(false)
     }, [])
 
     return (
@@ -25,7 +31,8 @@ const AuthProvider = ({ children }) => {
             userData,
             setUserData,
             currentUser,
-            setCurrentUser
+            setCurrentUser,
+            isAuthLoading
         }}>
             {children}
         </AuthContext.Provider>
