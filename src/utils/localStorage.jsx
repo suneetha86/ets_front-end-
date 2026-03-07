@@ -251,12 +251,13 @@ const employees = [
             "coding": "120"
         },
         "taskCounts": {
-            "active": 1,
-            "newTask": 1,
+            "active": 0,
+            "newTask": 0,
             "completed": 0,
             "failed": 0
         },
         "attendance": [],
+<<<<<<< HEAD
         "tasks": [
             // {
             //     "active": true,
@@ -269,6 +270,9 @@ const employees = [
             //     "category": "Onboarding"
             // }
         ]
+=======
+        "tasks": []
+>>>>>>> 945600258e73804e7b192ca6aa590e4d024cd912
     },
     {
         "id": 7,

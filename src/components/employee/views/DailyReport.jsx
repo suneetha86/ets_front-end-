@@ -89,22 +89,28 @@ const DailyReport = ({ onViewHistory }) => {
     return (
         <div className='p-6 bg-gray-50 h-full overflow-y-auto rounded-xl custom-scrollbar pb-24'>
             <div className='max-w-4xl mx-auto'>
-                <div className='bg-white p-8 rounded-2xl shadow-sm border border-gray-200 mb-8'>
-                    <div className='flex justify-between items-center mb-8'>
-                        <div>
-                            <h2 className='text-3xl font-bold mb-2 text-gray-800 flex items-center gap-3'>
-                                <FileText className='text-blue-600' /> Daily Work Report
-                            </h2>
-                            <p className='text-gray-500'>Submit your daily progress, challenges, and solutions.</p>
+                <div className='bg-gradient-to-r from-blue-600 via-blue-400 to-white p-8 rounded-2xl shadow-lg border-b mb-8 flex flex-col md:flex-row items-center justify-between gap-6 animate-in fade-in slide-in-from-top-4 duration-500'>
+                    <div className='flex items-center gap-4'>
+                        <div className='bg-white/20 p-3 rounded-2xl backdrop-blur-md border border-white/30 shadow-xl'>
+                            <FileText className="text-white" size={32} />
                         </div>
-                        <button
-                            type="button"
-                            onClick={() => navigate('../daily-history')}
-                            className='flex items-center gap-2 px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium transition-colors'
-                        >
-                            <History size={18} /> View History
-                        </button>
+                        <div>
+                            <h2 className='text-3xl font-black text-white tracking-tight drop-shadow-sm'>
+                                Daily Work Report
+                            </h2>
+                            <p className='text-blue-50 text-xs font-bold uppercase tracking-widest opacity-80'>AJA Productivity Log</p>
+                        </div>
                     </div>
+                    <button
+                        type="button"
+                        onClick={() => navigate('../daily-history')}
+                        className='bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl transition-all flex items-center justify-center gap-2 font-black text-[10px] uppercase tracking-widest shadow-xl shadow-blue-200'
+                    >
+                        <History size={16} /> View History Archive
+                    </button>
+                </div>
+
+                <div className='bg-white p-10 rounded-3xl shadow-2xl border border-slate-100 mb-8'>
 
                     <form onSubmit={handleSubmit} className='space-y-6'>
 

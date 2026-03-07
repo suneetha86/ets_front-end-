@@ -1,6 +1,10 @@
 import React, { useState, useContext } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
+<<<<<<< HEAD
 import { Users, FileText, Code, CheckSquare, Send, UserPlus, LogOut, Layout, Clock, BarChart2, ChevronDown, ChevronRight, ClipboardList, PenTool, LayoutDashboard, DollarSign, KeyRound, Bell } from 'lucide-react'
+=======
+import { Users, FileText, Code, CheckSquare, Send, UserPlus, LogOut, Layout, Clock, BarChart2, ChevronDown, ChevronRight, ClipboardList, PenTool, LayoutDashboard, DollarSign, Bell } from 'lucide-react'
+>>>>>>> 945600258e73804e7b192ca6aa590e4d024cd912
 import { AuthContext } from '../../context/AuthProvider'
 
 const Sidebar = ({ changeUser, isCollapsed, setIsCollapsed }) => {
@@ -28,6 +32,8 @@ const Sidebar = ({ changeUser, isCollapsed, setIsCollapsed }) => {
         { id: 'coding', icon: Code, label: 'Coding Program', path: '/admin/coding' },
         { id: 'daily', icon: CheckSquare, label: 'Daily Tasks', path: '/admin/daily' },
         { id: 'submissions', icon: Send, label: 'Submissions', path: '/admin/submissions' },
+        { id: 'salary', icon: DollarSign, label: 'Salary Management', path: '/admin/salary' },
+        { id: 'notifications', icon: Bell, label: 'Notifications', path: '/admin/notifications' },
         { id: 'addUser', icon: UserPlus, label: 'Add Users', path: '/admin/addUser' },
         { id: 'reset-password', icon: KeyRound, label: 'Reset Password', path: '/admin/reset-password' },
         { id: 'notifications', icon: Bell, label: 'Notifications', path: '/admin/notifications' },

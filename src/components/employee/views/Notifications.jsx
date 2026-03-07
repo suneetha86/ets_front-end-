@@ -68,28 +68,39 @@ const Notifications = () => {
     return (
         <div className='flex flex-col gap-6 h-full overflow-y-auto pb-10 custom-scrollbar'>
             {/* Header */}
+<<<<<<< HEAD
             <div className='flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-xl shadow-sm border border-slate-100 uppercase'>
+=======
+            <div className='bg-gradient-to-r from-blue-600 via-blue-400 to-white p-8 rounded-2xl shadow-lg border-b mb-8 flex flex-col md:flex-row items-center justify-between gap-6 animate-in fade-in slide-in-from-top-4 duration-500'>
+>>>>>>> 945600258e73804e7b192ca6aa590e4d024cd912
                 <div className='flex items-center gap-4'>
-                    <div className='w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center p-3'>
-                        <Bell size={24} />
+                    <div className='bg-white/20 p-3 rounded-2xl backdrop-blur-md border border-white/30 shadow-xl'>
+                        <Bell className="text-white" size={32} />
                     </div>
                     <div>
+<<<<<<< HEAD
                         <h2 className='text-2xl font-black text-slate-800 tracking-tight'>Broadcasts</h2>
                         <p className='text-slate-400 text-[10px] font-black tracking-widest mt-1'>Operational Intelligence Feed</p>
+=======
+                        <h2 className='text-3xl font-black text-white tracking-tight drop-shadow-sm'>
+                            Notifications
+                        </h2>
+                        <p className='text-blue-50 text-xs font-bold uppercase tracking-widest opacity-80'>AJA Event Monitoring</p>
+>>>>>>> 945600258e73804e7b192ca6aa590e4d024cd912
                     </div>
                 </div>
-                <div className='flex gap-2 w-full md:w-auto'>
+                <div className='flex gap-3 w-full md:w-auto'>
                     <button
                         onClick={markAllAsRead}
-                        className='flex-1 md:flex-none text-[10px] font-black bg-slate-100 text-slate-600 px-4 py-2 rounded-lg border border-slate-200 hover:bg-slate-200 transition-all flex items-center justify-center gap-2 uppercase tracking-widest'
+                        className='flex-1 md:flex-none text-[10px] font-black bg-blue-600 text-white px-6 py-3 rounded-xl border border-blue-400 hover:bg-blue-700 transition-all flex items-center justify-center gap-2 uppercase tracking-widest shadow-xl'
                     >
-                        <Check size={14} className='text-emerald-500' /> Mark all read
+                        <Check size={16} /> Mark all read
                     </button>
                     <button
                         onClick={clearAll}
-                        className='flex-1 md:flex-none text-[10px] font-black bg-red-50 text-red-600 px-4 py-2 rounded-lg border border-red-100 hover:bg-red-100 transition-all flex items-center justify-center gap-2 uppercase tracking-widest'
+                        className='flex-1 md:flex-none text-[10px] font-black bg-blue-600 backdrop-blur-md text-white px-6 py-3 rounded-xl border border-blue-400 hover:bg-blue-700 transition-all flex items-center justify-center gap-2 uppercase tracking-widest shadow-lg'
                     >
-                        <Trash2 size={14} /> Clear all
+                        <Trash2 size={16} /> Clear all
                     </button>
                 </div>
             </div>
@@ -214,13 +225,21 @@ const Notifications = () => {
                             <div className='mt-12 pt-8 border-t border-slate-100 flex justify-end gap-3'>
                                 <button
                                     onClick={() => deleteNotification(selectedNotif.id) || setIsModalOpen(false)}
+<<<<<<< HEAD
                                     className='px-8 py-4 rounded-2xl text-[10px] font-black text-red-600 border border-red-100 hover:bg-red-50 transition-all uppercase tracking-widest flex items-center gap-2'
+=======
+                                    className='px-6 py-2.5 rounded-xl text-[10px] font-black text-white bg-blue-500 hover:bg-blue-600 transition-all uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-blue-100'
+>>>>>>> 945600258e73804e7b192ca6aa590e4d024cd912
                                 >
                                     <Trash2 size={14} /> PURGE ALERT
                                 </button>
                                 <button
                                     onClick={() => setIsModalOpen(false)}
+<<<<<<< HEAD
                                     className='px-10 py-4 rounded-2xl text-[10px] font-black text-white bg-slate-900 hover:bg-black shadow-xl shadow-slate-900/20 transition-all uppercase tracking-widest'
+=======
+                                    className='px-8 py-2.5 rounded-xl text-[10px] font-black text-white bg-slate-800 hover:bg-slate-900 shadow-xl shadow-slate-200 transition-all uppercase tracking-widest border border-transparent'
+>>>>>>> 945600258e73804e7b192ca6aa590e4d024cd912
                                 >
                                     Close Terminal
                                 </button>

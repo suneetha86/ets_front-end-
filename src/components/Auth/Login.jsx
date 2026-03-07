@@ -189,7 +189,7 @@ const Login = () => {
                 <div className='w-full max-w-md'>
                     <div className='mb-10'>
                         <h2 className='text-4xl font-black text-slate-900 tracking-tight mb-2'>
-                            {isAdmin ? 'Commander Sync' : 'Access Terminal'}
+                            {isAdmin ? 'Admin' : 'EmployeeIn admin '}
                         </h2>
                         <p className='text-slate-500 font-medium'>
                             Input your encrypted credentials to initialize session.
@@ -242,8 +242,8 @@ const Login = () => {
                         </div>
 
                         <div className='pt-2'>
-                            <button className='w-full bg-slate-900 hover:bg-black text-white font-black py-4 rounded-2xl transition-all shadow-xl shadow-slate-200 hover:shadow-slate-300 active:scale-[0.98] uppercase tracking-[0.2em] text-xs'>
-                                Authenticate Session
+                            <button className='w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-4 rounded-2xl transition-all shadow-xl shadow-blue-200 hover:shadow-blue-300 active:scale-[0.98] uppercase tracking-[0.2em] text-xs'>
+                                Login In
                             </button>
                         </div>
                     </form>

@@ -1,5 +1,9 @@
 import React from 'react'
-import { Activity, Code, Clock } from 'lucide-react'
+import { Activity, Code, Clock, TrendingUp } from 'lucide-react'
+import {
+    AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+    BarChart, Bar, ComposedChart, Line, Legend, Cell
+} from 'recharts';
 
 const Analytics = () => {
 
@@ -25,63 +29,138 @@ const Analytics = () => {
     ]
 
     return (
-        <div className='grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8 mb-8'>
+        <div className='grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8 mb-10'>
 
             {/* Attendance Analytics */}
-            <div className='bg-white p-6 rounded-xl border border-gray-200 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1'>
-                <h3 className='text-lg font-bold text-gray-800 mb-6 flex items-center gap-2'>
-                    <Clock className='text-emerald-600' size={20} />
-                    Weekly Attendance (Hours)
-                </h3>
-                <div className='h-64 w-full flex items-end justify-between gap-2 px-2'>
-                    {attendanceData.map((d, i) => (
-                        <div key={i} className='flex flex-col items-center gap-2 w-full group cursor-pointer'>
-                            <div className='relative w-full bg-gray-100 rounded-t-lg h-48 overflow-hidden flex items-end'>
-                                <div
-                                    className='w-full bg-emerald-500 rounded-t-lg transition-all duration-1000 group-hover:bg-emerald-400'
-                                    style={{ height: `${(d.hours / d.max) * 100}%` }}
-                                ></div>
-                                {/* Tooltip */}
-                                <div className='absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10'>
-                                    {d.hours} hrs
-                                </div>
-                            </div>
-                            <span className='text-xs font-medium text-gray-500'>{d.day}</span>
+            <div className='bg-white p-5 rounded-3xl border border-slate-100 shadow-2xl relative overflow-hidden group transition-all duration-500 hover:shadow-emerald-100/50'>
+                <div className='flex justify-between items-center mb-6'>
+                    <div className='flex items-center gap-4'>
+                        <div className='bg-emerald-50 text-emerald-600 p-3 rounded-2xl'>
+                            <Clock size={24} />
                         </div>
-                    ))}
+                        <div>
+                            <h3 className='text-xl font-black text-slate-800 tracking-tight'>Weekly Attendance (Hours)</h3>
+                            <p className='text-[10px] text-slate-400 font-black uppercase tracking-widest'>Weekly Temporal Intelligence</p>
+                        </div>
+                    </div>
+                    <div className='flex flex-col items-end'>
+                        <span className='text-xs font-black text-emerald-600 mb-1'>AVG 8.5H</span>
+                        <div className='h-1 w-12 bg-emerald-100 rounded-full overflow-hidden'>
+                            <div className='h-full bg-emerald-500 w-3/4'></div>
+                        </div>
+                    </div>
                 </div>
-                <div className='flex justify-between mt-6 text-sm text-gray-500 border-t border-gray-100 pt-4'>
-                    <span>Total Hours: <span className='font-bold text-gray-800'>42.5 hrs</span></span>
-                    <span>Avg: <span className='font-bold text-gray-800'>8.5 hrs/day</span></span>
+
+                <div className='h-[200px] w-full'>
+                    <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={attendanceData}>
+                            <defs>
+                                <linearGradient id="colorHours" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.2} />
+                                    <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                                </linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                            <XAxis
+                                dataKey="day"
+                                axisLine={false}
+                                tickLine={false}
+                                tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 700 }}
+                                dy={10}
+                            />
+                            <YAxis hide domain={[0, 12]} />
+                            <Tooltip
+                                contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)', fontWeight: 800, fontSize: '10px' }}
+                                cursor={{ stroke: '#10b981', strokeWidth: 1 }}
+                            />
+                            <Area
+                                type="monotone"
+                                dataKey="hours"
+                                stroke="#10b981"
+                                strokeWidth={3}
+                                fillOpacity={1}
+                                fill="url(#colorHours)"
+                                animationDuration={2000}
+                            />
+                        </AreaChart>
+                    </ResponsiveContainer>
+                </div>
+
+                <div className='flex justify-between mt-8 p-4 bg-emerald-50/50 rounded-2xl border border-emerald-100/50'>
+                    <div className='flex items-center gap-2'>
+                        <div className='w-2 h-2 rounded-full bg-emerald-500 animate-pulse'></div>
+                        <span className='text-[10px] font-black text-slate-600 uppercase tracking-widest'>Active Node Status</span>
+                    </div>
+                    <span className='text-[10px] font-black text-emerald-700 uppercase'>42.5 TOTAL HRS</span>
                 </div>
             </div>
 
-            {/* Coding Performance */}
-            <div className='bg-white p-6 rounded-xl border border-gray-200 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1'>
-                <h3 className='text-lg font-bold text-gray-800 mb-6 flex items-center gap-2'>
-                    <Code className='text-blue-600' size={20} />
-                    Coding Performance (Score)
-                </h3>
-                <div className='h-64 w-full flex items-end justify-between gap-2 px-2'>
-                    {codingData.map((d, i) => (
-                        <div key={i} className='flex flex-col items-center gap-2 w-full group cursor-pointer'>
-                            <div className='relative w-full bg-gray-100 rounded-t-lg h-48 overflow-hidden flex items-end'>
-                                <div
-                                    className='w-full bg-blue-600 rounded-t-lg transition-all duration-1000 group-hover:bg-blue-500'
-                                    style={{ height: `${(d.score / d.max) * 100}%` }}
-                                ></div>
-                                {/* Tooltip */}
-                                <div className='absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10'>
-                                    Score: {d.score}
-                                </div>
-                            </div>
-                            <span className='text-xs font-medium text-gray-500'>{d.day}</span>
+            {/* Coding Performance (Line-Bar Analytic) */}
+            <div className='bg-white p-5 rounded-3xl border border-slate-100 shadow-2xl relative overflow-hidden group transition-all duration-500 hover:shadow-blue-100/50'>
+                <div className='flex justify-between items-center mb-6'>
+                    <div className='flex items-center gap-4'>
+                        <div className='bg-blue-50 text-blue-600 p-3 rounded-2xl'>
+                            <Code size={24} />
                         </div>
-                    ))}
+                        <div>
+                            <h3 className='text-xl font-black text-slate-800 tracking-tight'>Coding Performance</h3>
+                            <p className='text-[10px] text-slate-400 font-black uppercase tracking-widest'>Performance Trend Analytics</p>
+                        </div>
+                    </div>
+                    <div className='flex items-center gap-2 px-3 py-1.5 bg-blue-50 rounded-xl'>
+                        <TrendingUp size={14} className='text-blue-600' />
+                        <span className='text-[10px] font-black text-blue-600'>+14%</span>
+                    </div>
                 </div>
-                <div className='flex justify-between mt-6 text-sm text-gray-500 border-t border-gray-100 pt-4'>
-                    <span>Total Score: <span className='font-bold text-gray-800'>230</span></span>
-                    <span>Top Day: <span className='font-bold text-gray-800'>Sat</span></span>
+
+                <div className='h-[200px] w-full'>
+                    <ResponsiveContainer width="100%" height="100%">
+                        <ComposedChart data={codingData}>
+                            <defs>
+                                <linearGradient id="colorBar" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="#2563eb" stopOpacity={0.8} />
+                                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.4} />
+                                </linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                            <XAxis
+                                dataKey="day"
+                                axisLine={false}
+                                tickLine={false}
+                                tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 700 }}
+                                dy={10}
+                            />
+                            <YAxis hide domain={[0, 100]} />
+                            <Tooltip
+                                cursor={{ fill: '#f8fafc' }}
+                                contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)', fontWeight: 800, fontSize: '10px' }}
+                            />
+                            <Bar
+                                dataKey="score"
+                                barSize={24}
+                                radius={[6, 6, 0, 0]}
+                                fill="url(#colorBar)"
+                                animationDuration={1500}
+                            />
+                            <Line
+                                type="monotone"
+                                dataKey="score"
+                                stroke="#2563eb"
+                                strokeWidth={3}
+                                dot={{ r: 4, fill: '#fff', stroke: '#2563eb', strokeWidth: 2 }}
+                                activeDot={{ r: 6, fill: '#2563eb', stroke: '#fff', strokeWidth: 2 }}
+                                animationDuration={2500}
+                            />
+                        </ComposedChart>
+                    </ResponsiveContainer>
+                </div>
+
+                <div className='flex justify-between mt-8 p-4 bg-blue-50/50 rounded-2xl border border-blue-100/50'>
+                    <div className='flex items-center gap-2 text-blue-700'>
+                        <Activity size={12} />
+                        <span className='text-[10px] font-black uppercase tracking-widest'>Peak Performance: 60 (Sat)</span>
+                    </div>
+                    <span className='text-[10px] font-black text-blue-700 uppercase'>Aggregate Score: 230</span>
                 </div>
             </div>
 

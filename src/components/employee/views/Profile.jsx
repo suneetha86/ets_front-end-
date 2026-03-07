@@ -17,6 +17,7 @@ import {
   Check
 } from "lucide-react";
 import { fetchEmployeeProfile, uploadProfileImage } from "../../../api/employeeApi";
+import EditProfile from "./EditProfile";
 
 const Profile = ({ data }) => {
   const navigate = useNavigate();
@@ -33,6 +34,7 @@ const Profile = ({ data }) => {
   const [cropSize, setCropSize] = useState(200);
   const [uploading, setUploading] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const canvasRef = useRef(null);
   const fileInputRef = useRef(null);
 
@@ -192,26 +194,15 @@ const Profile = ({ data }) => {
       )}
 
       {/* HEADER */}
-      <div className="bg-white p-8 rounded-2xl shadow-sm border mb-8 flex flex-col md:flex-row items-center gap-8 animate-in fade-in slide-in-from-top-4 duration-500">
+      <div className="bg-gradient-to-r from-blue-600 via-blue-400 to-white p-8 rounded-2xl shadow-lg border-b mb-8 flex flex-col md:flex-row items-center gap-8 animate-in fade-in slide-in-from-top-4 duration-500">
         {/* Avatar with Upload Button */}
         <div className="relative group">
-          <div className="w-32 h-32 rounded-full overflow-hidden ring-4 ring-blue-50 bg-gray-100 flex items-center justify-center">
-            {profile.profilePic ? (
-              <img
-                src={profile.profilePic}
+          <div className="w-32 h-32 rounded-full overflow-hidden ring-4 ring-slate-100 bg-slate-100 flex items-center justify-center shadow-2xl">
+            <img
+                src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=1587&auto=format&fit=crop"
                 alt="Profile"
                 className="w-full h-full object-cover"
-                onError={(e) => {
-                  e.target.style.display = 'none';
-                  e.target.nextElementSibling.style.display = 'flex';
-                }}
-              />
-            ) : null}
-            {!profile.profilePic && (
-              <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                <User size={48} className="text-gray-400" />
-              </div>
-            )}
+            />
           </div>
           <button
             onClick={() => {
@@ -234,11 +225,11 @@ const Profile = ({ data }) => {
 
         {/* Info */}
         <div className="flex-1 text-center md:text-left">
-          <h1 className="text-4xl font-bold tracking-tight">
+          <h1 className="text-4xl font-black tracking-tight text-white drop-shadow-sm">
             {profile.fullName}
           </h1>
 
-          <p className="text-blue-600 font-semibold text-lg">{profile.designation}</p>
+          <p className="text-white/90 font-bold text-lg mt-1">{profile.designation}</p>
 
           <div className="flex flex-wrap gap-4 mt-4 text-sm text-gray-600 justify-center md:justify-start">
             <div className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-lg border">
@@ -261,14 +252,10 @@ const Profile = ({ data }) => {
         {/* Buttons */}
         <div className="flex flex-col gap-3">
           <button
-            onClick={() => navigate("/employee/edit-profile")}
-            className="bg-gray-900 hover:bg-gray-800 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg hover:shadow-gray-200 active:scale-95"
+            onClick={() => setIsEditModalOpen(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg shadow-blue-200 hover:shadow-blue-300 hover:-translate-y-0.5 active:scale-95"
           >
             Edit Profile
-          </button>
-
-          <button className="bg-white border hover:bg-gray-50 px-8 py-3 rounded-xl font-medium transition-all text-gray-700 hover:border-gray-400">
-            Share Profile
           </button>
         </div>
       </div>
@@ -279,51 +266,66 @@ const Profile = ({ data }) => {
         <div className="lg:col-span-2 space-y-8 animate-in fade-in slide-in-from-left-4 duration-700">
           {/* Metrics */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div className="bg-white p-6 rounded-2xl border flex items-center gap-5 shadow-sm hover:shadow-md transition-shadow">
-              <div className="bg-blue-50 p-3 rounded-xl">
-                <Clock className="text-blue-600" size={24} />
+            <div className="bg-gradient-to-br from-sky-400 to-sky-600 p-6 rounded-2xl flex items-center gap-5 shadow-lg shadow-sky-100 hover:shadow-sky-200 hover:scale-[1.02] transition-all duration-300 text-white">
+              <div className="bg-white/20 p-3 rounded-xl backdrop-blur-md">
+                <Clock className="text-white" size={24} />
               </div>
               <div>
-                <p className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Attendance</p>
-                <h3 className="text-3xl font-black text-gray-800">
-                  {profile.attendance}
-                </h3>
+                <p className="text-sm font-bold text-sky-100 uppercase tracking-wider opacity-80">Attendance</p>
+                <h3 className="text-3xl font-black">{profile.attendance}</h3>
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-2xl border flex items-center gap-5 shadow-sm hover:shadow-md transition-shadow">
-              <div className="bg-green-50 p-3 rounded-xl">
-                <Code className="text-green-600" size={24} />
+            <div className="bg-gradient-to-br from-emerald-400 to-emerald-600 p-6 rounded-2xl flex items-center gap-5 shadow-lg shadow-emerald-100 hover:shadow-emerald-200 hover:scale-[1.02] transition-all duration-300 text-white">
+              <div className="bg-white/20 p-3 rounded-xl backdrop-blur-md">
+                <Code className="text-white" size={24} />
               </div>
               <div>
-                <p className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Coding Score</p>
-                <h3 className="text-3xl font-black text-gray-800">
-                  {profile.codingScore}
-                </h3>
+                <p className="text-sm font-bold text-emerald-100 uppercase tracking-wider opacity-80">Coding Score</p>
+                <h3 className="text-3xl font-black">{profile.codingScore}</h3>
               </div>
             </div>
           </div>
 
-          {/* Personal Info */}
-          <div className="bg-white rounded-2xl border shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
-            <div className="px-8 py-5 border-b bg-gray-50/50 flex items-center gap-3">
-              <User size={20} className="text-gray-500" />
-              <h3 className="font-bold text-lg text-gray-800">Personal Information</h3>
+          {/* Employee & Bank Details - Reference Structure */}
+          <div className="bg-white rounded-3xl border border-slate-100 shadow-2xl shadow-slate-200/50 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
+            <div className="px-8 py-6 border-b border-slate-50 bg-white flex justify-between items-center">
+              <div className="flex items-center gap-4">
+                <div className="bg-gradient-to-br from-purple-600 to-sky-500 p-2.5 rounded-2xl shadow-lg shadow-blue-100">
+                  <User size={20} className="text-white" />
+                </div>
+                <h3 className="font-black text-xl text-slate-800 tracking-tight">Identity & Financial Parameters</h3>
+              </div>
+              <span className="text-[10px] font-black text-purple-600 bg-purple-50 px-4 py-1.5 rounded-full uppercase tracking-widest border border-purple-100 shadow-sm">Verified AJA Record</span>
             </div>
 
-            <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
-              <Info label="Email" value={profile.email} />
-              <Info label="Phone" value={profile.phone} />
+            <div className="p-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <Info label="Employee Name" value={profile.fullName} />
               <Info label="Employee ID" value={profile.id} />
-              <Info label="Location" value={profile.location} />
+              <Info label="Designation" value={profile.designation} />
+              
+              <Info label="Department" value={profile.project} />
+              <Info label="PAN (Tax ID)" value="ABCPK1234D" />
+              <Info label="UAN (PF Number)" value="100987654321" />
+              
+              <Info label="Bank Account" value="**** **** **** 8821" />
+              <Info label="IFSC Code" value="AJA0001234" />
+              <Info label="Payment Status" value="Active - Monthly" />
+              
+              <Info label="Email Address" value={profile.email} />
+              <Info label="Contact Phone" value={profile.phone} />
+              <Info label="Work Location" value={profile.location} />
             </div>
           </div>
         </div>
 
         {/* RIGHT */}
         <div className="animate-in fade-in slide-in-from-right-4 duration-700">
-          <div className="bg-gray-900 text-white p-8 rounded-3xl shadow-xl space-y-8 relative overflow-hidden group">
-            <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform">
+          <div 
+            style={{ backgroundColor: '#81e3e3' }}
+            className="text-slate-900 p-8 rounded-[2rem] shadow-2xl space-y-8 relative overflow-hidden group hover:shadow-cyan-200 transition-all duration-500 border border-cyan-200"
+          >
+            <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-125 group-hover:rotate-12 transition-transform duration-700">
               <Github size={120} />
             </div>
 
@@ -502,14 +504,62 @@ const Profile = ({ data }) => {
 
       {/* Hidden canvas for cropping */}
       <canvas ref={canvasRef} className="hidden" />
+
+      {/* EDIT PROFILE MODAL */}
+      {isEditModalOpen && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-[100] p-4 animate-in fade-in duration-300">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col scale-in-center animate-in zoom-in-95 duration-300">
+            <div className="bg-blue-600 p-6 flex justify-between items-center text-white">
+              <div className="flex items-center gap-3">
+                <div className="bg-white/20 p-2 rounded-xl">
+                  <User size={24} />
+                </div>
+                <div>
+                  <h2 className="text-xl font-black tracking-tight">Modify Profile Parameters</h2>
+                  <p className="text-[10px] opacity-70 uppercase font-black tracking-widest">AJA Enterprise Identity Management</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsEditModalOpen(false)}
+                className="p-2 hover:bg-white/20 rounded-full transition-colors"
+              >
+                <X size={24} />
+              </button>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto custom-scrollbar">
+              <EditProfile 
+                data={data} 
+                onSave={(updated) => {
+                  setProfile({
+                    fullName: updated.name || `${updated.firstName} ${updated.lastName}`,
+                    designation: updated.designation,
+                    project: updated.systemName,
+                    cohort: updated.cohort,
+                    location: updated.location,
+                    email: updated.email,
+                    phone: updated.phone,
+                    id: updated.employeeId,
+                    github: updated.github,
+                    attendance: `${updated.attendance}%`,
+                    codingScore: updated.codingScore,
+                    profilePic: updated.profilePic || profile.profilePic
+                  });
+                  setIsEditModalOpen(false);
+                }} 
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
 const Info = ({ label, value }) => (
-  <div className="space-y-1.5">
-    <label className="text-xs font-bold text-gray-400 uppercase tracking-widest">{label}</label>
-    <p className="font-semibold text-gray-800 text-lg">{value || "N/A"}</p>
+  <div className="space-y-2 p-4 rounded-2xl bg-gradient-to-br from-purple-50 to-blue-100 hover:from-white hover:to-white transition-all duration-300 border border-blue-100 shadow-sm hover:shadow-xl hover:scale-[1.02] group">
+    <label className="text-[10px] font-black text-purple-400 uppercase tracking-widest group-hover:text-blue-500 transition-colors uppercase">{label}</label>
+    <p className="font-black text-slate-800 text-base tracking-tight leading-none pt-1">{value || "N/A"}</p>
   </div>
 );
 

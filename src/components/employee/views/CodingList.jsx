@@ -111,6 +111,7 @@ const CodingList = () => {
     }
 
     return (
+<<<<<<< HEAD
         <div className='bg-white p-8 rounded-3xl h-full overflow-y-auto scrollbar-hide shadow-sm border border-gray-100 relative'>
             <div className='flex items-center gap-3 mb-8 pb-6 border-b border-gray-100'>
                 <div className='p-3 bg-blue-50 text-blue-600 rounded-2xl'>
@@ -120,6 +121,56 @@ const CodingList = () => {
                     <h2 className='text-3xl font-black tracking-tight text-gray-900'>Challenge Terminal</h2>
                     <p className='text-gray-400 text-xs font-bold uppercase tracking-widest mt-1'>Algorithmic Integrity Test Suite</p>
                 </div>
+=======
+        <div className='bg-white h-full overflow-y-auto custom-scrollbar relative pb-20'>
+            <div className='bg-gradient-to-r from-blue-600 via-blue-400 to-white p-8 rounded-2xl shadow-lg border-b mb-8 flex flex-col md:flex-row items-center justify-between gap-6 animate-in fade-in slide-in-from-top-4 duration-500'>
+                <div className='flex items-center gap-4'>
+                    <div className='bg-white/20 p-3 rounded-2xl backdrop-blur-md border border-white/30 shadow-xl'>
+                        <Code className="text-white" size={32} />
+                    </div>
+                    <div>
+                        <h2 className='text-3xl font-black text-white tracking-tight drop-shadow-sm'>
+                            Coding Challenges
+                        </h2>
+                        <p className='text-blue-50 text-xs font-bold uppercase tracking-widest opacity-80'>AJA Engineering Intelligence</p>
+                    </div>
+                </div>
+            </div>
+
+            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
+                {problems.map(prob => (
+                    <div key={prob.id} className='bg-gray-50 p-6 rounded-xl border border-gray-200 hover:shadow-md transition-all flex flex-col justify-between group'>
+                        <div>
+                            <div className='flex justify-between items-start mb-4'>
+                                <span className={`px-3 py-1 rounded-full text-xs font-bold ${prob.difficulty === 'Medium' ? 'bg-yellow-100 text-yellow-700' :
+                                    prob.difficulty === 'Hard' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
+                                    }`}>{prob.difficulty}</span>
+                                <span className={`text-xs font-bold ${prob.status === 'Solved' ? 'text-green-600' : 'text-gray-400'}`}>{prob.status}</span>
+                            </div>
+                            <h3 className='text-xl font-bold text-gray-800 mb-2 group-hover:text-blue-600 transition-colors'>{prob.title}</h3>
+                            <p className='text-gray-500 text-sm mb-6'>Write a function to solve the {prob.title} problem efficiently.</p>
+                        </div>
+
+                        <div className='flex gap-3'>
+                            <button
+                                onClick={() => handleSolve(prob.link)}
+                                className='flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all font-black text-[10px] flex items-center justify-center gap-2 shadow-lg shadow-blue-200 uppercase tracking-widest'
+                            >
+                                <ExternalLink size={16} /> Solve
+                            </button>
+                            {prob.status === 'Solved' && (
+                                <button
+                                    onClick={() => handleViewSolution(prob)}
+                                    className='px-3 py-2.5 bg-blue-500 text-white hover:bg-blue-600 rounded-lg transition-all shadow-md'
+                                    title="View Solution"
+                                >
+                                    <BookOpen size={18} />
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                ))}
+>>>>>>> 945600258e73804e7b192ca6aa590e4d024cd912
             </div>
 
             {loading ? (
@@ -189,8 +240,13 @@ const CodingList = () => {
                                 <code>{selectedSolution.solutionCode}</code>
                             </pre>
                         </div>
+<<<<<<< HEAD
                         <div className='p-6 border-t border-slate-100 bg-white flex justify-end gap-3 px-8'>
                             <button onClick={closeSolution} className='px-8 py-4 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all active:scale-95'>Close Protocol</button>
+=======
+                        <div className='p-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3'>
+                            <button onClick={closeSolution} className='px-6 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg font-black text-[10px] uppercase tracking-widest transition-colors'>Close Window</button>
+>>>>>>> 945600258e73804e7b192ca6aa590e4d024cd912
                             <button onClick={() => {
                                 navigator.clipboard.writeText(selectedSolution.solutionCode)
                                 alert('Code synchronized with clipboard.')
