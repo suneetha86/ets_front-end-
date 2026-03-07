@@ -9,6 +9,8 @@ import DailyReport from './views/DailyReport'
 import DailyReportHistory from './views/DailyReportHistory'
 import GithubRepo from './views/GithubRepo'
 import Attendance from './views/Attendance'
+import Salary from './views/Salary'
+import Notifications from './views/Notifications'
 
 const Dashboard = (props) => {
   const [isCollapsed, setIsCollapsed] = useState(false)
@@ -27,6 +29,8 @@ const Dashboard = (props) => {
             <Route path="profile" element={<Profile data={props.data} />} />
             <Route path="edit-profile" element={<EditProfile data={props.data} onSave={props.onProfileUpdate} />} />
             <Route path="attendance" element={<Attendance data={props.data} />} />
+            <Route path="salary" element={<Salary data={props.data} />} />
+            <Route path="notifications" element={<Notifications />} />
             <Route path="coding" element={<CodingList />} />
             <Route path="daily" element={<DailyReport />} />
             <Route path="daily-history" element={<DailyReportHistory />} />

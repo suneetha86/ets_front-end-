@@ -39,109 +39,143 @@ const Login = () => {
     }
 
     return (
-        <div className='flex h-screen w-screen items-center justify-center bg-slate-50'>
-            <div className='relative w-full max-w-md p-8'>
-                {/* Decorative background effects - Varied based on type */}
-                <div className={`absolute -top-10 -left-10 w-32 h-32 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob ${isAdmin ? 'bg-purple-300' : 'bg-gray-300'}`}></div>
-                <div className={`absolute -bottom-10 -right-10 w-32 h-32 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000 ${isAdmin ? 'bg-indigo-300' : 'bg-slate-300'}`}></div>
+        <div className='flex h-screen w-screen bg-white overflow-hidden font-sans'>
+            {/* Left Side: Illustration/Image */}
+            <div className='hidden lg:flex lg:w-1/2 relative overflow-hidden bg-slate-900'>
+                <img
+                    src="../../assets/aja-login-hero.png"
+                    alt="AJA Branding Architecture"
+                    className='absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000'
+                />
+                <div className='absolute inset-0 bg-gradient-to-br from-blue-900/40 via-indigo-900/60 to-purple-900/80'></div>
 
-                <div className='bg-white border border-gray-200 rounded-2xl shadow-2xl p-8 relative z-10'>
-                    <div className='text-center mb-8'>
-                        <h2 className='text-3xl font-bold mb-2 text-gray-900'>
-                            {isAdmin ? 'Admin Portal' : 'Employee Login'}
+                <div className='relative z-10 flex flex-col justify-between p-16 h-full text-white'>
+                    <div className='flex items-center gap-4'>
+                        <img
+                            src="../../assets/aja-logo.png"
+                            alt="AJA Logo"
+                            className='w-12 h-12 bg-white rounded-2xl object-contain shadow-2xl'
+                        />
+                        <h1 className='text-3xl font-black tracking-widest uppercase'>AJA</h1>
+                    </div>
+
+                    <div className='max-w-lg'>
+                        <h2 className='text-6xl font-black leading-none tracking-tighter mb-4'>
+                            AJA <br />
+                            <span className='text-blue-400'>Systems.</span>
                         </h2>
-                        <p className='text-sm text-gray-500'>
-                            Enter your credentials to access your account
+                        <p className='text-slate-200 text-lg font-medium leading-relaxed opacity-90 max-w-sm'>
+                            Elevating structural intelligence through precision architecture and integrated protocols.
                         </p>
                     </div>
 
-                    <form
-                        onSubmit={submitHandler}
-                        className='flex flex-col gap-5'
-                    >
-                        {/* Toggle User Type */}
-                        <div className='flex justify-center mb-2'>
-                            <button
-                                type="button"
-                                onClick={() => setIsAdmin(!isAdmin)}
-                                className='text-xs text-blue-600 hover:underline'
-                            >
-                                Switch to {isAdmin ? 'Employee' : 'Admin'} Login
-                            </button>
+                    <div className='flex items-center gap-8'>
+                        <div className='flex flex-col'>
+                            <span className='text-3xl font-black text-white'>v3.1</span>
+                            <span className='text-[10px] text-blue-400 font-black uppercase tracking-[0.3em]'>System Core</span>
                         </div>
+                        <div className='h-12 w-px bg-white/20'></div>
+                        <div className='flex items-center gap-2'>
+                            <div className='w-2 h-2 rounded-full bg-emerald-500 animate-pulse'></div>
+                            <span className='text-[10px] text-slate-400 font-black uppercase tracking-widest'>Encryption Active</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-                        <div>
-                            <label className='text-xs font-bold uppercase tracking-wider mb-1 block ml-1 text-gray-600'>
-                                {isAdmin ? 'Username' : 'Email Address'}
+            {/* Right Side: Login Form */}
+            <div className='w-full lg:w-1/2 flex items-center justify-center p-8 bg-white relative'>
+                {/* Mobile Logo Only */}
+                <div className='absolute top-8 left-8 flex items-center gap-3 lg:hidden'>
+                    <img
+                        src="../../assets/aja-logo.png"
+                        alt="AJA Logo"
+                        className='w-8 h-8 rounded-lg object-contain'
+                    />
+                    <span className='font-black text-sm uppercase tracking-widest text-slate-800'>AJA</span>
+                </div>
+
+                <div className='w-full max-w-md'>
+                    <div className='mb-10'>
+                        <h2 className='text-4xl font-black text-slate-900 tracking-tight mb-2'>
+                            {isAdmin ? 'Commander Sync' : 'Access Terminal'}
+                        </h2>
+                        <p className='text-slate-500 font-medium'>
+                            Input your encrypted credentials to initialize session.
+                        </p>
+                    </div>
+
+                    <form onSubmit={submitHandler} className='space-y-6'>
+                        <div className='space-y-1.5'>
+                            <label className='text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1'>
+                                {isAdmin ? 'Operator ID' : 'Network Identity'}
                             </label>
-                            <div className='relative'>
+                            <div className='relative group'>
                                 <input
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     required
-                                    className={`w-full border text-sm rounded-lg focus:ring-2 block p-3 pl-10 outline-none transition-all bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-400 ${isAdmin
-                                        ? 'focus:ring-purple-500 focus:border-purple-500'
-                                        : 'focus:ring-gray-500 focus:border-gray-500'
-                                        }`}
+                                    className='w-full border-2 border-slate-100 bg-slate-50 text-sm rounded-2xl block p-4 pl-12 outline-none transition-all focus:border-blue-500 focus:bg-white text-slate-900 group-hover:border-slate-200'
                                     type="text"
-                                    placeholder={isAdmin ? 'admin' : 'suneetha@gmail.com'}
+                                    placeholder={isAdmin ? 'Operator-01' : 'user@aja.network'}
                                 />
-                                <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400'>
-                                    {isAdmin ? <User size={18} /> : <Mail size={18} />}
+                                <div className='absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-500 transition-colors'>
+                                    {isAdmin ? <User size={20} /> : <Mail size={20} />}
                                 </div>
                             </div>
                         </div>
 
-                        {/* Password Field */}
-                        <div>
-                            <label className='text-xs font-bold uppercase tracking-wider mb-1 block ml-1 text-gray-600'>
-                                Password
-                            </label>
-                            <div className='relative'>
+                        <div className='space-y-1.5'>
+                            <div className='flex justify-between items-center px-1'>
+                                <label className='text-[10px] font-black uppercase tracking-[0.2em] text-slate-400'>Access Key</label>
+                                <a href="#" className='text-[10px] font-black uppercase tracking-widest text-blue-600 hover:text-blue-700'>Recovery?</a>
+                            </div>
+                            <div className='relative group'>
                                 <input
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     required
-                                    className={`w-full border text-sm rounded-lg focus:ring-2 block p-3 pl-10 outline-none transition-all bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-400 ${isAdmin
-                                        ? 'focus:ring-purple-500 focus:border-purple-500'
-                                        : 'focus:ring-gray-500 focus:border-gray-500'
-                                        }`}
+                                    className='w-full border-2 border-slate-100 bg-slate-50 text-sm rounded-2xl block p-4 pl-12 outline-none transition-all focus:border-blue-500 focus:bg-white text-slate-900 group-hover:border-slate-200'
                                     type="password"
                                     placeholder='••••••••'
                                 />
-                                <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400'>
-                                    <Lock size={18} />
+                                <div className='absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-500 transition-colors'>
+                                    <Lock size={20} />
                                 </div>
                             </div>
                         </div>
 
-                        <div className='flex items-center justify-between text-xs mt-1 text-gray-500'>
-                            <label className='flex items-center gap-2 cursor-pointer hover:opacity-80'>
-                                <input type="checkbox" className={`rounded border-gray-700 focus:ring-offset-0 focus:ring-0 bg-gray-200 ${isAdmin ? 'text-purple-600' : 'text-gray-600'}`} />
-                                Remember me
-                            </label>
-                            <a href="#" className={`transition-colors ${isAdmin ? 'hover:text-purple-600' : 'hover:text-gray-900'}`}>Forgot password?</a>
+                        <div className='flex items-center gap-3 px-1'>
+                            <input type="checkbox" id="remember" className='w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer' />
+                            <label htmlFor="remember" className='text-xs font-bold text-slate-500 cursor-pointer select-none'>Maintain Active Connection</label>
                         </div>
 
-                        <button className={`mt-4 w-full font-bold py-3 px-4 rounded-xl transition-all duration-200 transform hover:translate-y-[-1px] shadow-lg text-white ${isAdmin
-                            ? 'bg-purple-600 hover:bg-purple-700 shadow-purple-500/30'
-                            : 'bg-gray-800 hover:bg-gray-900 shadow-gray-500/20'
-                            }`}>
-                            Sign In
-                        </button>
+                        <div className='pt-2'>
+                            <button className='w-full bg-slate-900 hover:bg-black text-white font-black py-4 rounded-2xl transition-all shadow-xl shadow-slate-200 hover:shadow-slate-300 active:scale-[0.98] uppercase tracking-[0.2em] text-xs'>
+                                Authenticate Session
+                            </button>
+                        </div>
                     </form>
 
-                    <div className='mt-8 text-center text-xs text-gray-500'>
-                        <p className='uppercase tracking-widest opacity-70 mb-2'>Demo Credentials</p>
-                        {isAdmin ? (
-                            <p className='font-mono bg-gray-100 py-2 rounded border border-gray-200'>
-                                <span className='text-purple-600 font-bold'>admin</span> / <span className='text-purple-600 font-bold'>admin@123</span>
-                            </p>
-                        ) : (
-                            <p className='font-mono bg-gray-100 py-2 rounded border border-gray-200'>
-                                <span className='text-gray-700 font-bold'>suneetha@gmail.com</span> / <span className='text-gray-700 font-bold'>suni@123</span>
-                            </p>
-                        )}
+                    <div className='mt-8 pt-8 border-t border-slate-100 flex flex-col gap-4'>
+                        <button
+                            type="button"
+                            onClick={() => setIsAdmin(!isAdmin)}
+                            className='w-full py-4 border-2 border-slate-100 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:bg-slate-50 hover:text-blue-600 hover:border-blue-100 transition-all'
+                        >
+                            Switch to {isAdmin ? 'Standard Member' : 'System Commander'} Terminal
+                        </button>
+
+                        <div className='bg-slate-50 p-4 rounded-xl border border-slate-100'>
+                            <p className='text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 opacity-60 text-center'>Sandbox Node Access</p>
+                            <div className='text-[11px] font-mono text-center'>
+                                {isAdmin ? (
+                                    <span className='text-slate-600'>ID: <b className='text-blue-600'>admin</b> | KEY: <b className='text-blue-600'>admin@123</b></span>
+                                ) : (
+                                    <span className='text-slate-600'>ID: <b className='text-slate-800'>suneetha@gmail.com</b> | KEY: <b className='text-slate-800'>suni@123</b></span>
+                                )}
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
