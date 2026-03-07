@@ -2,6 +2,7 @@ import React, { useState, useContext } from 'react'
 import { User, Lock, Mail } from 'lucide-react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { AuthContext } from '../../context/AuthProvider'
+import { adminLogin, adminForgotPassword, registerEmployee, employeeLogin, employeeForgotPassword } from '../../api/employeeApi'
 
 const Login = () => {
     const navigate = useNavigate()
@@ -10,44 +11,134 @@ const Login = () => {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [isAdmin, setIsAdmin] = useState(location.state?.type === 'admin')
-    const { userData, setCurrentUser } = useContext(AuthContext)
+    const { userData, setUserData, setCurrentUser } = useContext(AuthContext)
 
-    const submitHandler = (e) => {
+    const submitHandler = async (e) => {
         e.preventDefault()
 
-        if (isAdmin && email === 'admin' && password === 'admin@123') {
-            const user = { role: 'admin' }
-            setCurrentUser(user)
-            localStorage.setItem('loggedInUser', JSON.stringify(user))
-            navigate('/admin/dashboard')
-        } else if (userData) {
-            const employee = userData.find((e) => email === e.email && e.password === password)
-            if (employee) {
-                const user = { role: 'employee', data: employee }
-                setCurrentUser(user)
-                localStorage.setItem('loggedInUser', JSON.stringify(user))
-                navigate('/employee/dashboard')
-            } else {
-                alert("Invalid Credentials")
+        if (isAdmin) {
+            try {
+                // Determine whether backend expects 'username' or 'email'
+                // Assuming email based on standard and the payload we know
+                const response = await adminLogin({ email, password });
+                
+                if (response.token) {
+                    const user = { role: 'admin', token: response.token }
+                    setCurrentUser(user)
+                    localStorage.setItem('loggedInUser', JSON.stringify(user))
+                    localStorage.setItem('adminToken', response.token) // store token separately if needed
+                    navigate('/admin/dashboard')
+                } else {
+                    alert(response.message || "Invalid Admin Credentials")
+                }
+            } catch (error) {
+                console.error("Admin login failed:", error);
+                alert("Login failed. Please check your credentials.");
             }
         } else {
-            alert("Invalid Credentials")
+            // Employee Login Integration
+            try {
+                const response = await employeeLogin({ email, password });
+                
+                // Handling both string "Login successful" and object responses
+                const isSuccess = typeof response === 'string' 
+                    ? response.includes("successful") 
+                    : (response.token || response.id || response.message?.includes("successful"));
+
+                if (isSuccess) {
+                    const user = { 
+                        role: 'employee', 
+                        data: typeof response === 'object' ? response : { email },
+                        token: response.token 
+                    }
+                    setCurrentUser(user)
+                    localStorage.setItem('loggedInUser', JSON.stringify(user))
+                    navigate('/employee/dashboard')
+                } else {
+                    alert(response.message || "Invalid Credentials")
+                }
+            } catch (error) {
+                console.error("Employee login failed:", error);
+                
+                // Fallback to local data for offline/dev mode if API fails
+                if (userData) {
+                    const employee = userData.find((e) => email === e.email && e.password === password)
+                    if (employee) {
+                        const user = { role: 'employee', data: employee }
+                        setCurrentUser(user)
+                        localStorage.setItem('loggedInUser', JSON.stringify(user))
+                        navigate('/employee/dashboard')
+                        return;
+                    }
+                }
+                alert("Login failed. Please check your network or credentials.");
+            }
         }
 
-        setEmail("")
+        // Only clear password, keeping email is good UX
         setPassword("")
     }
 
+    const handleForgotPassword = async (e) => {
+        e.preventDefault();
+        if (!email) {
+            alert("Please enter your Operator ID / Email first.");
+            return;
+        }
+
+        if (isAdmin) {
+            try {
+                const response = await adminForgotPassword({ email });
+                alert(response.message || "If account exists, reset link sent.");
+            } catch (error) {
+                console.error("Forgot password failed:", error);
+                alert("Failed to send reset request.");
+            }
+        } else {
+            try {
+                // Email-based verification for employees
+                const response = await employeeForgotPassword({ email });
+                
+                // Handle string or object responses
+                const message = typeof response === 'string' ? response : (response.message || "");
+                if (message.includes("verified")) {
+                    alert(message);
+                    // Navigate if needed, or just let them know
+                } else {
+                    alert(message || "Email verified. You can reset your password now");
+                }
+            } catch (error) {
+                console.error("Employee password verification failed:", error);
+                alert("Verification failed. Please check your email.");
+            }
+        }
+    }
+
     return (
-        <div className='flex h-screen w-screen bg-white overflow-hidden font-sans'>
+        <div 
+            className='flex h-screen w-screen overflow-hidden font-sans'
+            style={{
+                backgroundImage: 'url(../../../assets/aja-hero-background.png)',
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
+                backgroundAttachment: 'fixed',
+            }}
+        >
+            {/* Background Overlay */}
+            <div className='absolute inset-0 bg-gradient-to-r from-white/85 via-white/70 to-black/20'></div>
+
             {/* Left Side: Illustration/Image */}
-            <div className='hidden lg:flex lg:w-1/2 relative overflow-hidden bg-slate-900'>
-                <img
-                    src="../../assets/aja-login-hero.png"
-                    alt="AJA Branding Architecture"
-                    className='absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000'
-                />
-                <div className='absolute inset-0 bg-gradient-to-br from-blue-900/40 via-indigo-900/60 to-purple-900/80'></div>
+            <div 
+                className='hidden lg:flex lg:w-1/2 relative overflow-hidden'
+                style={{
+                    backgroundImage: 'url(../../../assets/aja-hero-background.png)',
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    backgroundRepeat: 'no-repeat',
+                }}
+            >
+                <div className='absolute inset-0 bg-gradient-to-br from-black/40 via-black/20 to-transparent'></div>
 
                 <div className='relative z-10 flex flex-col justify-between p-16 h-full text-white'>
                     <div className='flex items-center gap-4'>
@@ -70,21 +161,21 @@ const Login = () => {
                     </div>
 
                     <div className='flex items-center gap-8'>
-                        <div className='flex flex-col'>
+                        {/* <div className='flex flex-col'>
                             <span className='text-3xl font-black text-white'>v3.1</span>
                             <span className='text-[10px] text-blue-400 font-black uppercase tracking-[0.3em]'>System Core</span>
-                        </div>
+                        </div> */}
                         <div className='h-12 w-px bg-white/20'></div>
-                        <div className='flex items-center gap-2'>
+                        {/* <div className='flex items-center gap-2'>
                             <div className='w-2 h-2 rounded-full bg-emerald-500 animate-pulse'></div>
                             <span className='text-[10px] text-slate-400 font-black uppercase tracking-widest'>Encryption Active</span>
-                        </div>
+                        </div> */}
                     </div>
                 </div>
             </div>
 
             {/* Right Side: Login Form */}
-            <div className='w-full lg:w-1/2 flex items-center justify-center p-8 bg-white relative'>
+            <div className='w-full lg:w-1/2 flex items-center justify-center p-8 bg-white/95 relative z-20'>
                 {/* Mobile Logo Only */}
                 <div className='absolute top-8 left-8 flex items-center gap-3 lg:hidden'>
                     <img
@@ -128,7 +219,7 @@ const Login = () => {
                         <div className='space-y-1.5'>
                             <div className='flex justify-between items-center px-1'>
                                 <label className='text-[10px] font-black uppercase tracking-[0.2em] text-slate-400'>Access Key</label>
-                                <a href="#" className='text-[10px] font-black uppercase tracking-widest text-blue-600 hover:text-blue-700'>Recovery?</a>
+                                <button type="button" onClick={handleForgotPassword} className='text-[10px] font-black uppercase tracking-widest text-blue-600 hover:text-blue-700'>Recovery?</button>
                             </div>
                             <div className='relative group'>
                                 <input

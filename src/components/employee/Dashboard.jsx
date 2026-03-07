@@ -11,6 +11,7 @@ import GithubRepo from './views/GithubRepo'
 import Attendance from './views/Attendance'
 import Salary from './views/Salary'
 import Notifications from './views/Notifications'
+import ResetPassword from './views/ResetPassword'
 
 const Dashboard = (props) => {
   const [isCollapsed, setIsCollapsed] = useState(false)
@@ -35,6 +36,7 @@ const Dashboard = (props) => {
             <Route path="daily" element={<DailyReport />} />
             <Route path="daily-history" element={<DailyReportHistory />} />
             <Route path="github" element={<GithubRepo />} />
+            <Route path="reset-password" element={<ResetPassword data={props.data} />} />
             <Route path="*" element={<Navigate to="dashboard" replace />} />
           </Routes>
         </div>

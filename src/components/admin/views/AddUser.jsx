@@ -1,7 +1,7 @@
 import React, { useState, useContext, useEffect } from 'react'
 import { AuthContext } from '../../../context/AuthProvider'
 import { getLocalStorage } from '../../../utils/localStorage'
-import { createAdminEmployee } from '../../../api/employeeApi'
+import { createAdminEmployee, registerEmployee } from '../../../api/employeeApi'
 import { Loader2, UserPlus } from 'lucide-react'
 
 const AddUser = () => {
@@ -41,6 +41,18 @@ const AddUser = () => {
             console.log("Syncing with Admin Repository:", adminEmployeePayload)
             const response = await createAdminEmployee(adminEmployeePayload)
             console.log("Admin API Response:", response)
+
+            // Prepare registration payload for global employee auth service
+            const registerPayload = {
+                username: firstName,
+                email: email,
+                password: password,
+                role: 'employee'
+            }
+
+            console.log("Initializing Global Registration:", registerPayload)
+            const registerResponse = await registerEmployee(registerPayload)
+            console.log("Registration API Response:", registerResponse)
 
             // Update local state for immediate UI feedback
             const newUser = {

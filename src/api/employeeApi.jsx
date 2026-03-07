@@ -130,3 +130,73 @@ export const fetchActiveEmployeeCount = async () => {
         throw error;
     }
 };
+
+export const adminLogin = async (credentials) => {
+    try {
+        const response = await axios.post(`http://localhost:8081/api/admin/login`, credentials);
+        return response.data;
+    } catch (error) {
+        console.error('Error logging in admin:', error);
+        throw error;
+    }
+}
+
+export const adminForgotPassword = async (emailData) => {
+    try {
+        const response = await axios.post(`http://localhost:8081/api/admin/forgot-password`, emailData);
+        return response.data;
+    } catch (error) {
+        console.error('Error sending reset link:', error);
+        throw error;
+    }
+}
+
+export const adminResetPassword = async (resetData) => {
+    try {
+        const response = await axios.post(`http://localhost:8081/api/admin/reset-password`, resetData);
+        return response.data;
+    } catch (error) {
+        console.error('Error resetting password:', error);
+        throw error;
+    }
+}
+
+export const registerEmployee = async (employeeData) => {
+    try {
+        const response = await axios.post(`${BASE_URL}/employee/register`, employeeData);
+        return response.data;
+    } catch (error) {
+        console.error('Error registering employee:', error);
+        throw error;
+    }
+}
+
+export const employeeLogin = async (credentials) => {
+    try {
+        const response = await axios.post(`${BASE_URL}/employee/login`, credentials);
+        return response.data;
+    } catch (error) {
+        console.error('Error logging in employee:', error);
+        throw error;
+    }
+}
+
+export const employeeForgotPassword = async (emailData) => {
+    try {
+        const response = await axios.post(`${BASE_URL}/employee/forgot-password`, emailData);
+        return response.data;
+    } catch (error) {
+        console.error('Error verifying email:', error);
+        throw error;
+    }
+}
+
+export const employeeResetPassword = async (resetData) => {
+    try {
+        const response = await axios.post(`${BASE_URL}/employee/reset-password`, resetData);
+        return response.data;
+    } catch (error) {
+        console.error('Error resetting employee password:', error);
+        throw error;
+    }
+}

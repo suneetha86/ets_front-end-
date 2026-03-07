@@ -258,16 +258,16 @@ const employees = [
         },
         "attendance": [],
         "tasks": [
-            {
-                "active": true,
-                "newTask": true,
-                "completed": false,
-                "failed": false,
-                "taskTitle": "Welcome Task",
-                "taskDescription": "Complete your profile and onboarding",
-                "taskDate": "2026-02-10",
-                "category": "Onboarding"
-            }
+            // {
+            //     "active": true,
+            //     "newTask": true,
+            //     "completed": false,
+            //     "failed": false,
+            //     "taskTitle": "Welcome Task",
+            //     "taskDescription": "Complete your profile and onboarding",
+            //     "taskDate": "2026-02-10",
+            //     "category": "Onboarding"
+            // }
         ]
     },
     {

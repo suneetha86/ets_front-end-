@@ -13,6 +13,9 @@ import Reports from './views/Reports'
 import AssignTask from './views/AssignTask'
 import TaskStatus from './views/TaskStatus'
 import AdminDashboardHome from './views/AdminDashboardHome'
+import Salary from './views/Salary'
+import ResetPassword from './views/ResetPassword'
+import Notifications from './views/Notifications'
 
 const Dashboard = (props) => {
   const [isCollapsed, setIsCollapsed] = useState(false)
@@ -39,6 +42,9 @@ const Dashboard = (props) => {
             <Route path="daily" element={<DailyTasks />} />
             <Route path="submissions" element={<Submissions />} />
             <Route path="addUser" element={<AddUser />} />
+            <Route path="salary" element={<Salary />} />
+            <Route path="reset-password" element={<ResetPassword />} />
+            <Route path="notifications" element={<Notifications />} />
             <Route path="*" element={<Navigate to="employees" replace />} />
           </Routes>
         </div>

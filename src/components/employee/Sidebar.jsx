@@ -1,6 +1,6 @@
 import React, { useContext } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { User, FileText, Code, CheckSquare, Github, LogOut, Clock, LayoutDashboard, ChevronLeft, ChevronRight, Wallet, Bell } from 'lucide-react'
+import { User, FileText, Code, CheckSquare, Github, LogOut, Clock, LayoutDashboard, ChevronLeft, ChevronRight, Wallet, Bell, KeyRound } from 'lucide-react'
 import { AuthContext } from '../../context/AuthProvider'
 
 const Sidebar = ({ changeUser, firstName, isCollapsed, setIsCollapsed }) => {
@@ -16,6 +16,7 @@ const Sidebar = ({ changeUser, firstName, isCollapsed, setIsCollapsed }) => {
         { id: 'notifications', icon: Bell, label: 'Notifications', path: '/employee/notifications' },
         { id: 'coding', icon: Code, label: 'Coding', path: '/employee/coding' },
         { id: 'daily', icon: CheckSquare, label: 'Daily Task', path: '/employee/daily' },
+        { id: 'reset-password', icon: KeyRound, label: 'Reset Password', path: '/employee/reset-password' },
         { id: 'github', icon: Github, label: 'GitHub', path: '/employee/github' },
     ]
 

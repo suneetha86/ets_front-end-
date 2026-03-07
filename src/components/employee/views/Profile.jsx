@@ -65,7 +65,7 @@ const Profile = ({ data }) => {
         setError(null);
       } catch (err) {
         console.error("Failed to load profile:", err);
-        setError("Unable to load profile data from server.");
+        
         // Fallback to local data if API fails
         setProfile({
           fullName: `${data?.firstName} ${data?.lastName}`,
