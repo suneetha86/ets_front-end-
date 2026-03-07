@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
@@ -10,17 +10,31 @@ import {
   User,
   Loader2,
   AlertCircle,
-  Github
+  Github,
+  Camera,
+  Upload,
+  X,
+  Check
 } from "lucide-react";
-
-import userAvatar from "../../../assets/chinnu.jpeg";
-import { fetchEmployeeProfile } from "../../../api/employeeApi";
+import { fetchEmployeeProfile, uploadProfileImage } from "../../../api/employeeApi";
 
 const Profile = ({ data }) => {
   const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  // Image upload states
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [croppedImage, setCroppedImage] = useState(null);
+  const [cropX, setCropX] = useState(0);
+  const [cropY, setCropY] = useState(0);
+  const [cropSize, setCropSize] = useState(200);
+  const [uploading, setUploading] = useState(false);
+  const [uploadSuccess, setUploadSuccess] = useState(false);
+  const canvasRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     const getProfileData = async () => {
@@ -46,7 +60,7 @@ const Profile = ({ data }) => {
           github: data?.github || "manucode",
           attendance: profileData.attendance ? `${profileData.attendance}%` : data?.analytics?.attendance || "0%",
           codingScore: profileData.codingScore || data?.analytics?.codingScore || 0,
-          profilePic: profileData.profileImage || userAvatar
+          profilePic: profileData.profileImage || null
         });
         setError(null);
       } catch (err) {
@@ -65,7 +79,7 @@ const Profile = ({ data }) => {
           github: data?.github || "manucode",
           attendance: data?.analytics?.attendance || "0%",
           codingScore: data?.analytics?.codingScore || 0,
-          profilePic: userAvatar
+          profilePic: null
         });
       } finally {
         setLoading(false);
@@ -74,6 +88,90 @@ const Profile = ({ data }) => {
 
     getProfileData();
   }, [data]);
+
+  // Handle image file selection
+  const handleImageSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      alert("Image size must be less than 5MB");
+      return;
+    }
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      alert("Please select a valid image file");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setSelectedImage(e.target.result);
+      setCroppedImage(null);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Handle image cropping
+  const handleCrop = () => {
+    if (!selectedImage || !canvasRef.current) return;
+
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    const img = new Image();
+
+    img.onload = () => {
+      canvas.width = cropSize;
+      canvas.height = cropSize;
+      ctx.drawImage(img, cropX, cropY, cropSize, cropSize, 0, 0, cropSize, cropSize);
+      setCroppedImage(canvas.toDataURL("image/jpeg", 0.9));
+    };
+    img.src = selectedImage;
+  };
+
+  // Handle image upload to backend
+  const handleUpload = async () => {
+    if (!croppedImage || !profile?.id) {
+      alert("Please crop an image first");
+      return;
+    }
+
+    try {
+      setUploading(true);
+
+      // Convert base64 to blob
+      const response = await fetch(croppedImage);
+      const blob = await response.blob();
+      const file = new File([blob], `profile-${profile.id}.jpg`, { type: "image/jpeg" });
+
+      // Call API to upload
+      const result = await uploadProfileImage(file, profile.id);
+      console.log("Upload response:", result);
+
+      // Update profile picture
+      setProfile(prev => ({
+        ...prev,
+        profilePic: croppedImage
+      }));
+
+      setUploadSuccess(true);
+      setTimeout(() => {
+        setShowUploadModal(false);
+        setSelectedImage(null);
+        setCroppedImage(null);
+        setUploadSuccess(false);
+      }, 1500);
+
+      alert("Profile picture updated successfully!");
+    } catch (err) {
+      console.error("Error uploading image:", err);
+      alert("Failed to upload image. Please try again.");
+    } finally {
+      setUploading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -95,16 +193,42 @@ const Profile = ({ data }) => {
 
       {/* HEADER */}
       <div className="bg-white p-8 rounded-2xl shadow-sm border mb-8 flex flex-col md:flex-row items-center gap-8 animate-in fade-in slide-in-from-top-4 duration-500">
-        {/* Avatar */}
-        <div className="w-32 h-32 rounded-full overflow-hidden ring-4 ring-blue-50">
-          <img
-            src={profile.profilePic === "profile1.png" ? userAvatar : profile.profilePic}
-            alt="Profile"
-            className="w-full h-full object-cover"
-            onError={(e) => {
-              e.target.onerror = null;
-              e.target.src = userAvatar;
+        {/* Avatar with Upload Button */}
+        <div className="relative group">
+          <div className="w-32 h-32 rounded-full overflow-hidden ring-4 ring-blue-50 bg-gray-100 flex items-center justify-center">
+            {profile.profilePic ? (
+              <img
+                src={profile.profilePic}
+                alt="Profile"
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                  e.target.nextElementSibling.style.display = 'flex';
+                }}
+              />
+            ) : null}
+            {!profile.profilePic && (
+              <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                <User size={48} className="text-gray-400" />
+              </div>
+            )}
+          </div>
+          <button
+            onClick={() => {
+              setShowUploadModal(true);
+              fileInputRef.current?.click();
             }}
+            className="absolute bottom-0 right-0 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg transition-all transform group-hover:scale-110 active:scale-95"
+            title="Upload profile picture"
+          >
+            <Camera size={18} />
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleImageSelect}
+            className="hidden"
           />
         </div>
 
@@ -234,6 +358,150 @@ const Profile = ({ data }) => {
           </div>
         </div>
       </div>
+
+      {/* IMAGE UPLOAD MODAL */}
+      {showUploadModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            {/* Header */}
+            <div className="flex justify-between items-center p-6 border-b sticky top-0 bg-white">
+              <h2 className="text-2xl font-bold text-gray-800">Upload Profile Picture</h2>
+              <button
+                onClick={() => {
+                  setShowUploadModal(false);
+                  setSelectedImage(null);
+                  setCroppedImage(null);
+                }}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <X size={24} className="text-gray-500" />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-8 space-y-6">
+              {!selectedImage ? (
+                // Upload section
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  className="border-2 border-dashed border-blue-300 rounded-xl p-12 text-center cursor-pointer hover:bg-blue-50 transition-colors"
+                >
+                  <Upload className="mx-auto text-blue-500 mb-3" size={40} />
+                  <p className="text-gray-700 font-semibold">Click to upload or drag and drop</p>
+                  <p className="text-gray-500 text-sm mt-1">PNG, JPG, WebP • Max 5MB</p>
+                </div>
+              ) : !croppedImage ? (
+                // Crop section
+                <div className="space-y-6">
+                  <div className="bg-gray-50 p-6 rounded-xl">
+                    <p className="text-sm text-gray-600 mb-4 font-medium">Preview & Adjust Position</p>
+                    <div className="mb-6">
+                      <img
+                        src={selectedImage}
+                        alt="Preview"
+                        className="max-w-full max-h-64 mx-auto rounded-lg"
+                      />
+                    </div>
+
+                    {/* Crop controls */}
+                    <div className="space-y-4">
+                      <div>
+                        <label className="text-sm font-semibold text-gray-700">X Position: {cropX}</label>
+                        <input
+                          type="range"
+                          min="0"
+                          max="200"
+                          value={cropX}
+                          onChange={(e) => setCropX(Number(e.target.value))}
+                          className="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-semibold text-gray-700">Y Position: {cropY}</label>
+                        <input
+                          type="range"
+                          min="0"
+                          max="200"
+                          value={cropY}
+                          onChange={(e) => setCropY(Number(e.target.value))}
+                          className="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-semibold text-gray-700">Crop Size: {cropSize}px</label>
+                        <input
+                          type="range"
+                          min="100"
+                          max="400"
+                          value={cropSize}
+                          onChange={(e) => setCropSize(Number(e.target.value))}
+                          className="w-full h-2 bg-green-200 rounded-lg appearance-none cursor-pointer"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={handleCrop}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-semibold transition-colors"
+                  >
+                    Apply Crop
+                  </button>
+                </div>
+              ) : (
+                // Preview cropped image
+                <div className="space-y-6">
+                  <div className="bg-gray-50 p-6 rounded-xl text-center">
+                    <p className="text-sm text-gray-600 mb-4 font-medium">Cropped Preview</p>
+                    <img
+                      src={croppedImage}
+                      alt="Cropped"
+                      className="w-40 h-40 rounded-full mx-auto border-4 border-blue-200"
+                    />
+                  </div>
+
+                  <div className="flex gap-4">
+                    <button
+                      onClick={() => {
+                        setSelectedImage(null);
+                        setCroppedImage(null);
+                      }}
+                      className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 py-3 rounded-xl font-semibold transition-colors"
+                    >
+                      Back
+                    </button>
+                    <button
+                      onClick={handleUpload}
+                      disabled={uploading}
+                      className="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white py-3 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
+                    >
+                      {uploading ? (
+                        <>
+                          <Loader2 className="animate-spin" size={18} />
+                          Uploading...
+                        </>
+                      ) : uploadSuccess ? (
+                        <>
+                          <Check size={18} />
+                          Success!
+                        </>
+                      ) : (
+                        <>
+                          <Upload size={18} />
+                          Upload
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Hidden canvas for cropping */}
+      <canvas ref={canvasRef} className="hidden" />
     </div>
   );
 };

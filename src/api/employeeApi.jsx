@@ -32,6 +32,28 @@ export const updateProfile = async (id, profileData) => {
     }
 };
 
+export const uploadProfileImage = async (file, employeeId) => {
+    try {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('employeeId', employeeId);
+
+        const response = await axios.post(
+            `${BASE_URL}/profiles/upload-image`,
+            formData,
+            {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            }
+        );
+        return response.data;
+    } catch (error) {
+        console.error('Error uploading profile image:', error);
+        throw error;
+    }
+};
+
 export const getEmployeeProfile = async (employeeId) => {
     try {
         const response = await axios.get(`${BASE_URL}/profiles/${employeeId}`);

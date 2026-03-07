@@ -1,8 +1,10 @@
 import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Calendar, Clock, FileText, AlertTriangle, Upload, CheckCircle, File, Image as ImageIcon, ExternalLink, History, Loader2 } from 'lucide-react'
 import { createTask } from '../../../api/taskApi'
 
 const DailyReport = ({ onViewHistory }) => {
+    const navigate = useNavigate()
     const [submitting, setSubmitting] = useState(false);
     const [formData, setFormData] = useState({
         date: new Date().toISOString().split('T')[0],
@@ -97,7 +99,7 @@ const DailyReport = ({ onViewHistory }) => {
                         </div>
                         <button
                             type="button"
-                            onClick={onViewHistory}
+                            onClick={() => navigate('../daily-history')}
                             className='flex items-center gap-2 px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium transition-colors'
                         >
                             <History size={18} /> View History

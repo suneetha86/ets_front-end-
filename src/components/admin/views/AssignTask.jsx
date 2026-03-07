@@ -67,7 +67,7 @@ const AssignTask = () => {
     }
 
     return (
-        <div className='p-8 bg-white shadow-sm border border-gray-200 rounded-xl h-full overflow-y-auto'>
+        <div className='p-8 bg-white text-black shadow-sm border border-gray-200 rounded-xl h-full overflow-y-auto'>
             <h2 className='text-3xl font-bold mb-8 text-purple-900'>Assign Task</h2>
 
             <form onSubmit={(e) => { submitHandler(e) }} className='max-w-4xl'>

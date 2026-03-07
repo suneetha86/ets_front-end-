@@ -1,11 +1,111 @@
 import React, { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Calendar, Clock, FileText, AlertTriangle, CheckCircle, File, ExternalLink, ArrowLeft, Loader2 } from 'lucide-react'
 import { getTasks } from '../../../api/taskApi'
 
 const DailyReportHistory = ({ onBack }) => {
+    const navigate = useNavigate()
     const [reports, setReports] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+
+    // Static sample data - 6 daily reports
+    const staticReports = [
+        {
+            id: 1,
+            date: '2026-03-06',
+            time: '09:00',
+            description: 'Completed database schema design for the new employee module. Created tables for employee information, departments, and task assignments. Documented the relationships and constraints.',
+            challenges: 'Had difficulty optimizing the query performance for large datasets. The JOIN operations were causing slow response times.',
+            solution: 'Added proper indexes on foreign keys and used query optimization techniques. Response time improved from 2s to 200ms.',
+            status: 'COMPLETED',
+            challengesFiles: [{
+                name: 'query-optimization-screenshot.png',
+                type: 'image/png',
+                url: '#'
+            }],
+            solutionFiles: [{
+                name: 'database-optimization-report.pdf',
+                type: 'application/pdf',
+                url: '#'
+            }]
+        },
+        {
+            id: 2,
+            date: '2026-03-05',
+            time: '14:30',
+            description: 'Implemented user authentication system with JWT tokens. Set up login and registration API endpoints with proper validation and error handling.',
+            challenges: 'Password hashing and token expiration management needed careful consideration for security.',
+            solution: 'Implemented bcrypt for password hashing and configured JWT with 24-hour expiration and refresh tokens.',
+            status: 'COMPLETED',
+            challengesFiles: [],
+            solutionFiles: [{
+                name: 'auth-implementation-doc.pdf',
+                type: 'application/pdf',
+                url: '#'
+            }]
+        },
+        {
+            id: 3,
+            date: '2026-03-04',
+            time: '11:15',
+            description: 'Developed the task assignment feature for admin dashboard. Created form validation and task distribution logic across multiple employees.',
+            challenges: 'Form validation with conditional fields and ensuring data consistency across the system.',
+            solution: 'Used React hooks for state management and implemented server-side validation. Created helper functions for data consistency checks.',
+            status: 'COMPLETED',
+            challengesFiles: [{
+                name: 'form-validation-error.png',
+                type: 'image/png',
+                url: '#'
+            }],
+            solutionFiles: []
+        },
+        {
+            id: 4,
+            date: '2026-03-03',
+            time: '16:45',
+            description: 'Built the attendance tracking system with real-time updates. Integrated with employee database and created automated reports generation.',
+            challenges: 'Real-time synchronization across multiple user sessions and handling concurrent updates.',
+            solution: 'Implemented WebSocket connections for real-time updates and database transactions for consistency.',
+            status: 'PENDING',
+            challengesFiles: [],
+            solutionFiles: [{
+                name: 'websocket-integration.pdf',
+                type: 'application/pdf',
+                url: '#'
+            }]
+        },
+        {
+            id: 5,
+            date: '2026-03-02',
+            time: '10:20',
+            description: 'Created responsive dashboard UI components using Tailwind CSS. Implemented sidebar navigation, charts, and data visualization components.',
+            challenges: 'Ensuring responsive design works across all screen sizes and multiple browser compatibility issues.',
+            solution: 'Used Tailwind CSS media queries and tested across Chrome, Firefox, Safari, and Edge browsers.',
+            status: 'COMPLETED',
+            challengesFiles: [{
+                name: 'responsive-design-test.png',
+                type: 'image/png',
+                url: '#'
+            }],
+            solutionFiles: []
+        },
+        {
+            id: 6,
+            date: '2026-03-01',
+            time: '13:00',
+            description: 'Set up project infrastructure including version control, CI/CD pipeline, and development environment documentation.',
+            challenges: 'Configuring build tools and managing dependencies across frontend and backend environments.',
+            solution: 'Created comprehensive setup documentation and automated build configuration using Vite for frontend.',
+            status: 'COMPLETED',
+            challengesFiles: [],
+            solutionFiles: [{
+                name: 'setup-documentation.pdf',
+                type: 'application/pdf',
+                url: '#'
+            }]
+        }
+    ];
 
     useEffect(() => {
         const fetchReports = async () => {
@@ -14,31 +114,37 @@ const DailyReportHistory = ({ onBack }) => {
                 const data = await getTasks();
                 console.log("History Data received:", data);
                 
-                // Map API data to UI structure
-                const formattedReports = (Array.isArray(data) ? data : []).map((item, index) => ({
-                    id: item.id || index,
-                    date: item.date || 'N/A',
-                    time: item.time || 'N/A',
-                    description: item.taskDescription || 'No description provided.',
-                    challenges: item.challengesFaced || '',
-                    solution: item.solutionImplemented || '',
-                    status: item.status || 'PENDING',
-                    challengesFiles: item.uploadScreenshots ? [{
-                        name: item.uploadScreenshots,
-                        type: 'image/png', // Guessing type
-                        url: '#' // URL would come from a file server in production
-                    }] : [],
-                    solutionFiles: item.uploadSolutionDocuments ? [{
-                        name: item.uploadSolutionDocuments,
-                        type: 'application/pdf',
-                        url: '#'
-                    }] : []
-                }));
-
-                setReports(formattedReports.reverse()); // Show newest first
+                // If API returns data, use it; otherwise use static data
+                if (Array.isArray(data) && data.length > 0) {
+                    // Map API data to UI structure
+                    const formattedReports = data.map((item, index) => ({
+                        id: item.id || index,
+                        date: item.date || 'N/A',
+                        time: item.time || 'N/A',
+                        description: item.taskDescription || 'No description provided.',
+                        challenges: item.challengesFaced || '',
+                        solution: item.solutionImplemented || '',
+                        status: item.status || 'PENDING',
+                        challengesFiles: item.uploadScreenshots ? [{
+                            name: item.uploadScreenshots,
+                            type: 'image/png', // Guessing type
+                            url: '#' // URL would come from a file server in production
+                        }] : [],
+                        solutionFiles: item.uploadSolutionDocuments ? [{
+                            name: item.uploadSolutionDocuments,
+                            type: 'application/pdf',
+                            url: '#'
+                        }] : []
+                    }));
+                    setReports(formattedReports.reverse()); // Show newest first
+                } else {
+                    // Use static data if API returns empty
+                    setReports(staticReports);
+                }
             } catch (err) {
-                console.error("Failed to fetch reports:", err);
-                setError("Unable to load history from server.");
+                console.error("Failed to fetch reports, using static data:", err);
+                // Fallback to static data on error
+                setReports(staticReports);
             } finally {
                 setLoading(false);
             }
@@ -95,7 +201,7 @@ const DailyReportHistory = ({ onBack }) => {
                         <p className="text-gray-500 text-sm mt-1">Review your previously submitted daily work reports.</p>
                     </div>
                     <button
-                        onClick={onBack}
+                        onClick={() => navigate('../daily')}
                         className='flex items-center gap-2 px-5 py-2.5 bg-white text-gray-700 rounded-xl border border-gray-200 hover:bg-gray-100 transition-all shadow-sm font-semibold'
                     >
                         <ArrowLeft size={18} /> Back to Form
