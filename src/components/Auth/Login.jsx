@@ -4,6 +4,8 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { AuthContext } from '../../context/AuthProvider'
 import { adminLogin, adminForgotPassword, registerEmployee, employeeLogin, employeeForgotPassword } from '../../api/employeeApi'
 
+import { adminLogin } from '../../api/authApi'
+
 const Login = () => {
     const navigate = useNavigate()
     const location = useLocation()
@@ -11,10 +13,12 @@ const Login = () => {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [isAdmin, setIsAdmin] = useState(location.state?.type === 'admin')
-    const { userData, setUserData, setCurrentUser } = useContext(AuthContext)
+    const [loading, setLoading] = useState(false)
+    const { userData, setCurrentUser } = useContext(AuthContext)
 
     const submitHandler = async (e) => {
         e.preventDefault()
+        setLoading(true)
 
         if (isAdmin) {
             try {
@@ -32,9 +36,22 @@ const Login = () => {
                     alert(response.message || "Invalid Admin Credentials")
                 }
             } catch (error) {
-                console.error("Admin login failed:", error);
-                alert("Login failed. Please check your credentials.");
+                console.error("Login failure:", error)
+                alert(error.response?.data?.message || "Unable to connect to security node. Verify credentials.")
+            } finally {
+                setLoading(false)
             }
+        } else if (userData) {
+            const employee = userData.find((e) => email === e.email && e.password === password)
+            if (employee) {
+                const user = { role: 'employee', data: employee }
+                setCurrentUser(user)
+                localStorage.setItem('loggedInUser', JSON.stringify(user))
+                navigate('/employee/dashboard')
+            } else {
+                alert("Invalid Credentials")
+            }
+            setLoading(false)
         } else {
             // Employee Login Integration
             try {
@@ -242,8 +259,11 @@ const Login = () => {
                         </div>
 
                         <div className='pt-2'>
-                            <button className='w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-black py-4 rounded-2xl transition-all shadow-xl shadow-indigo-300 hover:shadow-indigo-400 active:scale-[0.98] uppercase tracking-[0.2em] text-xs'>
-                                Login
+                            <button
+                                disabled={loading}
+                                className={`w-full ${loading ? 'bg-slate-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'} text-white font-black py-4 rounded-2xl transition-all shadow-xl shadow-blue-200 hover:shadow-blue-300 active:scale-[0.98] uppercase tracking-[0.2em] text-xs`}
+                            >
+                                {loading ? 'Authenticating...' : 'Login In'}
                             </button>
                         </div>
                     </form>
