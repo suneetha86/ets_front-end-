@@ -2,8 +2,9 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import userAvatar from "../../../assets/chinnu.jpeg";
-import { Code, CheckCircle } from "lucide-react";
+import { Code, CheckCircle, Save, X, User, ShieldCheck } from "lucide-react";
 import { updateProfile } from "../../../api/employeeApi";
+
 
 const EditProfile = ({ data, onSave }) => {
   const navigate = useNavigate();
@@ -38,30 +39,30 @@ const EditProfile = ({ data, onSave }) => {
     setForm({ ...form, [name]: value });
   };
 
-  const handleSubmit = async () => {
-    setLoading(true);
-    console.log("Submitting Profile Update (PUT):", form);
+    const handleSubmit = async () => {
+        if (!window.confirm("CONFIRMATION PROTOCOL: Synchronize modified identity parameters with the core repository?")) return;
+        
+        setLoading(true);
+        const targetId = String(data?.id || form.employeeId).replace("EMP-", "");
 
-    const apiPayload = {
-      profileImage: form.profileImage,
-      name: `${form.firstName} ${form.lastName}`.trim(),
-      designation: form.designation,
-      systemName: form.project || form.systemName,
-      cohort: form.cohort,
-      location: form.location,
-      email: form.email,
-      phone: form.phone,
-      employeeId: String(form.employeeId).replace("EMP-", ""),
-      attendance: Number(form.attendance),
-      codingScore: Number(form.codingScore)
-    };
+        const apiPayload = {
+            profileImage: form.profileImage,
+            name: `${form.firstName} ${form.lastName}`.trim(),
+            designation: form.designation,
+            systemName: form.systemName,
+            cohort: form.cohort,
+            location: form.location,
+            email: form.email,
+            phone: form.phone,
+            employeeId: String(form.employeeId),
+            attendance: Number(form.attendance),
+            codingScore: Number(form.codingScore)
+        };
 
-    try {
-      // User requested PUT to http://localhost:8081/api/profiles/9
-      const targetId = String(data?.id || form.employeeId).replace("EMP-", "");
+        try {
+            console.log(`Executing Profile Sync (PUT /profiles/${targetId}):`, apiPayload);
+            const result = await updateProfile(targetId, apiPayload);
 
-      console.log(`Calling Profile Update API (PUT /profiles/${targetId}) with payload:`, apiPayload);
-      const result = await updateProfile(targetId, apiPayload);
       console.log("API Result:", result);
 
       // Merge original data with form data to keep fields we didn't edit
@@ -78,22 +79,23 @@ const EditProfile = ({ data, onSave }) => {
         }
       };
 
-      if (onSave) {
-        onSave(updatedData);
-      }
+            if (onSave) {
+                onSave(updatedData);
+            }
 
-      alert("Profile updated successfully via PUT!");
-      navigate("/employee/profile");
+            alert("Handshake Success: Identity archive has been updated and synchronized.");
+            navigate("/employee/profile");
+
     } catch (error) {
-      console.error("Failed to update profile:", error);
+      console.error("Identity Sync Protocol Breach:", error);
       alert(
-        error.response?.data?.message ||
-        "Failed to update profile. Check backend."
+        `PROTOCOL BREACH: Failed to synchronize identity parameters for Node #${targetId}. Check gateway connectivity.`
       );
     } finally {
       setLoading(false);
     }
   };
+
 
   return (
     <div className="w-full text-gray-900">
@@ -171,10 +173,12 @@ const EditProfile = ({ data, onSave }) => {
           <button
             onClick={handleSubmit}
             disabled={loading}
-            className="px-6 py-2.5 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 shadow-md shadow-blue-600/20 transition-all font-bold disabled:opacity-50"
+            className="flex-1 bg-blue-600 text-white font-black py-4 px-6 rounded-2xl shadow-xl shadow-blue-100 hover:bg-blue-700 transition-all flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50"
           >
-            {loading ? "Updating..." : "Update Profile (PUT)"}
+            {loading ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
+            {loading ? "Syncing Parameters..." : "Push Modifications (PUT)"}
           </button>
+
         </div>
       </div>
     </div>

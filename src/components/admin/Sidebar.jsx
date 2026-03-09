@@ -1,17 +1,31 @@
-import React, { useState, useContext } from 'react'
+import React, { useState, useContext, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-<<<<<<< HEAD
 import { Users, FileText, Code, CheckSquare, Send, UserPlus, LogOut, Layout, Clock, BarChart2, ChevronDown, ChevronRight, ClipboardList, PenTool, LayoutDashboard, DollarSign, KeyRound, Bell } from 'lucide-react'
-=======
-import { Users, FileText, Code, CheckSquare, Send, UserPlus, LogOut, Layout, Clock, BarChart2, ChevronDown, ChevronRight, ClipboardList, PenTool, LayoutDashboard, DollarSign, Bell } from 'lucide-react'
->>>>>>> 945600258e73804e7b192ca6aa590e4d024cd912
 import { AuthContext } from '../../context/AuthProvider'
+import { fetchUnreadNotifications } from '../../api/notificationApi'
+
 
 const Sidebar = ({ changeUser, isCollapsed, setIsCollapsed }) => {
     const [tasksOpen, setTasksOpen] = useState(true)
     const navigate = useNavigate()
     const location = useLocation()
     const { setCurrentUser } = useContext(AuthContext)
+    const [unreadCount, setUnreadCount] = useState(0)
+
+    useEffect(() => {
+        const getUnread = async () => {
+            try {
+                const unread = await fetchUnreadNotifications()
+                setUnreadCount(unread.length)
+            } catch (err) {
+                console.error("Unread Pulse Sync Failure", err)
+            }
+        }
+        getUnread()
+        const interval = setInterval(getUnread, 60000) // Polling every minute
+        return () => clearInterval(interval)
+    }, [])
+
 
     const menuItems = [
         { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard', path: '/admin/dashboard' },
@@ -27,17 +41,17 @@ const Sidebar = ({ changeUser, isCollapsed, setIsCollapsed }) => {
             ]
         },
         { id: 'attendance', icon: Clock, label: 'Attendance', path: '/admin/attendance' },
-        { id: 'salary', icon: DollarSign, label: 'Salary', path: '/admin/salary' },
+        { id: 'salary', icon: DollarSign, label: 'Salary Management', path: '/admin/salary' },
         { id: 'reports', icon: BarChart2, label: 'Reports', path: '/admin/reports' },
         { id: 'coding', icon: Code, label: 'Coding Program', path: '/admin/coding' },
         { id: 'daily', icon: CheckSquare, label: 'Daily Tasks', path: '/admin/daily' },
         { id: 'submissions', icon: Send, label: 'Submissions', path: '/admin/submissions' },
-        { id: 'salary', icon: DollarSign, label: 'Salary Management', path: '/admin/salary' },
-        { id: 'notifications', icon: Bell, label: 'Notifications', path: '/admin/notifications' },
+        { id: 'notifications', icon: Bell, label: 'Notifications', path: '/admin/notifications', badge: unreadCount },
         { id: 'addUser', icon: UserPlus, label: 'Add Users', path: '/admin/addUser' },
+        { id: 'user-credentials', icon: KeyRound, label: 'User Credentials', path: '/admin/user-credentials' },
         { id: 'reset-password', icon: KeyRound, label: 'Reset Password', path: '/admin/reset-password' },
-        { id: 'notifications', icon: Bell, label: 'Notifications', path: '/admin/notifications' },
     ]
+
 
     const logOutUser = () => {
         localStorage.removeItem('loggedInUser')
@@ -133,6 +147,15 @@ const Sidebar = ({ changeUser, isCollapsed, setIsCollapsed }) => {
                                 {isActive && <div className='absolute left-0 w-1 h-5 bg-white rounded-r-full'></div>}
                                 <Icon size={18} className={isActive ? 'text-white' : 'text-purple-300 group-hover:text-white'} />
                                 {!isCollapsed && <span className='text-sm font-medium'>{item.label}</span>}
+                                {!isCollapsed && item.badge > 0 && (
+                                    <span className='ml-auto bg-rose-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full'>
+                                        {item.badge}
+                                    </span>
+                                )}
+                                {isCollapsed && item.badge > 0 && (
+                                    <div className='absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border border-purple-900'></div>
+                                )}
+
                             </button>
                         )
                     })}

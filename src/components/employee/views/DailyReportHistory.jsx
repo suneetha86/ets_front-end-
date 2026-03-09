@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Calendar, Clock, FileText, AlertTriangle, CheckCircle, File, ExternalLink, ArrowLeft, Loader2 } from 'lucide-react'
+import { Calendar, Clock, FileText, AlertTriangle, CheckCircle, File, ExternalLink, ArrowLeft, Loader2, RefreshCw } from 'lucide-react'
+
 import { getTasks } from '../../../api/taskApi'
 
 const DailyReportHistory = ({ onBack }) => {
@@ -8,6 +9,9 @@ const DailyReportHistory = ({ onBack }) => {
     const [reports, setReports] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [lastSynced, setLastSynced] = useState(null);
+    const [isLive, setIsLive] = useState(false);
+
 
     // Static sample data - 6 daily reports
     const staticReports = [
@@ -111,13 +115,14 @@ const DailyReportHistory = ({ onBack }) => {
         const fetchReports = async () => {
             try {
                 setLoading(true);
+                setError(null);
                 const data = await getTasks();
-                console.log("History Data received:", data);
+                console.log("Strategic History Handshake:", data);
                 
-                // If API returns data, use it; otherwise use static data
-                if (Array.isArray(data) && data.length > 0) {
-                    // Map API data to UI structure
-                    const formattedReports = data.map((item, index) => ({
+                const reportsArray = Array.isArray(data) ? data : (data ? [data] : []);
+
+                if (reportsArray.length > 0) {
+                    const formattedReports = reportsArray.map((item, index) => ({
                         id: item.id || index,
                         date: item.date || 'N/A',
                         time: item.time || 'N/A',
@@ -127,8 +132,8 @@ const DailyReportHistory = ({ onBack }) => {
                         status: item.status || 'PENDING',
                         challengesFiles: item.uploadScreenshots ? [{
                             name: item.uploadScreenshots,
-                            type: 'image/png', // Guessing type
-                            url: '#' // URL would come from a file server in production
+                            type: 'image/png',
+                            url: '#'
                         }] : [],
                         solutionFiles: item.uploadSolutionDocuments ? [{
                             name: item.uploadSolutionDocuments,
@@ -136,19 +141,23 @@ const DailyReportHistory = ({ onBack }) => {
                             url: '#'
                         }] : []
                     }));
-                    setReports(formattedReports.reverse()); // Show newest first
+                    setReports(formattedReports.reverse());
+                    setIsLive(true);
                 } else {
-                    // Use static data if API returns empty
                     setReports(staticReports);
+                    setIsLive(false);
                 }
+                setLastSynced(new Date().toLocaleTimeString());
             } catch (err) {
-                console.error("Failed to fetch reports, using static data:", err);
-                // Fallback to static data on error
+                console.error("History Handshake Failed:", err);
+                setError("Protocol Breach: Failed to synchronize with mission logs.");
                 setReports(staticReports);
+                setIsLive(false);
             } finally {
                 setLoading(false);
             }
         };
+
 
         fetchReports();
     }, []);
@@ -195,18 +204,43 @@ const DailyReportHistory = ({ onBack }) => {
             <div className='max-w-4xl mx-auto'>
                 <div className='flex items-center justify-between mb-8'>
                     <div>
-                        <h2 className='text-3xl font-bold text-gray-800 flex items-center gap-3'>
-                            <Clock className='text-blue-600' /> Report History
+                        <h2 className='text-3xl font-black text-gray-800 flex items-center gap-3 tracking-tight'>
+                            <Clock className='text-blue-600' size={32} /> Operational Mission Archive
                         </h2>
-                        <p className="text-gray-500 text-sm mt-1">Review your previously submitted daily work reports.</p>
+                        <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] mt-1 ml-11">Review historical tactical logs</p>
                     </div>
-                    <button
-                        onClick={() => navigate('../daily')}
-                        className='flex items-center gap-2 px-5 py-2.5 bg-white text-gray-700 rounded-xl border border-gray-200 hover:bg-gray-100 transition-all shadow-sm font-semibold'
-                    >
-                        <ArrowLeft size={18} /> Back to Form
-                    </button>
+                    <div className='flex items-center gap-4'>
+                        <button
+                            onClick={() => window.location.reload()}
+                            className='p-3 bg-white text-gray-500 rounded-xl border border-gray-100 hover:text-blue-600 hover:shadow-lg transition-all active:rotate-180 duration-500'
+                            title="Refresh Operational Archive"
+                        >
+                            <RefreshCw size={20} />
+                        </button>
+
+                        <button
+                            onClick={() => navigate('../daily')}
+                            className='flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-xl shadow-lg shadow-blue-100 hover:bg-blue-700 transition-all font-bold text-xs uppercase tracking-widest'
+                        >
+                            <ArrowLeft size={16} /> New Entry
+                        </button>
+                    </div>
                 </div>
+
+                <div className='flex items-center gap-6 mb-8 px-2'>
+                    <div className={`flex items-center gap-2 px-4 py-2 rounded-full border shadow-sm transition-all duration-500 ${isLive ? 'bg-emerald-50 border-emerald-100' : 'bg-amber-50 border-amber-100'}`}>
+                        <div className={`w-2 h-2 rounded-full ${isLive ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`}></div>
+                        <span className={`text-[9px] font-black uppercase tracking-widest ${isLive ? 'text-emerald-700' : 'text-amber-700'}`}>
+                            {isLive ? 'Vault: Live Handshake' : 'Offline: Archive Local'}
+                        </span>
+                    </div>
+                    {lastSynced && (
+                        <p className='text-[10px] text-slate-400 font-black uppercase tracking-widest'>
+                            Last Uplink: <span className='text-slate-600'>{lastSynced}</span>
+                        </p>
+                    )}
+                </div>
+
 
                 {error && (
                     <div className="bg-red-50 border border-red-200 p-4 rounded-xl text-red-700 text-sm mb-6 flex items-center gap-3">

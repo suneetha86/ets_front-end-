@@ -16,14 +16,18 @@ import {
   X,
   Check
 } from "lucide-react";
-import { fetchEmployeeProfile, uploadProfileImage } from "../../../api/employeeApi";
+import { fetchEmployeeProfile, uploadProfileImage, createProfile } from "../../../api/employeeApi";
 import EditProfile from "./EditProfile";
 
 const Profile = ({ data }) => {
   const navigate = useNavigate();
-  const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isInitializing, setIsInitializing] = useState(false);
+  const [isFallbackMode, setIsFallbackMode] = useState(false);
+  const [lastSynced, setLastSynced] = useState(null);
+  const [isLive, setIsLive] = useState(false);
+
+
   
   // Image upload states
   const [showUploadModal, setShowUploadModal] = useState(false);
@@ -64,7 +68,13 @@ const Profile = ({ data }) => {
           codingScore: profileData.codingScore || data?.analytics?.codingScore || 0,
           profilePic: profileData.profileImage || null
         });
+        setLastSynced(new Date().toLocaleTimeString());
+        setIsLive(true);
+        setIsFallbackMode(false);
         setError(null);
+
+
+
       } catch (err) {
         console.error("Failed to load profile:", err);
         
@@ -83,6 +93,8 @@ const Profile = ({ data }) => {
           codingScore: data?.analytics?.codingScore || 0,
           profilePic: null
         });
+        setIsFallbackMode(true);
+
       } finally {
         setLoading(false);
       }
@@ -175,6 +187,39 @@ const Profile = ({ data }) => {
     }
   };
 
+  const handleCreateProfile = async () => {
+    try {
+      setIsInitializing(true);
+      const payload = {
+        profileImage: "profile1.png",
+        name: profile.fullName,
+        designation: profile.designation,
+        systemName: profile.project,
+        cohort: profile.cohort,
+        location: profile.location,
+        email: profile.email,
+        phone: profile.phone,
+        employeeId: String(profile.id),
+        attendance: parseInt(profile.attendance),
+        codingScore: Number(profile.codingScore)
+      };
+
+      console.log("Initializing Profile (POST):", payload);
+      await createProfile(payload);
+      
+      alert("Handshake Complete: Digital Identity initialized in core repository.");
+      setIsFallbackMode(false);
+      // Refresh to get server-side data
+      window.location.reload();
+    } catch (err) {
+      console.error("Initialization Failed:", err);
+      alert("Protocol Breach: Failed to create digital profile record.");
+    } finally {
+      setIsInitializing(false);
+    }
+  };
+
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center h-full gap-4 text-gray-500">
@@ -187,11 +232,20 @@ const Profile = ({ data }) => {
   return (
     <div className="p-6 md:p-8 rounded-xl h-full overflow-y-auto text-gray-900 pb-20 scrollbar-hide">
       {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3 text-red-700">
-          <AlertCircle size={20} />
-          <p className="text-sm font-medium">{error}</p>
+        <div className="mb-6 p-4 bg-rose-50 border border-rose-200 rounded-xl flex items-center justify-between gap-3 text-rose-700 animate-in slide-in-from-left-4">
+          <div className="flex items-center gap-3">
+            <AlertCircle size={20} />
+            <p className="text-sm font-black uppercase tracking-tight">{error}</p>
+          </div>
+          <button 
+            onClick={() => window.location.reload()}
+            className="p-2 bg-rose-100 hover:bg-rose-200 rounded-lg transition-colors"
+          >
+            <RefreshCw size={14} />
+          </button>
         </div>
       )}
+
 
       {/* HEADER */}
       <div className="bg-gradient-to-r from-blue-600 via-blue-400 to-white p-8 rounded-2xl shadow-lg border-b mb-8 flex flex-col md:flex-row items-center gap-8 animate-in fade-in slide-in-from-top-4 duration-500">
@@ -199,7 +253,7 @@ const Profile = ({ data }) => {
         <div className="relative group">
           <div className="w-32 h-32 rounded-full overflow-hidden ring-4 ring-slate-100 bg-slate-100 flex items-center justify-center shadow-2xl">
             <img
-                src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=1587&auto=format&fit=crop"
+                src={profile.profilePic ? (profile.profilePic.startsWith('data:') ? profile.profilePic : `https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=1587&auto=format&fit=crop`) : `https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=1587&auto=format&fit=crop`}
                 alt="Profile"
                 className="w-full h-full object-cover"
             />
@@ -257,7 +311,28 @@ const Profile = ({ data }) => {
           >
             Edit Profile
           </button>
+          
+          {isFallbackMode ? (
+            <button
+              onClick={handleCreateProfile}
+              disabled={isInitializing}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg shadow-emerald-200 hover:shadow-emerald-300 flex items-center justify-center gap-2 active:scale-95"
+            >
+              {isInitializing ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
+              {isInitializing ? "Initializing..." : "Initialize Identity (POST)"}
+            </button>
+          ) : (
+            <div className="flex flex-col items-end">
+              <div className="flex items-center gap-2 bg-white/20 backdrop-blur-md px-4 py-2 rounded-full border border-white/30 shadow-lg">
+                <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
+                <span className="text-[10px] font-black text-white uppercase tracking-widest">Live: AJA Vault</span>
+              </div>
+              <p className="text-[8px] text-white/60 font-black uppercase tracking-tighter mt-1 mr-2">Last Sync: {lastSynced}</p>
+            </div>
+          )}
         </div>
+
+
       </div>
 
       {/* BODY */}
@@ -294,9 +369,12 @@ const Profile = ({ data }) => {
                 <div className="bg-gradient-to-br from-purple-600 to-sky-500 p-2.5 rounded-2xl shadow-lg shadow-blue-100">
                   <User size={20} className="text-white" />
                 </div>
-                <h3 className="font-black text-xl text-slate-800 tracking-tight">Identity & Financial Parameters</h3>
+                <h3 className="font-black text-xl text-slate-800 tracking-tight">Identity & Vault Parameters</h3>
               </div>
-              <span className="text-[10px] font-black text-purple-600 bg-purple-50 px-4 py-1.5 rounded-full uppercase tracking-widest border border-purple-100 shadow-sm">Verified AJA Record</span>
+              <div className="flex flex-col items-end gap-1">
+                <span className="text-[10px] font-black text-purple-600 bg-purple-50 px-4 py-1.5 rounded-full uppercase tracking-widest border border-purple-100 shadow-sm">Verified AJA Record</span>
+                {isLive && <span className="text-[8px] font-black text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full uppercase tracking-tighter animate-pulse border border-emerald-100">Synchronized (GET)</span>}
+              </div>
             </div>
 
             <div className="p-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

@@ -1,5 +1,7 @@
 import React, { useState, useContext } from 'react'
 import { AuthContext } from '../../../context/AuthProvider'
+import { createAssignTask } from '../../../api/assignTaskApi'
+import { Loader2, Send, Database, ShieldCheck, Zap } from 'lucide-react'
 
 const AssignTask = () => {
     const { userData, setUserData } = useContext(AuthContext)
@@ -9,6 +11,7 @@ const AssignTask = () => {
     const [taskDate, setTaskDate] = useState('')
     const [asignTo, setAsignTo] = useState('')
     const [category, setCategory] = useState('')
+    const [isSubmitting, setIsSubmitting] = useState(false)
 
     // MCQ Specific Fields
     const [question, setQuestion] = useState('')
@@ -18,52 +21,89 @@ const AssignTask = () => {
     const [option4, setOption4] = useState('')
     const [correctOption, setCorrectOption] = useState('')
 
-    const submitHandler = (e) => {
+    const submitHandler = async (e) => {
         e.preventDefault()
+        setIsSubmitting(true)
 
-        const newTask = {
-            taskTitle,
-            taskDescription,
-            taskDate,
-            category,
-            active: false,
-            newTask: true,
-            failed: false,
-            completed: false,
-            // Add MCQ data if provided
-            mcq: question ? {
+        try {
+            // Map the correct answer text
+            let correctAnswerText = "";
+            if (correctOption === "A") correctAnswerText = option1;
+            else if (correctOption === "B") correctAnswerText = option2;
+            else if (correctOption === "C") correctAnswerText = option3;
+            else if (correctOption === "D") correctAnswerText = option4;
+
+            const apiPayload = {
+                taskTitle,
+                date: taskDate,
+                assignTo: asignTo,
+                category,
+                description: taskDescription,
                 question,
-                options: [option1, option2, option3, option4],
-                correctOption
-            } : null
-        }
-
-        const data = userData
-
-        data.forEach(function (elem) {
-            if (asignTo == elem.firstName) {
-                elem.tasks.push(newTask)
-                elem.taskCounts.newTask = elem.taskCounts.newTask + 1
+                optionA: option1,
+                optionB: option2,
+                optionC: option3,
+                optionD: option4,
+                correctAnswer: correctAnswerText
             }
-        })
-        setUserData(data)
 
-        // Update localStorage
-        localStorage.setItem('employees', JSON.stringify(data))
+            console.log("Transmitting Mission Parameters:", apiPayload)
 
-        setTaskTitle('')
-        setCategory('')
-        setAsignTo('')
-        setTaskDate('')
-        setTaskDescription('')
-        setQuestion('')
-        setOption1('')
-        setOption2('')
-        setOption3('')
-        setOption4('')
-        setCorrectOption('')
+            // API Integration
+            await createAssignTask(apiPayload)
 
-        alert("Task Assigned Successfully!")
+            // Internal state sync (Keeping for UI parity in existing architecture)
+            const newTask = {
+                taskTitle,
+                description: taskDescription,
+                date: taskDate,
+                category,
+                employeeName: asignTo,
+                status: "NEW",
+                active: false,
+                newTask: true,
+                failed: false,
+                completed: false,
+                mcq: question ? {
+                    question,
+                    options: [option1, option2, option3, option4],
+                    correctOption,
+                    correctAnswer: correctAnswerText
+                } : null
+            }
+
+            const data = [...userData]
+            data.forEach(function (elem) {
+                if (asignTo == elem.firstName) {
+                    if (!elem.tasks) elem.tasks = []
+                    elem.tasks.push(newTask)
+                    if (!elem.taskCounts) elem.taskCounts = { active: 0, newTask: 0, completed: 0, failed: 0 }
+                    elem.taskCounts.newTask = (elem.taskCounts.newTask || 0) + 1
+                }
+            })
+            setUserData(data)
+            localStorage.setItem('employees', JSON.stringify(data))
+
+            // Reset Form
+            setTaskTitle('')
+            setCategory('')
+            setAsignTo('')
+            setTaskDate('')
+            setTaskDescription('')
+            setQuestion('')
+            setOption1('')
+            setOption2('')
+            setOption3('')
+            setOption4('')
+            setCorrectOption('')
+
+            alert("Handshake Success: Tactical task established and synchronized in the master vault.")
+        } catch (err) {
+            console.error("Task Deployment Failed:", err)
+            alert("PROTOCOL BREACH: Failed to synchronize mission parameters with the master gateway.")
+        } finally {
+            setIsSubmitting(false)
+        }
     }
 
     return (
@@ -185,8 +225,12 @@ const AssignTask = () => {
                     </div>
                 </div>
 
-                <button className='w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-purple-200 transition-all'>
-                    Create Task
+                <button 
+                    disabled={isSubmitting}
+                    className='w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 px-4 rounded-xl shadow-lg shadow-purple-200 transition-all flex items-center justify-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed'
+                >
+                    {isSubmitting ? <Loader2 size={18} className='animate-spin' /> : <Send size={18} />}
+                    {isSubmitting ? 'Deploying Objective...' : 'Create Tactical Task'}
                 </button>
             </form>
         </div>

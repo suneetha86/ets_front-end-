@@ -1,5 +1,7 @@
-import React, { useState } from 'react'
-import { Wallet, Bell, ChevronRight, TrendingUp, X, Clock, Eye, Download, FileText, CheckCircle, LayoutDashboard, Activity } from 'lucide-react'
+import React, { useState, useEffect } from 'react'
+import { Wallet, Bell, ChevronRight, TrendingUp, X, Clock, Eye, Download, FileText, CheckCircle, LayoutDashboard, Activity, Loader2 } from 'lucide-react'
+import { fetchNotifications } from '../../../api/notificationApi'
+
 import TaskListNumbers from '../../other/TaskListNumbers'
 import TaskList from '../../TaskList/TaskList'
 import Analytics from './Analytics'
@@ -27,37 +29,29 @@ const MyTasks = ({ data }) => {
         { id: 12, month: "October 2024", date: "2024-10-31", netPay: 60000, gross: 66000, deductions: 6000, status: "Paid" },
     ]
 
-    const dashboardNotifications = [
-        {
-            id: 1,
-            title: "Q3 Performance Policy",
-            message: "The new Q3 Performance Policy has been released. This includes updated KPIs for technical staff and new remote work guidelines that will be effective from October 1st. Please review carefully to ensure compliance with the new standards.",
-            time: "2 hours ago",
-            type: "info",
-            category: "Policy"
-        },
-        {
-            id: 2,
-            title: "Daily Report Reminder",
-            message: "Reminder: Please submit your daily work report before 6 PM today. Accurate reporting is essential for project tracking and resource allocation. If you encounter any issues with the reporting tool, contact the IT helpdesk immediately.",
-            time: "4 hours ago",
-            type: "warning",
-            category: "System"
-        },
-        {
-            id: 3,
-            title: "System Maintenance",
-            message: "The Nexus portal will be offline for 2 hours this Sunday (Oct 5) starting 10:00 PM for scheduled database optimization and security patches.",
-            time: "Yesterday",
-            type: "info",
-            category: "System"
+    const [notifications, setNotifications] = useState([])
+    const [loadingNotifs, setLoadingNotifs] = useState(true)
+
+    useEffect(() => {
+        const loadNotifs = async () => {
+            try {
+                setLoadingNotifs(true)
+                const data = await fetchNotifications()
+                setNotifications(Array.isArray(data) ? data.slice(0, 3) : [])
+            } catch (error) {
+                console.error("Dashboard Signal Interrupted:", error)
+            } finally {
+                setLoadingNotifs(false)
+            }
         }
-    ]
+        loadNotifs()
+    }, [])
 
     const handleViewNotif = (notif) => {
         setSelectedNotif(notif)
         setIsModalOpen(true)
     }
+
 
     const handleViewSalary = (slip) => {
         setCurrentSlip(slip)
@@ -235,20 +229,29 @@ const MyTasks = ({ data }) => {
                     </div>
 
                     <div className='space-y-4'>
-                        {dashboardNotifications.map((notif) => (
-                            <div
-                                key={notif.id}
-                                onClick={() => handleViewNotif(notif)}
-                                className='flex gap-3 items-start p-3 bg-slate-50 rounded-xl border border-transparent hover:border-blue-200 hover:bg-blue-50/30 transition-all cursor-pointer group shadow-sm hover:shadow-md'
-                            >
-                                <div className={`w-2 h-2 mt-1.5 rounded-full flex-shrink-0 ${notif.type === 'warning' ? 'bg-amber-500' : 'bg-blue-500'} animate-pulse`}></div>
-                                <div className='flex-1'>
-                                    <p className='text-xs font-bold text-slate-700 leading-tight group-hover:text-blue-700 transition-colors'>{notif.title}</p>
-                                    <p className='text-[9px] text-slate-400 font-medium mt-0.5'>{notif.time}</p>
-                                </div>
+                        {loadingNotifs ? (
+                            <div className='flex items-center justify-center p-10'>
+                                <Loader2 className='animate-spin text-slate-300' size={24} />
                             </div>
-                        ))}
+                        ) : notifications.length === 0 ? (
+                            <p className='text-[10px] text-slate-400 font-bold uppercase text-center py-4'>No Active Streams</p>
+                        ) : (
+                            notifications.map((notif) => (
+                                <div
+                                    key={notif.id}
+                                    onClick={() => handleViewNotif(notif)}
+                                    className='flex gap-3 items-start p-3 bg-slate-50 rounded-xl border border-transparent hover:border-blue-200 hover:bg-blue-50/30 transition-all cursor-pointer group shadow-sm hover:shadow-md'
+                                >
+                                    <div className={`w-2 h-2 mt-1.5 rounded-full flex-shrink-0 ${notif.type?.toUpperCase() === 'WARNING' ? 'bg-amber-500' : 'bg-blue-500'} animate-pulse`}></div>
+                                    <div className='flex-1'>
+                                        <p className='text-xs font-bold text-slate-700 leading-tight group-hover:text-blue-700 transition-colors'>{notif.title}</p>
+                                        <p className='text-[9px] text-slate-400 font-medium mt-0.5'>{notif.createdAt ? new Date(notif.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Just Now'}</p>
+                                    </div>
+                                </div>
+                            ))
+                        )}
                     </div>
+
                 </div>
             </div>
 
@@ -270,8 +273,9 @@ const MyTasks = ({ data }) => {
                                 </div>
                                 <div>
                                     <h3 className='font-bold text-lg leading-tight'>{selectedNotif.title}</h3>
-                                    <p className='text-[10px] opacity-80 uppercase tracking-widest'>{selectedNotif.category} Alert</p>
+                                    <p className='text-[10px] opacity-80 uppercase tracking-widest'>{selectedNotif.type} Alert</p>
                                 </div>
+
                             </div>
                             <button onClick={() => setIsModalOpen(false)} className='p-2 hover:bg-white/20 rounded-full transition-colors'>
                                 <X size={20} />
@@ -280,8 +284,9 @@ const MyTasks = ({ data }) => {
                         <div className='p-8'>
                             <div className='flex items-center gap-3 mb-6 bg-slate-50 p-3 rounded-xl border border-slate-100 w-fit'>
                                 <Clock size={16} className='text-slate-400' />
-                                <span className='text-[10px] font-black text-slate-500 uppercase tracking-widest'>{selectedNotif.time}</span>
+                                <span className='text-[10px] font-black text-slate-500 uppercase tracking-widest'>{selectedNotif.createdAt ? new Date(selectedNotif.createdAt).toLocaleString() : 'Recent'}</span>
                             </div>
+
                             <p className='text-slate-700 leading-relaxed text-base font-medium whitespace-pre-wrap select-text'>
                                 {selectedNotif.message}
                             </p>

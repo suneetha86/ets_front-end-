@@ -1,24 +1,43 @@
-import React, { useContext } from 'react'
+import React, { useContext, useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { User, FileText, Code, CheckSquare, Github, LogOut, Clock, LayoutDashboard, ChevronLeft, ChevronRight, Wallet, Bell, KeyRound } from 'lucide-react'
 import { AuthContext } from '../../context/AuthProvider'
+import { fetchUnreadNotifications } from '../../api/notificationApi'
+
 
 const Sidebar = ({ changeUser, firstName, isCollapsed, setIsCollapsed }) => {
     const navigate = useNavigate()
     const location = useLocation()
     const { setCurrentUser } = useContext(AuthContext)
+    const [unreadCount, setUnreadCount] = useState(0)
+
+    useEffect(() => {
+        const getUnread = async () => {
+            try {
+                const unread = await fetchUnreadNotifications()
+                setUnreadCount(unread.length)
+            } catch (err) {
+                console.error("Unread Sync Failure", err)
+            }
+        }
+        getUnread()
+        const interval = setInterval(getUnread, 60000)
+        return () => clearInterval(interval)
+    }, [])
+
 
     const menuItems = [
         { id: 'tasks', icon: LayoutDashboard, label: 'Dashboard', path: '/employee/dashboard' },
         { id: 'profile', icon: User, label: 'Profile', path: '/employee/profile' },
         { id: 'attendance', icon: Clock, label: 'Attendance', path: '/employee/attendance' },
         { id: 'salary', icon: Wallet, label: 'Salary', path: '/employee/salary' },
-        { id: 'notifications', icon: Bell, label: 'Notifications', path: '/employee/notifications' },
+        { id: 'notifications', icon: Bell, label: 'Notifications', path: '/employee/notifications', badge: unreadCount },
         { id: 'coding', icon: Code, label: 'Coding', path: '/employee/coding' },
         { id: 'daily', icon: CheckSquare, label: 'Daily Task', path: '/employee/daily' },
         { id: 'reset-password', icon: KeyRound, label: 'Reset Password', path: '/employee/reset-password' },
         { id: 'github', icon: Github, label: 'GitHub', path: '/employee/github' },
     ]
+
 
     const logOutUser = () => {
         localStorage.removeItem('loggedInUser')
@@ -68,6 +87,15 @@ const Sidebar = ({ changeUser, firstName, isCollapsed, setIsCollapsed }) => {
                             >
                                 <Icon size={18} className={`transition-colors flex-shrink-0 ${isActive ? 'text-blue-900' : 'text-blue-300 group-hover:text-white'}`} />
                                 {!isCollapsed && <span className='text-sm whitespace-nowrap'>{item.label}</span>}
+                                {!isCollapsed && item.badge > 0 && (
+                                    <span className='ml-auto bg-blue-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full ring-2 ring-blue-900'>
+                                        {item.badge}
+                                    </span>
+                                )}
+                                {isCollapsed && item.badge > 0 && (
+                                    <div className='absolute top-2 right-2 w-2 h-2 bg-blue-500 rounded-full border border-blue-900'></div>
+                                )}
+
                             </button>
                         )
                     })}

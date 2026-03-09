@@ -54,11 +54,12 @@ const DailyReport = ({ onViewHistory }) => {
         };
 
         try {
-            console.log("Calling Task Create API with payload:", apiPayload);
+            console.log("Executing Mission Log (POST /tasks/create):", apiPayload);
             const response = await createTask(apiPayload);
-            console.log("API Response:", response);
+            console.log("Mission Log Synchronized:", response);
 
-            alert("Daily Report Submitted Successfully to Server!");
+            alert("Handshake Success: Daily operational mission log has been synchronized with the master repository.");
+
 
             // Reset form
             setFormData({

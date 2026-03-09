@@ -1,7 +1,10 @@
 import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
-    ArrowDownRight, Star, Target, Zap, Shield, X, Eye, DollarSign, Download, Printer, CheckCircle
+    ArrowDownRight, Star, Target, Zap, Shield, X, Eye, DollarSign, Download, Printer, CheckCircle, Users, Clock, CheckSquare, AlertCircle, BarChart2, TrendingUp, Award, Bell, Loader2, Activity, Calendar
 } from 'lucide-react'
+import { fetchNotifications } from '../../../api/notificationApi'
+
 
 /* ══════════════════════════════════════════════
    STATIC DATA
@@ -529,8 +532,27 @@ function StatCard({ stat }) {
    MAIN PAGE
 ══════════════════════════════════════════════ */
 const AdminDashboardHome = () => {
+    const navigate = useNavigate()
     const [modal, setModal] = useState(null) // 'stats' | 'activity' | 'employees' | 'metrics' | 'departments' | 'events' | 'salaries'
     const [selectedSalarySlip, setSelectedSalarySlip] = useState(null)
+    const [notifications, setNotifications] = useState([])
+    const [loadingNotifs, setLoadingNotifs] = useState(true)
+
+    React.useEffect(() => {
+        const loadNotifs = async () => {
+            try {
+                setLoadingNotifs(true)
+                const data = await fetchNotifications()
+                setNotifications(Array.isArray(data) ? data.slice(0, 4) : [])
+            } catch (error) {
+                console.error("Admin Dashboard Interrupted:", error)
+            } finally {
+                setLoadingNotifs(false)
+            }
+        }
+        loadNotifs()
+    }, [])
+
     const today = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
     const openModal = (key) => setModal(key)
     const closeModal = () => setModal(null)
@@ -710,20 +732,27 @@ const AdminDashboardHome = () => {
                     </div>
                 </SectionCard>
 
-                {/* Upcoming Events */}
-                <SectionCard title="Upcoming Events" icon={Calendar} accentColor="text-rose-500" onViewAll={() => openModal('events')}>
+                {/* System Notifications (replaces static Events) */}
+                <SectionCard title="System Notifications" icon={Bell} accentColor="text-rose-500" onViewAll={() => navigate('/admin/notifications')}>
                     <div className="flex flex-col gap-3">
-                        {allEvents.slice(0, 4).map(ev => (
-                            <div key={ev.id} className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 hover:bg-purple-50 transition-colors cursor-pointer group">
-                                <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-medium text-gray-800 truncate group-hover:text-violet-700 transition-colors">{ev.title}</p>
-                                    <p className="text-xs text-gray-400 mt-0.5">{ev.date}</p>
+                        {loadingNotifs ? (
+                            <div className="flex items-center justify-center p-10"><Loader2 className="animate-spin text-slate-300" size={24} /></div>
+                        ) : notifications.length === 0 ? (
+                            <div className="text-center py-10 text-slate-400 text-[10px] font-black uppercase tracking-widest">No Alerts</div>
+                        ) : (
+                            notifications.map(notif => (
+                                <div key={notif.id} className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 hover:bg-rose-50 transition-colors cursor-pointer group">
+                                    <div className={`w-2 h-2 rounded-full ${notif.type?.toUpperCase() === 'WARNING' ? 'bg-amber-500' : 'bg-rose-500'} animate-pulse flex-shrink-0`} />
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-sm font-medium text-gray-800 truncate group-hover:text-rose-700 transition-colors uppercase font-black text-[11px] tracking-tight">{notif.title}</p>
+                                        <p className="text-[10px] text-gray-400 mt-0.5">{notif.createdAt ? new Date(notif.createdAt).toLocaleDateString() : 'Just Now'}</p>
+                                    </div>
                                 </div>
-                                <span className={`text-xs font-semibold px-2 py-1 rounded-full flex-shrink-0 ${ev.color}`}>{ev.type}</span>
-                            </div>
-                        ))}
+                            ))
+                        )}
                     </div>
                 </SectionCard>
+
             </div>
 
             {/* ── Modals ───────────────────────────────── */}

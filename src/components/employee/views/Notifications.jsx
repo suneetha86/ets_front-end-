@@ -1,18 +1,23 @@
 import React, { useState, useEffect } from 'react'
 import { Bell, Check, Clock, Trash2, Info, AlertTriangle, CheckCircle2, MoreVertical, Search, Filter, Eye, X, Loader2 } from 'lucide-react'
-import { fetchNotifications, markAsRead as apiMarkAsRead } from '../../../api/notificationApi'
+import { fetchNotifications, markAsRead as apiMarkAsRead, fetchNotificationById, fetchUnreadNotifications, deleteNotification as apiDeleteNotification } from '../../../api/notificationApi'
+
+
+
 
 const Notifications = () => {
     const [notifications, setNotifications] = useState([])
     const [loading, setLoading] = useState(true)
     const [selectedNotif, setSelectedNotif] = useState(null)
     const [isModalOpen, setIsModalOpen] = useState(false)
+    const [filterUnread, setFilterUnread] = useState(false)
+
 
     useEffect(() => {
         const loadNotifications = async () => {
             try {
                 setLoading(true)
-                const data = await fetchNotifications()
+                const data = filterUnread ? await fetchUnreadNotifications() : await fetchNotifications()
                 setNotifications(Array.isArray(data) ? data : [])
             } catch (error) {
                 console.error("Transmission Interruption:", error)
@@ -21,35 +26,59 @@ const Notifications = () => {
             }
         }
         loadNotifications()
-    }, [])
+    }, [filterUnread])
+
 
     const handleMarkAsRead = async (id) => {
         try {
             await apiMarkAsRead(id)
-            setNotifications(notifications.map(n => n.id === id ? { ...n, isRead: true } : n))
+            setNotifications(notifications.map(n => n.id === id ? { ...n, read: true } : n))
+
         } catch (error) {
             console.error("Handshake Failure:", error)
         }
     }
 
-    const deleteNotification = (id) => {
-        setNotifications(notifications.filter(n => n.id !== id))
+    const deleteNotification = async (id) => {
+        try {
+            await apiDeleteNotification(id)
+            setNotifications(notifications.filter(n => n.id !== id))
+        } catch (error) {
+            console.error("Signal Termination Failed:", error)
+        }
     }
 
+
     const markAllAsRead = async () => {
-         // Local sync for UX speed
-         setNotifications(notifications.map(n => ({ ...n, isRead: true })))
+        try {
+            const unreadItems = notifications.filter(n => !n.read)
+            await Promise.all(unreadItems.map(item => apiMarkAsRead(item.id)))
+            setNotifications(notifications.map(n => ({ ...n, read: true })))
+            alert("All active signals acknowledged.")
+        } catch (error) {
+            console.error("Batch Acknowledgement Failed:", error)
+        }
     }
+
+
 
     const clearAll = () => {
         setNotifications([])
     }
 
-    const handleView = (notif) => {
-        setSelectedNotif(notif)
-        setIsModalOpen(true)
-        if (!notif.isRead) handleMarkAsRead(notif.id)
+    const handleView = async (notif) => {
+        try {
+            // Fetch fresh data for the modal
+            const freshNotif = await fetchNotificationById(notif.id)
+            setSelectedNotif(freshNotif)
+            setIsModalOpen(true)
+            if (!freshNotif.read) handleMarkAsRead(freshNotif.id)
+        } catch (error) {
+            console.error("Failed to fetch detailed notification:", error)
+        }
     }
+
+
 
     const getIcon = (type) => {
         switch (type?.toLowerCase()) {
@@ -68,25 +97,16 @@ const Notifications = () => {
     return (
         <div className='flex flex-col gap-6 h-full overflow-y-auto pb-10 custom-scrollbar'>
             {/* Header */}
-<<<<<<< HEAD
-            <div className='flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-xl shadow-sm border border-slate-100 uppercase'>
-=======
             <div className='bg-gradient-to-r from-blue-600 via-blue-400 to-white p-8 rounded-2xl shadow-lg border-b mb-8 flex flex-col md:flex-row items-center justify-between gap-6 animate-in fade-in slide-in-from-top-4 duration-500'>
->>>>>>> 945600258e73804e7b192ca6aa590e4d024cd912
                 <div className='flex items-center gap-4'>
                     <div className='bg-white/20 p-3 rounded-2xl backdrop-blur-md border border-white/30 shadow-xl'>
                         <Bell className="text-white" size={32} />
                     </div>
                     <div>
-<<<<<<< HEAD
-                        <h2 className='text-2xl font-black text-slate-800 tracking-tight'>Broadcasts</h2>
-                        <p className='text-slate-400 text-[10px] font-black tracking-widest mt-1'>Operational Intelligence Feed</p>
-=======
                         <h2 className='text-3xl font-black text-white tracking-tight drop-shadow-sm'>
                             Notifications
                         </h2>
                         <p className='text-blue-50 text-xs font-bold uppercase tracking-widest opacity-80'>AJA Event Monitoring</p>
->>>>>>> 945600258e73804e7b192ca6aa590e4d024cd912
                     </div>
                 </div>
                 <div className='flex gap-3 w-full md:w-auto'>
@@ -122,7 +142,17 @@ const Notifications = () => {
                                 className='w-full pl-10 pr-4 py-3 rounded-xl bg-white border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 transition-all text-sm font-medium'
                             />
                         </div>
+                        <button
+                            onClick={() => setFilterUnread(!filterUnread)}
+                            className={`px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all border ${filterUnread
+                                ? 'bg-blue-600 text-white border-blue-400 shadow-lg'
+                                : 'bg-white text-slate-500 border-slate-200 hover:border-blue-300'
+                                }`}
+                        >
+                            {filterUnread ? 'Showing Unread' : 'Show Unread Only'}
+                        </button>
                     </div>
+
 
                     {/* List */}
                     <div className='space-y-4'>
@@ -142,25 +172,28 @@ const Notifications = () => {
                                     key={notif.id}
                                     onClick={() => handleView(notif)}
                                     className={`group bg-white p-4 rounded-xl border-l-4 shadow-sm transition-all duration-200 cursor-pointer 
-                                        ${notif.isRead ? 'border-l-slate-200 opacity-70 grayscale-[0.3]' : 'border-l-indigo-600 hover:shadow-md'}
-                                        ${notif.isRead ? 'bg-slate-50/50' : 'bg-white'} 
+                                        ${notif.read ? 'border-l-slate-200 opacity-70 grayscale-[0.3]' : 'border-l-indigo-600 hover:shadow-md'}
+                                        ${notif.read ? 'bg-slate-50/50' : 'bg-white'} 
                                         border-y border-r border-slate-100
                                     `}
+
                                 >
                                     <div className='flex gap-4 items-start'>
                                         <div className={`flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center 
-                                            ${notif.type === 'success' ? 'bg-emerald-50' : notif.type === 'warning' ? 'bg-amber-50' : 'bg-blue-50'}
+                                            ${notif.type?.toUpperCase() === 'SUCCESS' ? 'bg-emerald-50' : notif.type?.toUpperCase() === 'WARNING' ? 'bg-amber-50' : 'bg-blue-50'}
                                         `}>
+
                                             {getIcon(notif.type)}
                                         </div>
                                         <div className='flex-1 min-w-0'>
                                             <div className='flex justify-between items-start mb-1'>
                                                 <div className='flex flex-col gap-0.5'>
                                                     <div className='flex items-center gap-2'>
-                                                        <h3 className={`text-base font-black truncate tracking-tight uppercase ${!notif.isRead ? 'text-slate-800' : 'text-slate-500'}`}>
+                                                        <h3 className={`text-base font-black truncate tracking-tight uppercase ${!notif.read ? 'text-slate-800' : 'text-slate-500'}`}>
                                                             {notif.title}
                                                         </h3>
-                                                        {!notif.isRead && <span className='w-2 h-2 rounded-full bg-indigo-600 shadow-lg animate-pulse'></span>}
+                                                        {!notif.read && <span className='w-2 h-2 rounded-full bg-indigo-600 shadow-lg animate-pulse'></span>}
+
                                                     </div>
                                                     <span className='text-[9px] font-black text-slate-400 uppercase tracking-widest'>{notif.category}</span>
                                                 </div>
@@ -168,13 +201,29 @@ const Notifications = () => {
                                                     <Clock size={12} className='text-slate-300' /> {getTimeDisplay(notif.createdAt)}
                                                 </span>
                                             </div>
-                                            <p className={`text-sm leading-relaxed truncate ${notif.isRead ? 'text-slate-500' : 'text-slate-600'}`}>
+                                            <p className={`text-sm leading-relaxed truncate ${notif.read ? 'text-slate-500' : 'text-slate-600'}`}>
                                                 {notif.message}
                                             </p>
+
                                             <div className='flex gap-4 mt-3 opacity-0 group-hover:opacity-100 transition-opacity'>
-                                                <button className='text-[10px] font-black text-blue-600 hover:text-blue-700 transition-colors uppercase tracking-widest flex items-center gap-1'>
+                                                <button 
+                                                    onClick={() => handleView(notif)}
+                                                    className='text-[10px] font-black text-blue-600 hover:text-blue-700 transition-colors uppercase tracking-widest flex items-center gap-1'
+                                                >
                                                     <Eye size={14} /> Full View
                                                 </button>
+                                                {!notif.read && (
+                                                    <button 
+                                                        onClick={(e) => {
+                                                            e.stopPropagation()
+                                                            handleMarkAsRead(notif.id)
+                                                        }}
+                                                        className='text-[10px] font-black text-emerald-600 hover:text-emerald-700 transition-colors uppercase tracking-widest flex items-center gap-1'
+                                                    >
+                                                        <Check size={14} /> Mark Read
+                                                    </button>
+                                                )}
+
                                                 <button
                                                     onClick={(e) => {
                                                         e.stopPropagation()
@@ -198,9 +247,10 @@ const Notifications = () => {
             {isModalOpen && selectedNotif && (
                 <div className='fixed inset-0 bg-black/60 backdrop-blur-md z-[70] flex items-center justify-center p-4 animate-in fade-in duration-300'>
                     <div className='bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in duration-300 border border-white/20'>
-                        <div className={`p-8 flex justify-between items-center text-white ${selectedNotif.type === 'success' ? 'bg-emerald-600' :
-                                selectedNotif.type === 'warning' ? 'bg-amber-500' : 'bg-indigo-600'
+                        <div className={`p-8 flex justify-between items-center text-white ${selectedNotif.type?.toUpperCase() === 'SUCCESS' ? 'bg-emerald-600' :
+                                selectedNotif.type?.toUpperCase() === 'WARNING' ? 'bg-amber-500' : 'bg-indigo-600'
                             }`}>
+
                             <div className='flex items-center gap-4'>
                                 <div className='p-3 bg-white/10 rounded-2xl backdrop-blur-sm'>
                                     {getIcon(selectedNotif.type)}
@@ -225,21 +275,13 @@ const Notifications = () => {
                             <div className='mt-12 pt-8 border-t border-slate-100 flex justify-end gap-3'>
                                 <button
                                     onClick={() => deleteNotification(selectedNotif.id) || setIsModalOpen(false)}
-<<<<<<< HEAD
-                                    className='px-8 py-4 rounded-2xl text-[10px] font-black text-red-600 border border-red-100 hover:bg-red-50 transition-all uppercase tracking-widest flex items-center gap-2'
-=======
                                     className='px-6 py-2.5 rounded-xl text-[10px] font-black text-white bg-blue-500 hover:bg-blue-600 transition-all uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-blue-100'
->>>>>>> 945600258e73804e7b192ca6aa590e4d024cd912
                                 >
                                     <Trash2 size={14} /> PURGE ALERT
                                 </button>
                                 <button
                                     onClick={() => setIsModalOpen(false)}
-<<<<<<< HEAD
-                                    className='px-10 py-4 rounded-2xl text-[10px] font-black text-white bg-slate-900 hover:bg-black shadow-xl shadow-slate-900/20 transition-all uppercase tracking-widest'
-=======
                                     className='px-8 py-2.5 rounded-xl text-[10px] font-black text-white bg-slate-800 hover:bg-slate-900 shadow-xl shadow-slate-200 transition-all uppercase tracking-widest border border-transparent'
->>>>>>> 945600258e73804e7b192ca6aa590e4d024cd912
                                 >
                                     Close Terminal
                                 </button>

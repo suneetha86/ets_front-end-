@@ -1,86 +1,208 @@
 import React, { useState, useEffect } from 'react'
-import { getLocalStorage } from '../../../utils/localStorage'
-import { Plus, X } from 'lucide-react'
+import { Plus, X, Loader2, Database, ShieldCheck, RefreshCw, Trash2, Layers } from 'lucide-react'
+import { fetchDepartments, createDepartment, deleteDepartment } from '../../../api/departmentApi'
 
 const Departments = () => {
     const [departments, setDepartments] = useState([])
     const [newDept, setNewDept] = useState('')
     const [isFormVisible, setIsFormVisible] = useState(false)
+    const [loading, setLoading] = useState(true)
+    const [error, setError] = useState(null)
+    const [isSubmitting, setIsSubmitting] = useState(false)
+    const [lastUpdated, setLastUpdated] = useState(null)
+
+    const loadDepartments = async () => {
+        try {
+            setLoading(true)
+            setError(null)
+            const data = await fetchDepartments()
+            console.log("Strategic Department Handshake:", data)
+            setDepartments(Array.isArray(data) ? data : [])
+            setLastUpdated(new Date().toLocaleTimeString())
+        } catch (err) {
+            console.error("Department Handshake Failed:", err)
+            setError("Protocol Breach: Failed to synchronize with the department repository.")
+        } finally {
+            setLoading(false)
+        }
+    }
 
     useEffect(() => {
-        const { departments } = getLocalStorage()
-        if (departments) {
-            setDepartments(departments)
-        }
+        loadDepartments()
     }, [])
 
-    const handleAddDept = (e) => {
+    const handleAddDept = async (e) => {
         e.preventDefault()
         if (!newDept) return;
 
-        const updatedDepts = [...departments, { id: Date.now(), name: newDept }]
-        setDepartments(updatedDepts)
-        localStorage.setItem('departments', JSON.stringify(updatedDepts))
-        setNewDept('')
-        setIsFormVisible(false)
+        try {
+            setIsSubmitting(true)
+            await createDepartment(newDept)
+            alert("Department created successfully: New mission node established in the AJA repository.")
+            setNewDept('')
+            setIsFormVisible(false)
+            loadDepartments()
+        } catch (error) {
+            alert("Administrative Sync Failure: Unable to establish new department node.")
+        } finally {
+            setIsSubmitting(false)
+        }
     }
 
-    const handleDelete = (id) => {
-        const updated = departments.filter(d => d.id !== id)
-        setDepartments(updated)
-        localStorage.setItem('departments', JSON.stringify(updated))
+    const handleDelete = async (id) => {
+        if (!window.confirm("CRITICAL PROTOCOL: Decommission this department node from the master repository?")) return;
+        
+        try {
+            await deleteDepartment(id)
+            alert("Department deleted successfully")
+            loadDepartments()
+        } catch (error) {
+            alert("Decommissioning Refused: This node may contain active dependencies.")
+        }
+    }
+
+    if (loading && departments.length === 0) {
+        return (
+            <div className='flex flex-col items-center justify-center h-full gap-4 text-slate-300'>
+                <Loader2 className="animate-spin" size={48} />
+                <p className='text-xs font-black uppercase tracking-[0.3em]'>Synchronizing Vault...</p>
+            </div>
+        )
     }
 
     return (
-        <div className='bg-white shadow-sm border border-gray-200 p-8 rounded-xl h-full overflow-auto'>
-            <h2 className='text-3xl font-bold mb-8 text-purple-900'>Manage Departments</h2>
+        <div className='p-8 bg-gray-50/30 h-full overflow-y-auto rounded-3xl custom-scrollbar'>
+            <div className='max-w-6xl mx-auto'>
+                <div className='flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12'>
+                    <div>
+                        <div className='flex items-center gap-3 mb-2'>
+                            <div className='bg-purple-600 p-2.5 rounded-2xl shadow-xl shadow-purple-200'>
+                                <Layers size={24} className="text-white" />
+                            </div>
+                            <h2 className='text-4xl font-black text-slate-800 tracking-tight italic'>AJA Department Gallery</h2>
+                        </div>
+                        <p className="text-slate-400 text-xs font-bold uppercase tracking-widest ml-14">Configure operational nodes for the administrative master repository</p>
+                    </div>
 
-            {!isFormVisible ? (
-                <button
-                    onClick={() => setIsFormVisible(true)}
-                    className='flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-purple-200 transition-all transform hover:-translate-y-0.5 mb-10'
-                >
-                    <Plus size={20} /> Add Department
-                </button>
-            ) : (
-                <div className='flex gap-4 mb-10 max-w-2xl animate-fade-in-down'>
-                    <input
-                        value={newDept}
-                        onChange={(e) => setNewDept(e.target.value)}
-                        className='flex-1 p-4 bg-gray-50 rounded-xl border border-gray-200 outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all text-gray-700 placeholder-gray-400'
-                        placeholder='Enter new department name...'
-                        autoFocus
-                    />
-                    <button
-                        onClick={handleAddDept}
-                        className='bg-purple-600 hover:bg-purple-700 text-white px-8 rounded-xl font-bold shadow-lg shadow-purple-200 transition-all transform hover:-translate-y-0.5'
-                    >
-                        Submit
-                    </button>
-                    <button
-                        onClick={() => setIsFormVisible(false)}
-                        className='p-4 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-xl transition-colors'
-                    >
-                        <X size={20} />
-                    </button>
-                </div>
-            )}
-
-            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
-                {departments.map((dept) => (
-                    <div key={dept.id} className='bg-white p-6 rounded-xl border border-purple-100 shadow-sm hover:shadow-md transition-all flex justify-between items-center group'>
-                        <span className='font-bold text-lg text-gray-800'>{dept.name}</span>
+                    <div className='flex items-center gap-4'>
                         <button
-                            onClick={() => handleDelete(dept.id)}
-                            className='text-red-500 opacity-0 group-hover:opacity-100 transition-all bg-red-50 hover:bg-red-100 px-4 py-2 rounded-lg text-sm font-medium'
+                            onClick={loadDepartments}
+                            className='p-4 bg-white text-slate-400 rounded-2xl border border-slate-100 hover:text-purple-600 hover:shadow-lg transition-all active:rotate-180 duration-500'
+                            title="Refresh Repository"
                         >
-                            Delete
+                            <RefreshCw size={20} />
+                        </button>
+                        <button
+                            onClick={() => setIsFormVisible(true)}
+                            className='flex items-center gap-3 bg-purple-600 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-purple-200 hover:bg-purple-700 hover:-translate-y-1 transition-all'
+                        >
+                            <Plus size={18} /> Initialize Node
                         </button>
                     </div>
-                ))}
+                </div>
+
+                <div className='flex items-center gap-6 mb-10 px-2'>
+                    <div className='flex items-center gap-2 px-5 py-2.5 bg-emerald-50 border border-emerald-100 rounded-full shadow-sm'>
+                        <div className='w-2 h-2 rounded-full bg-emerald-500 animate-pulse'></div>
+                        <span className='text-[10px] font-black text-emerald-700 uppercase tracking-widest'>Encryption: Active Pulse</span>
+                    </div>
+                    {lastUpdated && (
+                        <p className='text-[10px] text-slate-400 font-bold uppercase tracking-widest'>
+                            Last Sync: <span className='text-slate-600'>{lastUpdated}</span>
+                        </p>
+                    )}
+                </div>
+
+                {isFormVisible && (
+                    <div className='mb-12 animate-in fade-in slide-in-from-top-4 duration-500'>
+                        <form onSubmit={handleAddDept} className='bg-white p-8 rounded-[2.5rem] border border-purple-100 shadow-2xl relative overflow-hidden flex flex-col md:flex-row gap-6 items-center'>
+                            <div className='absolute top-0 left-0 w-full h-1.5 bg-purple-600'></div>
+                            <div className='flex-1 w-full'>
+                                <label className='text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 block ml-1'>Department Designation</label>
+                                <input
+                                    value={newDept}
+                                    onChange={(e) => setNewDept(e.target.value)}
+                                    className='w-full p-5 bg-slate-50 rounded-2xl border border-slate-100 focus:bg-white focus:border-purple-500 focus:ring-4 focus:ring-purple-500/10 outline-none text-slate-800 font-bold placeholder-slate-300 transition-all'
+                                    placeholder='e.g. CORE SYSTEMS'
+                                    autoFocus
+                                    disabled={isSubmitting}
+                                />
+                            </div>
+                            <div className='flex gap-4 w-full md:w-auto mt-6 md:mt-0'>
+                                <button
+                                    type="submit"
+                                    disabled={isSubmitting}
+                                    className='flex-1 md:flex-none px-10 py-5 bg-purple-600 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-purple-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2'
+                                >
+                                    {isSubmitting && <Loader2 className="animate-spin" size={16} />}
+                                    Establish
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setIsFormVisible(false)}
+                                    className='p-5 bg-slate-100 text-slate-400 rounded-2xl hover:bg-slate-200 transition-colors'
+                                >
+                                    <X size={20} />
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                )}
+
+                {error && (
+                    <div className='bg-red-50 border border-red-100 p-6 rounded-3xl text-red-700 text-sm mb-12 flex items-center gap-4 animate-pulse uppercase font-black tracking-widest'>
+                        <ShieldCheck size={24} className="text-red-500" />
+                        {error}
+                        <button onClick={loadDepartments} className='ml-auto bg-red-100 px-6 py-2 rounded-xl text-[10px] hover:bg-red-200 transition-colors'>Retry Protocol</button>
+                    </div>
+                )}
+
+                <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pb-20'>
+                    {departments.length === 0 && !loading && (
+                        <div className='col-span-full py-20 bg-white rounded-[3rem] border-2 border-dashed border-slate-100 flex flex-col items-center justify-center gap-4'>
+                            <Database size={64} className="text-slate-100" />
+                            <p className='text-slate-300 font-black uppercase tracking-widest'>No department nodes identified in vault</p>
+                        </div>
+                    )}
+                    
+                    {departments.map((dept) => (
+                        <div key={dept.id} className='bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-2xl hover:shadow-purple-100/50 hover:-translate-y-2 transition-all duration-500 group relative overflow-hidden'>
+                            <div className='absolute top-0 right-0 w-24 h-24 bg-purple-50 rounded-bl-[4rem] group-hover:bg-purple-600 transition-colors duration-500 -translate-y-12 translate-x-12 group-hover:-translate-y-8 group-hover:translate-x-8'></div>
+                            
+                            <div className='relative z-10'>
+                                <div className='flex justify-between items-start mb-6'>
+                                    <div className='w-12 h-12 bg-slate-50 text-slate-400 rounded-2xl flex items-center justify-center group-hover:bg-purple-50 group-hover:text-purple-600 transition-all font-black text-xl'>
+                                        {dept.name.charAt(0)}
+                                    </div>
+                                    <div className='flex flex-col items-end'>
+                                        <span className='text-[8px] font-black text-slate-300 uppercase tracking-tighter mb-1'>Node Protocol</span>
+                                        <span className='text-[10px] font-black text-slate-800'>#{dept.id}</span>
+                                    </div>
+                                </div>
+                                
+                                <h3 className='font-black text-2xl text-slate-800 tracking-tight group-hover:text-purple-950 truncate mb-10'>{dept.name}</h3>
+                                
+                                <div className='flex items-center justify-between pt-6 border-t border-slate-50 group-hover:border-purple-50 transition-colors'>
+                                    <div className='flex items-center gap-2'>
+                                        <div className='w-1.5 h-1.5 rounded-full bg-emerald-500'></div>
+                                        <span className='text-[9px] font-black text-slate-400 uppercase tracking-widest'>Status: Stable</span>
+                                    </div>
+                                    <button
+                                        onClick={() => handleDelete(dept.id)}
+                                        className='p-3 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all'
+                                        title="Decommission Node"
+                                    >
+                                        <Trash2 size={18} />
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
             </div>
         </div>
     )
 }
 
 export default Departments
+

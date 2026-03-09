@@ -1,7 +1,10 @@
 import React, { useState, useContext, useEffect } from 'react'
 import { AuthContext } from '../../../context/AuthProvider'
 import { getLocalStorage } from '../../../utils/localStorage'
-import { createAdminEmployee, registerEmployee } from '../../../api/employeeApi'
+import { createAdminEmployee, registerEmployee, createProfile } from '../../../api/employeeApi'
+import { fetchDepartments } from '../../../api/departmentApi'
+import { postUser } from '../../../api/userApi'
+
 import { Loader2, UserPlus } from 'lucide-react'
 
 const AddUser = () => {
@@ -15,10 +18,21 @@ const AddUser = () => {
     const { userData, setUserData } = useContext(AuthContext)
 
     const [deptOptions, setDeptOptions] = useState([])
+    const [isLoadingDepts, setIsLoadingDepts] = useState(true)
 
     useEffect(() => {
-        const { departments } = getLocalStorage()
-        if (departments) setDeptOptions(departments)
+        const loadDepts = async () => {
+            try {
+                setIsLoadingDepts(true)
+                const data = await fetchDepartments()
+                setDeptOptions(Array.isArray(data) ? data : [])
+            } catch (error) {
+                console.error("Failed to synchronize departments:", error)
+            } finally {
+                setIsLoadingDepts(false)
+            }
+        }
+        loadDepts()
     }, [])
 
     const submitHandler = async (e) => {
@@ -53,6 +67,39 @@ const AddUser = () => {
             console.log("Initializing Global Registration:", registerPayload)
             const registerResponse = await registerEmployee(registerPayload)
             console.log("Registration API Response:", registerResponse)
+
+            // Primary User Integration: POST /api/users
+            const userPayload = {
+                nameUsername: firstName,
+                emailAddress: email,
+                accessPassword: password,
+                phone: phone,
+                dept: department || "General"
+            }
+            
+            console.log("Transmitting identity parameters to User Repository:", userPayload)
+            const userResponse = await postUser(userPayload)
+            console.log("User API Response:", userResponse)
+            
+            // Strategic Profile Initialization: POST /api/profiles/create
+            const profilePayload = {
+                profileImage: "profile1.png",
+                name: firstName,
+                designation: department || "Developer",
+                systemName: "AJABench System",
+                cohort: "C2",
+                location: "Hyderabad, India",
+                email: email,
+                phone: phone,
+                employeeId: String(response.id || "5"),
+                attendance: 100,
+                codingScore: 0
+            };
+
+            console.log("Initializing Digital Identity in core repository:", profilePayload)
+            const profileResponse = await createProfile(profilePayload)
+            console.log("Profile Initialization Complete:", profileResponse)
+
 
             // Update local state for immediate UI feedback
             const newUser = {

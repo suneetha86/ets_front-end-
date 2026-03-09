@@ -30,3 +30,46 @@ export const getTasks = async () => {
         throw error;
     }
 };
+
+/**
+ * Fetch all tasks from admin repository
+ * @returns {Promise<Array>} The list of admin tasks
+ */
+export const fetchAdminTasks = async () => {
+    try {
+        const response = await axios.get(`${BASE_URL}/admin/tasks`);
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching admin tasks:', error);
+        throw error;
+    }
+};
+/**
+ * Add a new task from administrative terminal
+ * @param {Object} taskData - The admin task data object
+ * @returns {Promise<Object>} The API response
+ */
+export const addAdminTask = async (taskData) => {
+    try {
+        const response = await axios.post(`${BASE_URL}/admin/tasks/add`, taskData);
+        return response.data;
+    } catch (error) {
+        console.error('Error adding admin task:', error);
+        throw error;
+    }
+};
+
+/**
+ * Delete a task from administrative repository
+ * @param {number|string} id - The task ID
+ * @returns {Promise<Object>} The API response
+ */
+export const deleteAdminTask = async (id) => {
+    try {
+        const response = await axios.delete(`${BASE_URL}/admin/tasks/delete/${id}`);
+        return response.data;
+    } catch (error) {
+        console.error(`Error deleting admin task ${id}:`, error);
+        throw error;
+    }
+};

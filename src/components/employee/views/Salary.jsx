@@ -1,5 +1,13 @@
-import React, { useState, useMemo } from 'react'
-import { DollarSign, Download, Eye, TrendingUp, CreditCard, PieChart, X, FileText, Filter, ChevronLeft, ChevronRight, ArrowUpDown } from 'lucide-react'
+import React, { useState, useMemo, useEffect, useContext } from 'react'
+import { DollarSign, Download, Eye, TrendingUp, CreditCard, PieChart, X, FileText, Filter, ChevronLeft, ChevronRight, ArrowUpDown, Loader2 } from 'lucide-react'
+import { fetchEmployeeSalariesByEmployeeId, fetchEmployeeSalaryById, filterEmployeeSalaries, fetchPaginatedSalaries, fetchEmployeeSalarySummary, fetchEmployeeSalaryDashboard } from '../../../api/employeeSalaryApi';
+
+
+
+
+
+import { AuthContext } from '../../../context/AuthProvider';
+
 
 const Salary = () => {
     const [selectedYear, setSelectedYear] = useState('All Years')
@@ -13,43 +21,89 @@ const Salary = () => {
 
     // Sorting state
     const [sortConfig, setSortConfig] = useState({ key: 'date', direction: 'desc' })
+    const [history, setHistory] = useState([])
+    const [loading, setLoading] = useState(false)
+    const [totalElements, setTotalElements] = useState(0)
+    const [summaryData, setSummaryData] = useState(null)
+    const { currentUser } = useContext(AuthContext)
 
-    const years = ['All Years', '2025-26', '2024-25']
+
+
+
+    const years = useMemo(() => {
+        const uniqueYears = ['All Years', ...new Set(history.map(r => r.year))];
+        return uniqueYears;
+    }, [history]);
+
     const months = ['All Months', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 
+
     // 12 Quality Static Records (Covering Every Month)
-    const salaryData = {
-        netPay: 65700,
-        grossPay: 71700,
-        totalDeductions: 6000,
-        history: [
-            // 2025-26 Records
-            { id: 1, month: "September 2025", year: "2025-26", netPay: 65700, status: "Paid", date: "2025-09-30", gross: 71700, deductions: 6000 },
-            { id: 2, month: "August 2025", year: "2025-26", netPay: 65700, status: "Paid", date: "2025-08-31", gross: 71700, deductions: 6000 },
-            { id: 3, month: "July 2025", year: "2025-26", netPay: 65700, status: "Paid", date: "2025-07-31", gross: 71700, deductions: 6000 },
-            { id: 4, month: "June 2025", year: "2025-26", netPay: 64200, status: "Paid", date: "2025-06-30", gross: 70200, deductions: 6000 },
-            { id: 5, month: "May 2025", year: "2025-26", netPay: 64200, status: "Paid", date: "2025-05-31", gross: 70200, deductions: 6000 },
-            { id: 6, month: "April 2025", year: "2025-26", netPay: 64200, status: "Paid", date: "2025-04-30", gross: 70200, deductions: 6000 },
-            
-            // 2024-25 Records
-            { id: 7, month: "March 2025", year: "2024-25", netPay: 62500, status: "Paid", date: "2025-03-31", gross: 68500, deductions: 6000 },
-            { id: 8, month: "February 2025", year: "2024-25", netPay: 62500, status: "Paid", date: "2025-02-28", gross: 68500, deductions: 6000 },
-            { id: 9, month: "January 2025", year: "2024-25", netPay: 62500, status: "Paid", date: "2025-01-31", gross: 68500, deductions: 6000 },
-            { id: 10, month: "December 2024", year: "2024-25", netPay: 60000, status: "Paid", date: "2024-12-31", gross: 66000, deductions: 6000 },
-            { id: 11, month: "November 2024", year: "2024-25", netPay: 60000, status: "Paid", date: "2024-11-30", gross: 66000, deductions: 6000 },
-            { id: 12, month: "October 2024", year: "2024-25", netPay: 60000, status: "Paid", date: "2024-10-31", gross: 66000, deductions: 6000 },
-            { id: 13, month: "September 2024", year: "2024-25", netPay: 58500, status: "Paid", date: "2024-09-30", gross: 64500, deductions: 6000 },
-            { id: 14, month: "August 2024", year: "2024-25", netPay: 58500, status: "Paid", date: "2024-08-31", gross: 64500, deductions: 6000 },
-        ]
-    }
+    useEffect(() => {
+        const loadHistory = async () => {
+            if (!currentUser?.data?.empId) return;
+            try {
+                setLoading(true);
+                let data;
+                let elements = 0;
+                
+                // If filters are standard "All", use the optimized unified dashboard
+                if (selectedYear === 'All Years' && selectedMonth === 'All Months') {
+                    const dashboard = await fetchEmployeeSalaryDashboard(currentUser.data.empId, currentPage - 1, itemsPerPage);
+                    data = dashboard.records || [];
+                    elements = dashboard.totalRecords || 0;
+                    setSummaryData(dashboard.summary);
+                } else {
+                    // Specific filters use the granular endpoints
+                    if (selectedYear !== 'All Years' && selectedMonth !== 'All Months') {
+                        const monthIndex = months.indexOf(selectedMonth);
+                        data = await filterEmployeeSalaries(currentUser.data.empId, selectedYear, monthIndex);
+                        elements = Array.isArray(data) ? data.length : 0;
+                    } else {
+                        const paginated = await fetchPaginatedSalaries(currentUser.data.empId, currentPage - 1, itemsPerPage);
+                        data = paginated.content || [];
+                        elements = paginated.totalElements || 0;
+                    }
+
+                    // Fallback to fetch summary separately if granular was used
+                    const summary = await fetchEmployeeSalarySummary(currentUser.data.empId);
+                    setSummaryData(summary);
+                }
+
+                const formatted = (Array.isArray(data) ? data : []).map(r => ({
+                    id: r.id,
+                    month: r.cycle,
+                    year: r.cycle.split(' ').pop(),
+                    netPay: r.netAmount,
+                    status: r.transactionStatus,
+                    date: r.transferDate,
+                    gross: r.gross,
+                    deductions: r.deductions
+                }));
+                setHistory(formatted);
+                setTotalElements(elements);
+            } catch (err) {
+                console.error("Failed to load salary dashboard integration", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        loadHistory();
+    }, [currentUser, selectedYear, selectedMonth, currentPage, itemsPerPage]); // Unified re-fetch logic
+
+
+
+
+
 
     // Filtering, Sorting and Pagination logic
     const processedHistory = useMemo(() => {
-        let filtered = salaryData.history.filter(record => {
+        let filtered = history.filter(record => {
             const matchesYear = selectedYear === 'All Years' || record.year === selectedYear;
             const matchesMonth = selectedMonth === 'All Months' || record.month.startsWith(selectedMonth);
             return matchesYear && matchesMonth;
         });
+
 
         if (sortConfig.key) {
             filtered.sort((a, b) => {
@@ -78,11 +132,15 @@ const Salary = () => {
         }), { net: 0, gross: 0, deductions: 0 });
     }, [processedHistory]);
 
-    const totalPages = Math.ceil(processedHistory.length / itemsPerPage);
-    const paginatedHistory = processedHistory.slice(
-        (currentPage - 1) * itemsPerPage,
-        currentPage * itemsPerPage
-    );
+    const totalPages = Math.ceil((selectedYear !== 'All Years' && selectedMonth !== 'All Months') ? processedHistory.length : totalElements) / itemsPerPage;
+    
+    // For local sorting/filtering, use the processedHistory which handles year/month dropdowns locally 
+    // when either one is "All". However, if both are specific, we fetch fresh data.
+    // If the data is paginated from server, paginatedHistory should just be the history itself.
+    const paginatedHistory = (selectedYear !== 'All Years' && selectedMonth !== 'All Months') 
+        ? processedHistory.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+        : processedHistory; 
+
 
     const handleSort = (key) => {
         let direction = 'asc';
@@ -92,10 +150,31 @@ const Salary = () => {
         setSortConfig({ key, direction });
     };
 
-    const handleViewSlip = (record) => {
-        setCurrentSlip(record)
-        setIsModalOpen(true)
+    const handleViewSlip = async (record) => {
+        try {
+            setLoading(true); // Reuse loading or fresh state
+            const detailed = await fetchEmployeeSalaryById(record.id);
+            // Format detailed data to match UI needs
+            const formatted = {
+                id: detailed.id,
+                month: detailed.cycle,
+                year: detailed.cycle.split(' ').pop(),
+                netPay: detailed.netAmount,
+                status: detailed.transactionStatus,
+                date: detailed.transferDate,
+                gross: detailed.gross,
+                deductions: detailed.deductions
+            };
+            setCurrentSlip(formatted);
+            setIsModalOpen(true);
+        } catch (err) {
+            console.error("Failed to load slip details", err);
+            alert("Could not load payslip details from server.");
+        } finally {
+            setLoading(false);
+        }
     }
+
 
     const handleDownload = (record) => {
         const docContent = `<!DOCTYPE html>
@@ -257,7 +336,7 @@ const Salary = () => {
                     </div>
                     <div>
                         <p className='text-slate-500 text-[10px] font-black uppercase tracking-widest'>Total Net Value</p>
-                        <h3 className='text-3xl font-black text-slate-800 tracking-tighter'>₹{aggregates.net.toLocaleString()}</h3>
+                        <h3 className='text-3xl font-black text-slate-800 tracking-tighter'>₹{(summaryData?.totalNetValue || aggregates.net).toLocaleString()}</h3>
                     </div>
                 </div>
 
@@ -267,7 +346,7 @@ const Salary = () => {
                     </div>
                     <div>
                         <p className='text-slate-500 text-[10px] font-black uppercase tracking-widest'>Filtered Period Gross</p>
-                        <h3 className='text-3xl font-black text-slate-800 tracking-tighter'>₹{aggregates.gross.toLocaleString()}</h3>
+                        <h3 className='text-3xl font-black text-slate-800 tracking-tighter'>₹{(summaryData?.filteredPeriodGross || aggregates.gross).toLocaleString()}</h3>
                     </div>
                 </div>
 
@@ -277,10 +356,11 @@ const Salary = () => {
                     </div>
                     <div>
                         <p className='text-slate-500 text-[10px] font-black uppercase tracking-widest'>Filtered Period Deductions</p>
-                        <h3 className='text-3xl font-black text-slate-800 tracking-tighter text-red-600'>₹{aggregates.deductions.toLocaleString()}</h3>
+                        <h3 className='text-3xl font-black text-slate-800 tracking-tighter text-red-600'>₹{(summaryData?.filteredPeriodDeductions || aggregates.deductions).toLocaleString()}</h3>
                     </div>
                 </div>
             </div>
+
 
             {/* History Table */}
             <div className='bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden relative'>
@@ -312,7 +392,15 @@ const Salary = () => {
                             </tr>
                         </thead>
                         <tbody className='text-slate-700 divide-y divide-slate-100 text-sm'>
-                            {paginatedHistory.length > 0 ? paginatedHistory.map((record) => (
+                            {loading ? (
+                                <tr>
+                                    <td colSpan="7" className="p-32 text-center text-blue-600">
+                                        <Loader2 className="animate-spin inline-block mr-2" />
+                                        <span className="font-black uppercase tracking-widest text-xs">Accessing Archives...</span>
+                                    </td>
+                                </tr>
+                            ) : paginatedHistory.length > 0 ? paginatedHistory.map((record) => (
+
                                 <tr key={record.id} className='hover:bg-blue-50/20 transition-all group duration-300'>
                                     <td className='px-6 py-10 font-black text-slate-800 text-base'>{record.month}</td>
                                     <td className='px-6 py-10 font-bold text-slate-500'>{record.date}</td>
