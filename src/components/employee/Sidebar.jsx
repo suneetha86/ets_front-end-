@@ -15,9 +15,12 @@ const Sidebar = ({ changeUser, firstName, isCollapsed, setIsCollapsed }) => {
         const getUnread = async () => {
             try {
                 const unread = await fetchUnreadNotifications()
-                setUnreadCount(unread.length)
+                setUnreadCount(Array.isArray(unread) ? unread.length : 0)
             } catch (err) {
-                console.error("Unread Sync Failure", err)
+                // Silently ignore network errors (backend offline)
+                if (err?.code !== 'ERR_NETWORK' && err?.message !== 'Network Error') {
+                    console.error("Unread Sync Failure", err)
+                }
             }
         }
         getUnread()

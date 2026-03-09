@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const BASE_URL = 'http://localhost:8081/api/admin/assign/tasks';
+const BASE_URL = '/api/admin/assign/tasks';
 
 export const createAssignTask = async (taskData) => {
     try {

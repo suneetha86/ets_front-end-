@@ -21,7 +21,7 @@ const Login = () => {
                 // Determine whether backend expects 'username' or 'email'
                 // Assuming email based on standard and the payload we know
                 const response = await adminLogin({ email, password });
-                
+
                 if (response.token) {
                     const user = { role: 'admin', token: response.token }
                     setCurrentUser(user)
@@ -39,17 +39,17 @@ const Login = () => {
             // Employee Login Integration
             try {
                 const response = await employeeLogin({ email, password });
-                
+
                 // Handling both string "Login successful" and object responses
-                const isSuccess = typeof response === 'string' 
-                    ? response.includes("successful") 
+                const isSuccess = typeof response === 'string'
+                    ? response.includes("successful")
                     : (response.token || response.id || response.message?.includes("successful"));
 
                 if (isSuccess) {
-                    const user = { 
-                        role: 'employee', 
+                    const user = {
+                        role: 'employee',
                         data: typeof response === 'object' ? response : { email },
-                        token: response.token 
+                        token: response.token
                     }
                     setCurrentUser(user)
                     localStorage.setItem('loggedInUser', JSON.stringify(user))
@@ -59,7 +59,7 @@ const Login = () => {
                 }
             } catch (error) {
                 console.error("Employee login failed:", error);
-                
+
                 // Fallback to local data for offline/dev mode if API fails
                 if (userData) {
                     const employee = userData.find((e) => email === e.email && e.password === password)
@@ -98,7 +98,7 @@ const Login = () => {
             try {
                 // Email-based verification for employees
                 const response = await employeeForgotPassword({ email });
-                
+
                 // Handle string or object responses
                 const message = typeof response === 'string' ? response : (response.message || "");
                 if (message.includes("verified")) {
@@ -115,7 +115,7 @@ const Login = () => {
     }
 
     return (
-        <div 
+        <div
             className='flex h-screen w-screen overflow-hidden font-sans'
             style={{
                 background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
@@ -129,7 +129,7 @@ const Login = () => {
             <div className='absolute inset-0 bg-gradient-to-r from-indigo-900/95 via-purple-900/85 to-purple-800/90'></div>
 
             {/* Left Side: Illustration/Image */}
-            <div 
+            <div
                 className='hidden lg:flex lg:w-1/2 relative overflow-hidden'
                 style={{
                     backgroundImage: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
@@ -273,5 +273,6 @@ const Login = () => {
         </div>
     )
 }
+
 
 export default Login

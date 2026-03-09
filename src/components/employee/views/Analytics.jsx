@@ -52,7 +52,7 @@ const Analytics = () => {
                 </div>
 
                 <div className='h-[200px] w-full'>
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height={200} minWidth={0}>
                         <AreaChart data={attendanceData}>
                             <defs>
                                 <linearGradient id="colorHours" x1="0" y1="0" x2="0" y2="1">
@@ -114,7 +114,7 @@ const Analytics = () => {
                 </div>
 
                 <div className='h-[200px] w-full'>
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height={200} minWidth={0}>
                         <ComposedChart data={codingData}>
                             <defs>
                                 <linearGradient id="colorBar" x1="0" y1="0" x2="0" y2="1">

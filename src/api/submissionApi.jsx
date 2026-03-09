@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const BASE_URL = 'http://localhost:8081/api/admin/submissions';
+const BASE_URL = '/api/admin/submissions';
 
 export const fetchSubmissions = async () => {
     try {

@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const BASE_URL = 'http://localhost:8081/api/admin/departments';
+const BASE_URL = '/api/admin/departments';
 
 export const fetchDepartments = async () => {
     try {

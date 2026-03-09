@@ -39,7 +39,11 @@ const MyTasks = ({ data }) => {
                 const data = await fetchNotifications()
                 setNotifications(Array.isArray(data) ? data.slice(0, 3) : [])
             } catch (error) {
-                console.error("Dashboard Signal Interrupted:", error)
+                // Silently ignore network errors (backend offline)
+                if (error?.message !== 'Network Error') {
+                    console.error("Dashboard Signal Interrupted:", error)
+                }
+                setNotifications([])
             } finally {
                 setLoadingNotifs(false)
             }
@@ -222,7 +226,7 @@ const MyTasks = ({ data }) => {
                             </div>
                             <div>
                                 <h3 className='font-black text-slate-800 tracking-tight'>Pulse Updates</h3>
-                                <p className='text-[10px] text-slate-400 font-bold uppercase tracking-widest'>{dashboardNotifications.length} New Alerts</p>
+                                <p className='text-[10px] text-slate-400 font-bold uppercase tracking-widest'>{notifications.length} New Alerts</p>
                             </div>
                         </div>
                         <ChevronRight className='text-slate-300 group-hover:translate-x-1 transition-transform' size={20} />

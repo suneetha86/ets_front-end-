@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const BASE_URL = 'http://localhost:8081/api';
+const BASE_URL = '/api';
 
 export const createProfile = async (profileData) => {
     try {
@@ -83,7 +83,7 @@ export const fetchAllEmployees = async () => {
 };
 export const fetchAdminEmployees = async () => {
     try {
-        const response = await axios.get(`http://localhost:8081/admin/employees`);
+        const response = await axios.get(`/admin/employees`);
         return response.data;
     } catch (error) {
         console.error('Error fetching admin employees:', error);
@@ -93,7 +93,7 @@ export const fetchAdminEmployees = async () => {
 
 export const fetchAdminEmployeeById = async (id) => {
     try {
-        const response = await axios.get(`http://localhost:8081/admin/employees/${id}`);
+        const response = await axios.get(`/admin/employees/${id}`);
         return response.data;
     } catch (error) {
         console.error(`Error fetching admin employee with ID ${id}:`, error);
@@ -103,7 +103,7 @@ export const fetchAdminEmployeeById = async (id) => {
 
 export const createAdminEmployee = async (employeeData) => {
     try {
-        const response = await axios.post(`http://localhost:8081/admin/employees`, employeeData);
+        const response = await axios.post(`/admin/employees`, employeeData);
         return response.data;
     } catch (error) {
         console.error('Error creating admin employee:', error);
@@ -113,7 +113,7 @@ export const createAdminEmployee = async (employeeData) => {
 
 export const deactivateEmployee = async (id) => {
     try {
-        const response = await axios.put(`http://localhost:8081/admin/employees/${id}/deactivate`);
+        const response = await axios.put(`/admin/employees/${id}/deactivate`);
         return response.data;
     } catch (error) {
         console.error(`Error deactivating employee with ID ${id}:`, error);
@@ -123,7 +123,7 @@ export const deactivateEmployee = async (id) => {
 
 export const fetchActiveEmployeeCount = async () => {
     try {
-        const response = await axios.get(`http://localhost:8081/admin/employees/active/count`);
+        const response = await axios.get(`/admin/employees/active/count`);
         return response.data;
     } catch (error) {
         console.error('Error fetching active employee count:', error);
@@ -133,7 +133,7 @@ export const fetchActiveEmployeeCount = async () => {
 
 export const adminLogin = async (credentials) => {
     try {
-        const response = await axios.post(`http://localhost:8081/api/admin/login`, credentials);
+        const response = await axios.post(`/api/admin/login`, credentials);
         return response.data;
     } catch (error) {
         console.error('Error logging in admin:', error);
@@ -143,7 +143,7 @@ export const adminLogin = async (credentials) => {
 
 export const adminForgotPassword = async (emailData) => {
     try {
-        const response = await axios.post(`http://localhost:8081/api/admin/forgot-password`, emailData);
+        const response = await axios.post(`/api/admin/forgot-password`, emailData);
         return response.data;
     } catch (error) {
         console.error('Error sending reset link:', error);
@@ -153,7 +153,7 @@ export const adminForgotPassword = async (emailData) => {
 
 export const adminResetPassword = async (resetData) => {
     try {
-        const response = await axios.post(`http://localhost:8081/api/admin/reset-password`, resetData);
+        const response = await axios.post(`/api/admin/reset-password`, resetData);
         return response.data;
     } catch (error) {
         console.error('Error resetting password:', error);

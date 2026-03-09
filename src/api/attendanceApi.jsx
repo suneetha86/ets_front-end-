@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const BASE_URL = 'http://localhost:8081/api';
+const BASE_URL = '/api';
 
 /**
  * Fetch weekly attendance records for an employee by email

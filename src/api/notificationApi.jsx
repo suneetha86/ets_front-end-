@@ -1,13 +1,15 @@
 import axios from 'axios';
 
-const BASE_URL = 'http://localhost:8081/api';
+const BASE_URL = '/api';
 
 export const fetchNotifications = async () => {
     try {
         const response = await axios.get(`${BASE_URL}/notifications`);
         return response.data;
     } catch (error) {
-        console.error('Error fetching notifications:', error);
+        if (error?.message !== 'Network Error') {
+            console.error('Error fetching notifications:', error);
+        }
         throw error;
     }
 };
@@ -45,7 +47,9 @@ export const fetchUnreadNotifications = async () => {
         const response = await axios.get(`${BASE_URL}/notifications/unread`);
         return response.data;
     } catch (error) {
-        console.error('Error fetching unread notifications:', error);
+        if (error?.message !== 'Network Error') {
+            console.error('Error fetching unread notifications:', error);
+        }
         throw error;
     }
 };
