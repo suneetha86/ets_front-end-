@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { fetchAllAttendance, fetchAdminAttendanceDashboard, markAdminAttendance, fetchEmployeeDetailedStats } from '../../../api/attendanceApi'
-import { X, Clock, Calendar, Info, LogIn, LogOut, Loader2, AlertCircle, ArrowRightCircle, History, LayoutDashboard, Users, CheckSquare, BarChart3, CheckCircle2, XCircle, Target, TrendingUp } from 'lucide-react'
+import { X, Clock, Calendar, Info, LogIn, LogOut, Loader2, AlertCircle, ArrowRightCircle, History, LayoutDashboard, Users, CheckSquare, BarChart3, CheckCircle2, XCircle, Target, TrendingUp, ShieldCheck } from 'lucide-react'
 
 const Attendance = () => {
     const [attendanceRecords, setAttendanceRecords] = useState([])
@@ -13,6 +13,10 @@ const Attendance = () => {
     const [viewMode, setViewMode] = useState('list') // 'list' or 'dashboard'
     const [isMarking, setIsMarking] = useState(false)
     const [statsLoading, setStatsLoading] = useState(false)
+    const [confirmTarget, setConfirmTarget] = useState(null)  // emp to confirm mark
+    const [markSuccess, setMarkSuccess] = useState(null)      // success msg
+    const [markError, setMarkError] = useState(null)          // error msg
+    const [modal, setModal] = useState({ show: false, title: '', message: '', type: 'info' })
 
     const loadData = async () => {
         try {
@@ -44,10 +48,6 @@ const Attendance = () => {
 
     const handleMarkAttendance = async (emp) => {
         if (isMarking) return
-
-        const confirmMark = window.confirm(`Establish manual "PRESENT" status for ${emp.name} today?`)
-        if (!confirmMark) return
-
         try {
             setIsMarking(true)
             const payload = {
@@ -58,17 +58,16 @@ const Attendance = () => {
                 loginTime: "09:00:00",
                 logoutTime: "18:00:00"
             }
-
             console.log("Navigating mark command for node:", payload)
             const response = await markAdminAttendance(payload)
             console.log("Marking Sequence Response:", response)
-
-            alert(`🚀 Node "${emp.name}" status updated to PRESENT. Sync complete.`)
-            loadData() // Refresh directory telemetry
-
+            setMarkSuccess(`Attendance marked as PRESENT for ${emp.name}.`)
+            setTimeout(() => setMarkSuccess(null), 3000)
+            loadData()
         } catch (err) {
             console.error("Manual Marking Sequence Failure:", err)
-            alert("⚠️ Error: Administrative gateway rejected the manual presence override.")
+            setMarkError("Administrative gateway rejected the manual presence override.")
+            setTimeout(() => setMarkError(null), 3000)
         } finally {
             setIsMarking(false)
         }
@@ -82,7 +81,12 @@ const Attendance = () => {
             setSelectedStats(stats)
         } catch (err) {
             console.error("Failed to fetch performance profile:", err)
-            alert("Unable to reach analytical gateway.")
+            setModal({
+                show: true,
+                title: "Gateway Timeout",
+                message: "Unable to reach the analytical gateway. Performance statistics could not be retrieved.",
+                type: 'error'
+            });
         } finally {
             setStatsLoading(false)
         }
@@ -444,6 +448,44 @@ const Attendance = () => {
                     <div className="bg-white p-10 rounded-[2.5rem] shadow-2xl flex flex-col items-center gap-4 border border-gray-100">
                         <Loader2 className="animate-spin text-purple-600" size={48} />
                         <p className="text-xs font-black uppercase tracking-widest text-gray-400">Fetching Analytical Matrix...</p>
+                    </div>
+                </div>
+            )}
+
+            {/* ── MODAL NOTIFICATION ── */}
+            {modal.show && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[200] flex items-center justify-center p-4 animate-in fade-in duration-200">
+                    <div className="bg-white w-full max-w-sm rounded-[2rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 border border-slate-100 text-center">
+                        <div className={`p-8 flex flex-col items-center gap-4 relative overflow-hidden ${
+                            modal.type === 'success' ? 'bg-emerald-500' : 
+                            modal.type === 'error' ? 'bg-rose-500' : 'bg-blue-500'
+                        }`}>
+                            <div className="absolute top-2 right-4 opacity-10 rotate-12">
+                                {modal.type === 'success' ? <CheckCircle size={100} /> : <AlertCircle size={100} />}
+                            </div>
+                            <div className="relative z-10 w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-2xl text-slate-900">
+                                {modal.type === 'success' ? <CheckCircle className="text-emerald-500" size={32} /> : 
+                                 modal.type === 'error' ? <XCircle className="text-rose-500" size={32} /> : 
+                                 <AlertCircle className="text-blue-500" size={32} />}
+                            </div>
+                            <div className="relative z-10">
+                                <h3 className="font-black text-xl text-white tracking-tight">{modal.title}</h3>
+                            </div>
+                        </div>
+                        <div className="p-8">
+                            <p className="text-slate-600 font-bold text-sm leading-relaxed mb-6">
+                                {modal.message}
+                            </p>
+                            <button 
+                                onClick={() => setModal({ ...modal, show: false })}
+                                className={`w-full py-4 ${
+                                    modal.type === 'success' ? 'bg-emerald-500' : 
+                                    modal.type === 'error' ? 'bg-rose-500' : 'bg-blue-600'
+                                } text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl active:scale-95`}
+                            >
+                                Acknowledge
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

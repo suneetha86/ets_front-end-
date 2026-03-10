@@ -1,6 +1,4 @@
-import axios from 'axios';
-
-const BASE_URL = '/api';
+import apiClient from './apiClient';
 
 /**
  * Create a new task/daily report
@@ -9,7 +7,7 @@ const BASE_URL = '/api';
  */
 export const createTask = async (taskData) => {
     try {
-        const response = await axios.post(`${BASE_URL}/tasks/create`, taskData);
+        const response = await apiClient.post(`/tasks/create`, taskData);
         return response.data;
     } catch (error) {
         console.error('Error creating task:', error);
@@ -23,7 +21,7 @@ export const createTask = async (taskData) => {
  */
 export const getTasks = async () => {
     try {
-        const response = await axios.get(`${BASE_URL}/tasks/get_task`);
+        const response = await apiClient.get(`/tasks/get_task`);
         return response.data;
     } catch (error) {
         console.error('Error fetching tasks:', error);
@@ -37,7 +35,7 @@ export const getTasks = async () => {
  */
 export const fetchAdminTasks = async () => {
     try {
-        const response = await axios.get(`${BASE_URL}/admin/tasks`);
+        const response = await apiClient.get(`/admin/tasks`);
         return response.data;
     } catch (error) {
         console.error('Error fetching admin tasks:', error);
@@ -51,7 +49,7 @@ export const fetchAdminTasks = async () => {
  */
 export const addAdminTask = async (taskData) => {
     try {
-        const response = await axios.post(`${BASE_URL}/admin/tasks/add`, taskData);
+        const response = await apiClient.post(`/admin/tasks/add`, taskData);
         return response.data;
     } catch (error) {
         console.error('Error adding admin task:', error);
@@ -66,7 +64,7 @@ export const addAdminTask = async (taskData) => {
  */
 export const deleteAdminTask = async (id) => {
     try {
-        const response = await axios.delete(`${BASE_URL}/admin/tasks/delete/${id}`);
+        const response = await apiClient.delete(`/admin/tasks/delete/${id}`);
         return response.data;
     } catch (error) {
         console.error(`Error deleting admin task ${id}:`, error);

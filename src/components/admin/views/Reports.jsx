@@ -18,6 +18,17 @@ const Reports = () => {
     const [loadingHistory, setLoadingHistory] = React.useState(true)
     const [selectedReport, setSelectedReport] = React.useState(null)
     const [isDetailLoading, setIsDetailLoading] = React.useState(false)
+    const [isMounted, setIsMounted] = React.useState(false)
+    const [modal, setModal] = React.useState({ show: false, title: '', message: '', type: 'info' })
+
+    if (!userData) {
+        return (
+            <div className='h-full flex flex-col items-center justify-center gap-4 bg-white p-8 rounded-xl shadow-sm border border-gray-100 uppercase'>
+                <Loader2 className='animate-spin text-purple-600' size={48} />
+                <span className='text-[10px] font-black text-slate-400 tracking-[0.4em]'>Synchronizing Mission Data...</span>
+            </div>
+        )
+    }
 
 
     const loadHistory = async () => {
@@ -33,25 +44,42 @@ const Reports = () => {
     }
 
     React.useEffect(() => {
+        setIsMounted(true)
         loadHistory()
     }, [])
 
 
 
-    // Stats Logic
-    const totalEmployees = userData.length
-    const activeEmployees = userData.filter(u => u.active !== false).length
+    // Defensive Stats Logic
+    const totalEmployees = Array.isArray(userData) ? userData.length : 0
+    const activeEmployees = Array.isArray(userData) ? userData.filter(u => u.active !== false).length : 0
 
-    // Task Stats
-    const totalTasks = userData.reduce((acc, curr) => acc + curr.taskCounts.active + curr.taskCounts.newTask + curr.taskCounts.completed + curr.taskCounts.failed, 0)
-    const completedTasks = userData.reduce((acc, curr) => acc + curr.taskCounts.completed, 0)
+    // Safety check for statistical aggregation
+    const safeData = Array.isArray(userData) ? userData : []
+
+    // Task Stats with high-density defensive barriers
+    const totalTasks = safeData.reduce((acc, curr) => {
+        const counts = curr.taskCounts || { active: 0, newTask: 0, completed: 0, failed: 0 }
+        return acc + (counts.active || 0) + (counts.newTask || 0) + (counts.completed || 0) + (counts.failed || 0)
+    }, 0)
+
+    const completedTasks = safeData.reduce((acc, curr) => {
+        return acc + (curr.taskCounts?.completed || 0)
+    }, 0)
 
     // Department Distribution
-    const deptCounts = userData.reduce((acc, curr) => {
-        const dept = curr.department || 'Unassigned'
-        acc[dept] = (acc[dept] || 0) + 1
-        return acc
-    }, {})
+    const deptCounts = React.useMemo(() => {
+        return safeData.reduce((acc, curr) => {
+            if (!curr) return acc
+            const dept = curr.department || 'Unassigned'
+            acc[dept] = (acc[dept] || 0) + 1
+            return acc
+        }, {})
+    }, [safeData])
+
+    const pieData = React.useMemo(() => {
+        return Object.entries(deptCounts).map(([name, value]) => ({ name, value }))
+    }, [deptCounts])
 
     const handlePublishReport = async () => {
         try {
@@ -62,13 +90,23 @@ const Reports = () => {
                 tasksAssigned: totalTasks,
                 totalEmployees: totalEmployees
             }
-            
+
             await postReport(reportPayload)
-            alert("Digital Intelligence Report published to secure archive.")
+            setModal({
+                show: true,
+                title: "Handshake Success",
+                message: "Digital Intelligence Report published to secure archive.",
+                type: 'success'
+            });
             loadHistory() // Refresh history after publish
         } catch (error) {
             console.error("Archive Protocol Failed:", error)
-            alert("Crisis: Report transmission failed.")
+            setModal({
+                show: true,
+                title: "Transmission Failure",
+                message: "Crisis: Report transmission failed. Protocol breach identified in the archive uplink.",
+                type: 'error'
+            });
         } finally {
             setIsPublishing(false)
         }
@@ -89,13 +127,13 @@ const Reports = () => {
 
     return (
 
-        <div className='h-full overflow-auto pr-2 bg-white p-8 rounded-xl shadow-sm border border-gray-100'>
+        <div className='h-full min-h-[500px] overflow-auto pr-2 bg-white p-8 rounded-xl shadow-sm border border-gray-100'>
             <div className='flex justify-between items-center mb-8'>
                 <div>
                     <h2 className='text-3xl font-black text-purple-900 tracking-tight uppercase'>System Intelligence</h2>
                     <p className='text-[10px] text-purple-400 font-bold uppercase tracking-widest mt-1'>Historical Performance Audit</p>
                 </div>
-                <button 
+                <button
                     onClick={handlePublishReport}
                     disabled={isPublishing}
                     className='flex items-center gap-2 bg-purple-900 text-white px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-black transition-all shadow-xl shadow-purple-100 active:scale-95 disabled:opacity-50'
@@ -136,30 +174,40 @@ const Reports = () => {
                         <div className='w-2 h-6 bg-purple-600 rounded-full'></div>
                         Department Distribution
                     </h3>
-                    <div className='h-72 w-full'>
-                        <ResponsiveContainer width="100%" height="100%">
-                            <PieChart>
-                                <Pie
-                                    data={Object.entries(deptCounts).map(([name, value]) => ({ name, value }))}
-                                    cx="50%"
-                                    cy="50%"
-                                    innerRadius={70}
-                                    outerRadius={90}
-                                    paddingAngle={8}
-                                    dataKey="value"
-                                    stroke="none"
-                                >
-                                    {Object.entries(deptCounts).map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={['#8b5cf6', '#ec4899', '#3b82f6', '#10b981', '#f59e0b'][index % 5]} />
-                                    ))}
-                                </Pie>
-                                <Tooltip
-                                    contentStyle={{ backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #f3f4f6', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' }}
-                                    itemStyle={{ fontSize: '12px', fontWeight: 'bold' }}
-                                />
-                                <Legend verticalAlign="bottom" height={36} />
-                            </PieChart>
-                        </ResponsiveContainer>
+                    <div className='h-72 w-full flex items-center justify-center bg-gray-50/30 rounded-xl relative'>
+                        {isMounted && Object.keys(deptCounts).length > 0 ? (
+                            <ResponsiveContainer width="99%" height="100%" minHeight={250} id="dept-dist-container">
+                                <PieChart id="dept-dist-chart">
+                                    <Pie
+                                        data={pieData}
+                                        cx="50%"
+                                        cy="50%"
+                                        innerRadius={70}
+                                        outerRadius={90}
+                                        paddingAngle={8}
+                                        dataKey="value"
+                                        stroke="none"
+                                        animationBegin={0}
+                                        animationDuration={800}
+                                    >
+                                        {pieData.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={['#8b5cf6', '#ec4899', '#3b82f6', '#10b981', '#f59e0b'][index % 5]} />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip
+                                        id="dept-dist-tooltip"
+                                        contentStyle={{ backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #f3f4f6', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' }}
+                                        itemStyle={{ fontSize: '12px', fontWeight: 'bold' }}
+                                    />
+                                    <Legend id="dept-dist-legend" verticalAlign="bottom" height={36} />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        ) : (
+                            <div className="flex flex-col items-center gap-2 opacity-20">
+                                <Activity size={48} />
+                                <span className="text-[10px] font-black uppercase tracking-widest">Awaiting Distribution Matrix</span>
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -169,17 +217,17 @@ const Reports = () => {
                         Recent Task Activity
                     </h3>
                     <div className='space-y-4'>
-                        {userData.slice(0, 5).map((user, i) => (
+                        {safeData.slice(0, 5).map((user, i) => (
                             <div key={i} className='flex justify-between items-center p-4 bg-gray-50 rounded-xl hover:bg-purple-50 transition-colors border border-transparent hover:border-purple-100'>
                                 <div className='flex items-center gap-3'>
                                     <div className='w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-xs font-bold text-purple-700'>
-                                        {user.firstName.charAt(0)}
+                                        {(user.firstName || 'U').charAt(0)}
                                     </div>
-                                    <span className='font-bold text-gray-700'>{user.firstName}</span>
+                                    <span className='font-bold text-gray-700'>{user.firstName || 'Unknown'}</span>
                                 </div>
                                 <div className='flex gap-3 text-[10px] font-black uppercase tracking-wider'>
-                                    <span className='bg-green-100 text-green-700 px-2.5 py-1 rounded-full'>{user.taskCounts.completed} Done</span>
-                                    <span className='bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full'>{user.taskCounts.active} Live</span>
+                                    <span className='bg-green-100 text-green-700 px-2.5 py-1 rounded-full'>{(user.taskCounts?.completed || 0)} Done</span>
+                                    <span className='bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full'>{(user.taskCounts?.active || 0)} Live</span>
                                 </div>
                             </div>
                         ))}
@@ -212,8 +260,8 @@ const Reports = () => {
                 ) : (
                     <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6'>
                         {historicalReports.map((report) => (
-                            <div 
-                                key={report.id} 
+                            <div
+                                key={report.id}
                                 onClick={() => handleViewReport(report.id)}
                                 className='bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-xl transition-all group relative overflow-hidden cursor-pointer active:scale-95'
                             >
@@ -221,7 +269,7 @@ const Reports = () => {
                                 <div className='absolute top-0 right-0 p-8 transform translate-x-4 -translate-y-4 opacity-5 group-hover:rotate-12 transition-all duration-500'>
                                     <Target size={120} />
                                 </div>
-                                
+
                                 <div className='flex justify-between items-start mb-6'>
                                     <div className='px-3 py-1 bg-purple-100 text-purple-700 text-[10px] font-black rounded-lg uppercase tracking-widest'>
                                         Report #{report.id}
@@ -299,7 +347,7 @@ const Reports = () => {
                                                 <p className='text-[10px] text-purple-300 font-black uppercase tracking-widest mt-1'>Verified System Snapshot</p>
                                             </div>
                                         </div>
-                                        <button 
+                                        <button
                                             onClick={() => setSelectedReport(null)}
                                             className='p-3 hover:bg-white/10 rounded-2xl transition-all'
                                         >
@@ -355,7 +403,7 @@ const Reports = () => {
                                     </div>
 
                                     <div className='mt-10 flex justify-end gap-3'>
-                                        <button 
+                                        <button
                                             onClick={() => setSelectedReport(null)}
                                             className='bg-slate-900 text-white px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-black transition-all shadow-xl shadow-slate-200'
                                         >
@@ -368,9 +416,45 @@ const Reports = () => {
                     </div>
                 </div>
             )}
+
+            {/* ── MODAL NOTIFICATION ── */}
+            {modal.show && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[200] flex items-center justify-center p-4 animate-in fade-in duration-200">
+                    <div className="bg-white w-full max-w-sm rounded-[2rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 border border-slate-100 text-center">
+                        <div className={`p-8 flex flex-col items-center gap-4 relative overflow-hidden ${
+                            modal.type === 'success' ? 'bg-emerald-500' : 
+                            modal.type === 'error' ? 'bg-rose-500' : 'bg-blue-500'
+                        }`}>
+                            <div className="absolute top-2 right-4 opacity-10 rotate-12">
+                                <Activity size={100} className="text-white" />
+                            </div>
+                            <div className="relative z-10 w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-2xl text-slate-900">
+                                {modal.type === 'success' ? <ShieldCheck className="text-emerald-500" size={32} /> : 
+                                 modal.type === 'error' ? <X size={32} className="text-rose-500" /> : 
+                                 <Activity className="text-blue-500" size={32} />}
+                            </div>
+                            <div className="relative z-10">
+                                <h3 className="font-black text-xl text-white tracking-tight">{modal.title}</h3>
+                            </div>
+                        </div>
+                        <div className="p-8">
+                            <p className="text-slate-600 font-bold text-sm leading-relaxed mb-6">
+                                {modal.message}
+                            </p>
+                            <button 
+                                onClick={() => setModal({ ...modal, show: false })}
+                                className={`w-full py-4 ${
+                                    modal.type === 'success' ? 'bg-emerald-500' : 
+                                    modal.type === 'error' ? 'bg-rose-500' : 'bg-blue-600'
+                                } text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl active:scale-95`}
+                            >
+                                Acknowledge
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
-
-
     )
 }
 

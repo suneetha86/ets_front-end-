@@ -14,7 +14,8 @@ import {
   Camera,
   Upload,
   X,
-  Check
+  Check,
+  RefreshCw
 } from "lucide-react";
 import { fetchEmployeeProfile, uploadProfileImage, createProfile } from "../../../api/employeeApi";
 import EditProfile from "./EditProfile";
@@ -26,6 +27,8 @@ const Profile = ({ data }) => {
   const [isFallbackMode, setIsFallbackMode] = useState(false);
   const [lastSynced, setLastSynced] = useState(null);
   const [isLive, setIsLive] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [profile, setProfile] = useState({});
 
 
   
@@ -38,6 +41,7 @@ const Profile = ({ data }) => {
   const [cropSize, setCropSize] = useState(200);
   const [uploading, setUploading] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
+  const [modal, setModal] = useState({ show: false, title: '', message: '', type: 'success' });
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const canvasRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -55,7 +59,7 @@ const Profile = ({ data }) => {
 
         // Map API fields to our UI structure
         setProfile({
-          fullName: profileData.name || `${data?.firstName} ${data?.lastName}`,
+          fullName: profileData.name || [data?.firstName, data?.lastName].filter(Boolean).join(" ") || "Employee Node",
           designation: profileData.designation || "Sr Backend Developer",
           project: profileData.systemName || data?.project || "Not Assigned",
           cohort: profileData.cohort || data?.cohort || "N/A",
@@ -80,7 +84,7 @@ const Profile = ({ data }) => {
         
         // Fallback to local data if API fails
         setProfile({
-          fullName: `${data?.firstName} ${data?.lastName}`,
+          fullName: [data?.firstName, data?.lastName].filter(Boolean).join(" ") || "Employee Node",
           designation: "Sr Backend Developer",
           project: data?.project || "Not Assigned",
           cohort: data?.cohort || "N/A",
@@ -91,7 +95,9 @@ const Profile = ({ data }) => {
           github: data?.github || "manucode",
           attendance: data?.analytics?.attendance || "0%",
           codingScore: data?.analytics?.codingScore || 0,
-          profilePic: null
+          profilePic: null,
+          firstName: data?.firstName || (firstNameFallback === "undefined" ? "" : firstNameFallback) || "",
+          lastName: data?.lastName || (lastNameFallback === "undefined" ? "" : lastNameFallback) || "",
         });
         setIsFallbackMode(true);
 
@@ -110,13 +116,13 @@ const Profile = ({ data }) => {
 
     // Validate file size (5MB max)
     if (file.size > 5 * 1024 * 1024) {
-      alert("Image size must be less than 5MB");
+      setModal({ show: true, title: "Validation Error", message: "Image size must be less than 5MB", type: 'error' });
       return;
     }
 
     // Validate file type
     if (!file.type.startsWith("image/")) {
-      alert("Please select a valid image file");
+      setModal({ show: true, title: "Validation Error", message: "Please select a valid image file", type: 'error' });
       return;
     }
 
@@ -148,7 +154,7 @@ const Profile = ({ data }) => {
   // Handle image upload to backend
   const handleUpload = async () => {
     if (!croppedImage || !profile?.id) {
-      alert("Please crop an image first");
+      setModal({ show: true, title: "Input Required", message: "Please crop an image first", type: 'error' });
       return;
     }
 
@@ -178,10 +184,10 @@ const Profile = ({ data }) => {
         setUploadSuccess(false);
       }, 1500);
 
-      alert("Profile picture updated successfully!");
+      setModal({ show: true, title: "Upload Success", message: "Profile picture updated successfully!", type: 'success' });
     } catch (err) {
       console.error("Error uploading image:", err);
-      alert("Failed to upload image. Please try again.");
+      setModal({ show: true, title: "Upload Failed", message: "Failed to upload image. Please try again.", type: 'error' });
     } finally {
       setUploading(false);
     }
@@ -207,13 +213,13 @@ const Profile = ({ data }) => {
       console.log("Initializing Profile (POST):", payload);
       await createProfile(payload);
       
-      alert("Handshake Complete: Digital Identity initialized in core repository.");
+      setModal({ show: true, title: "Handshake Complete", message: "Digital Identity initialized in core repository.", type: 'success' });
       setIsFallbackMode(false);
       // Refresh to get server-side data
       window.location.reload();
     } catch (err) {
       console.error("Initialization Failed:", err);
-      alert("Protocol Breach: Failed to create digital profile record.");
+      setModal({ show: true, title: "Protocol Breach", message: "Failed to create digital profile record.", type: 'error' });
     } finally {
       setIsInitializing(false);
     }
@@ -607,7 +613,8 @@ const Profile = ({ data }) => {
             
             <div className="flex-1 overflow-y-auto custom-scrollbar">
               <EditProfile 
-                data={data} 
+                data={profile} 
+                onClose={() => setIsEditModalOpen(false)}
                 onSave={(updated) => {
                   setProfile({
                     fullName: updated.name || `${updated.firstName} ${updated.lastName}`,
@@ -621,7 +628,9 @@ const Profile = ({ data }) => {
                     github: updated.github,
                     attendance: `${updated.attendance}%`,
                     codingScore: updated.codingScore,
-                    profilePic: updated.profilePic || profile.profilePic
+                    profilePic: updated.profilePic || profile.profilePic,
+                    firstName: updated.firstName,
+                    lastName: updated.lastName
                   });
                   setIsEditModalOpen(false);
                 }} 
@@ -629,6 +638,36 @@ const Profile = ({ data }) => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* ── MODAL NOTIFICATION ── */}
+      {modal.show && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[500] flex items-center justify-center p-4 animate-in fade-in duration-200">
+              <div className="bg-white w-full max-w-sm rounded-[2rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 border border-slate-100 text-center">
+                  <div className={`${modal.type === 'success' ? 'bg-emerald-500' : 'bg-rose-500'} p-8 flex flex-col items-center gap-4 relative overflow-hidden`}>
+                      <div className="absolute top-2 right-4 opacity-10 rotate-12">
+                          {modal.type === 'success' ? <CheckCircle size={100} /> : <AlertCircle size={100} />}
+                      </div>
+                      <div className="relative z-10 w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-2xl">
+                          {modal.type === 'success' ? <CheckCircle className="text-emerald-500" size={32} /> : <AlertCircle className="text-rose-500" size={32} />}
+                      </div>
+                      <div className="relative z-10">
+                          <h3 className="font-black text-xl text-white tracking-tight">{modal.title}</h3>
+                      </div>
+                  </div>
+                  <div className="p-8 text-center">
+                      <p className="text-slate-600 font-bold text-sm leading-relaxed mb-6">
+                          {modal.message}
+                      </p>
+                      <button 
+                          onClick={() => setModal({ ...modal, show: false })}
+                          className={`w-full py-4 ${modal.type === 'success' ? 'bg-emerald-500 hover:bg-emerald-600 shadow-emerald-100' : 'bg-rose-500 hover:bg-rose-600 shadow-rose-100'} text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl active:scale-95`}
+                      >
+                          Acknowledge
+                      </button>
+                  </div>
+              </div>
+          </div>
       )}
     </div>
   );

@@ -1,10 +1,8 @@
-import axios from 'axios';
-
-const BASE_URL = '/api/admin/departments';
+import apiClient from './apiClient';
 
 export const fetchDepartments = async () => {
     try {
-        const response = await axios.get(`${BASE_URL}/fetch`);
+        const response = await apiClient.get(`/admin/departments/fetch`);
         return response.data;
     } catch (error) {
         console.error('Error fetching departments:', error);
@@ -14,7 +12,7 @@ export const fetchDepartments = async () => {
 
 export const createDepartment = async (name) => {
     try {
-        const response = await axios.post(`${BASE_URL}/create`, { name });
+        const response = await apiClient.post(`/admin/departments/create`, { name });
         return response.data;
     } catch (error) {
         console.error('Error creating department:', error);
@@ -24,10 +22,20 @@ export const createDepartment = async (name) => {
 
 export const deleteDepartment = async (id) => {
     try {
-        const response = await axios.delete(`${BASE_URL}/${id}`);
+        const response = await apiClient.delete(`/admin/departments/${id}`);
         return response.data;
     } catch (error) {
         console.error('Error deleting department:', error);
+        throw error;
+    }
+};
+
+export const updateDepartment = async (id, name) => {
+    try {
+        const response = await apiClient.put(`/admin/departments/${id}`, { name });
+        return response.data;
+    } catch (error) {
+        console.error('Error updating department:', error);
         throw error;
     }
 };

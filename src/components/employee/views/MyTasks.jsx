@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { Wallet, Bell, ChevronRight, TrendingUp, X, Clock, Eye, Download, FileText, CheckCircle, LayoutDashboard, Activity, Loader2 } from 'lucide-react'
-import { fetchNotifications } from '../../../api/notificationApi'
+import { fetchEmployeeNotifications } from '../../../api/notificationApi'
 
 import TaskListNumbers from '../../other/TaskListNumbers'
-import TaskList from '../../TaskList/TaskList'
 import Analytics from './Analytics'
 
 const MyTasks = ({ data }) => {
@@ -36,8 +35,8 @@ const MyTasks = ({ data }) => {
         const loadNotifs = async () => {
             try {
                 setLoadingNotifs(true)
-                const data = await fetchNotifications()
-                setNotifications(Array.isArray(data) ? data.slice(0, 3) : [])
+                const responseData = await fetchEmployeeNotifications(data?.email)
+                setNotifications(Array.isArray(responseData) ? responseData.slice(0, 3) : [])
             } catch (error) {
                 // Silently ignore network errors (backend offline)
                 if (error?.message !== 'Network Error') {
@@ -178,7 +177,7 @@ const MyTasks = ({ data }) => {
     return (
         <div className='h-full overflow-auto pr-2 custom-scrollbar pb-10'>
             <TaskListNumbers data={data} />
-            
+
             {/* Summary Cards */}
             <div className='grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6'>
                 {/* Salary Overview Card */}
@@ -193,7 +192,7 @@ const MyTasks = ({ data }) => {
                                 <p className='text-xs font-bold uppercase tracking-widest text-blue-100 opacity-80'>Net Compensation</p>
                                 <h3 className='text-3xl font-black mt-1 tracking-tighter'>₹65,700</h3>
                             </div>
-                            <button 
+                            <button
                                 onClick={() => setIsStatsModalOpen(true)}
                                 className='bg-white/20 p-2 rounded-xl backdrop-blur-sm hover:bg-white/40 transition-all text-white shadow-lg'
                                 title="View Performance Stats"
@@ -207,7 +206,7 @@ const MyTasks = ({ data }) => {
                                 <p className='text-[10px] uppercase font-black text-blue-100 opacity-60'>Expected Cycle</p>
                                 <p className='text-sm font-bold'>30 Sept, 2025</p>
                             </div>
-                            <button 
+                            <button
                                 onClick={() => setIsHistoryModalOpen(true)}
                                 className='bg-white text-blue-700 px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider shadow-sm hover:bg-blue-50 transition-colors'
                             >
@@ -263,7 +262,6 @@ const MyTasks = ({ data }) => {
 
 
             <Analytics />
-            <TaskList data={data} />
 
             {/* Notification Detail Modal */}
             {isModalOpen && selectedNotif && (
@@ -383,14 +381,14 @@ const MyTasks = ({ data }) => {
                                     <p className='text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em]'>Annual Payment Intelligence</p>
                                 </div>
                             </div>
-                            <button 
-                                onClick={() => setIsHistoryModalOpen(false)} 
+                            <button
+                                onClick={() => setIsHistoryModalOpen(false)}
                                 className='p-2 hover:bg-white/10 rounded-full transition-colors'
                             >
                                 <X size={24} />
                             </button>
                         </div>
-                        
+
                         <div className='p-8 overflow-y-auto custom-scrollbar bg-slate-50'>
                             <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
                                 {monthlySalaries.map((slip) => (
@@ -429,7 +427,7 @@ const MyTasks = ({ data }) => {
                                 ))}
                             </div>
                         </div>
-                        
+
                         <div className='bg-white p-4 border-t border-slate-100 text-center'>
                             <p className='text-[10px] font-bold text-slate-400 uppercase tracking-widest'>Secure AJA Financial Record • Confidential</p>
                         </div>
@@ -450,17 +448,17 @@ const MyTasks = ({ data }) => {
                                     <p className='text-[10px] opacity-70 uppercase font-black tracking-[0.2em]'>Real-time Analytics & Engagement Metrics</p>
                                 </div>
                             </div>
-                            <button 
-                                onClick={() => setIsStatsModalOpen(false)} 
+                            <button
+                                onClick={() => setIsStatsModalOpen(false)}
                                 className='p-2 hover:bg-white/20 rounded-full transition-colors'
                             >
                                 <X size={28} />
                             </button>
                         </div>
-                        
+
                         <div className='p-10 overflow-y-auto custom-scrollbar bg-slate-50'>
                             <Analytics />
-                            
+
                             <div className='grid grid-cols-1 md:grid-cols-3 gap-6 mt-8'>
                                 <div className='bg-white p-6 rounded-3xl border border-slate-100 shadow-sm hover:shadow-[0_20px_40px_rgba(16,185,129,0.15)] hover:scale-[1.05] transition-all duration-300 cursor-default group'>
                                     <p className='text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 group-hover:text-emerald-500 transition-colors'>Task Velocity</p>
@@ -479,9 +477,9 @@ const MyTasks = ({ data }) => {
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div className='bg-white p-6 border-t border-slate-100 flex justify-center'>
-                            <button 
+                            <button
                                 onClick={() => setIsStatsModalOpen(false)}
                                 className='bg-slate-900 text-white px-12 py-3 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-black transition-all shadow-xl'
                             >

@@ -11,6 +11,7 @@ const Attendance = ({ data }) => {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
     const [actionLoading, setActionLoading] = useState(false)
+    const [modal, setModal] = useState({ show: false, title: '', message: '', type: 'success' }) // type: success, error
 
     const today = new Date().toDateString()
     const userEmail = data?.email || 'vasu123@gmail.com'
@@ -58,6 +59,14 @@ const Attendance = ({ data }) => {
         }
     }, [userEmail, loadHistory])
 
+    useEffect(() => {
+        const storedLogin = localStorage.getItem('tempLoginTimestamp');
+        if (storedLogin) {
+            setStatus('Checked In');
+            setLoginTime(new Date(storedLogin).toLocaleTimeString('en-US'));
+        }
+    }, [])
+
     const handleCheckIn = async () => {
         try {
             setActionLoading(true)
@@ -65,16 +74,29 @@ const Attendance = ({ data }) => {
             const response = await checkIn(userEmail)
             console.log("Check-in Response:", response)
 
-            const time = new Date(response.loginTime || new Date()).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+            const now = new Date();
+            localStorage.setItem('tempLoginTimestamp', now.toISOString());
+            const time = now.toLocaleTimeString('en-US');
+            
             setLoginTime(time)
             setStatus('Checked In')
-            alert(`✅ Successfully Clocked In at ${time}`)
+            setModal({ 
+                show: true, 
+                title: "Handshake Successful", 
+                message: `Biometric identity verified. Clocked In at ${time}`, 
+                type: 'success' 
+            });
 
             // Auto refresh history to show new record
             loadHistory()
         } catch (error) {
             console.error("Check-in API error:", error)
-            alert("❌ Punch In failed. Please check your connection.")
+            setModal({ 
+                show: true, 
+                title: "Handshake Failed", 
+                message: "Punch In failed. Please check your biometric gateway connection.", 
+                type: 'error' 
+            });
         } finally {
             setActionLoading(false)
         }
@@ -87,20 +109,55 @@ const Attendance = ({ data }) => {
             const response = await checkOut(userEmail)
             console.log("Check-out Response:", response)
 
-            // Handle both string response and object response
+            const now = new Date();
+            const time = now.toLocaleTimeString('en-US');
+
             const isPlainString = typeof response === 'string';
             const logMsg = isPlainString ? response : 'Checked out successfully';
 
             setStatus('Shift Completed')
-            setLogoutTime(new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }))
+            setLogoutTime(time)
 
-            alert(`✅ ${logMsg}`)
+            // Calculate duration
+            const storedLogin = localStorage.getItem('tempLoginTimestamp');
+            let finalDuration = '0h 0m 0s';
+            
+            if (storedLogin) {
+                const loginDate = new Date(storedLogin);
+                const diffMs = now - loginDate;
+                const hours = Math.floor(diffMs / (1000 * 60 * 60));
+                const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
+                
+                finalDuration = `${hours}h ${minutes}m ${seconds}s`;
+                setDuration(finalDuration);
+                localStorage.removeItem('tempLoginTimestamp');
+                
+                setModal({ 
+                    show: true, 
+                    title: "Shift Synchronized", 
+                    message: `Punch Out recorded at ${time}. Total Session: ${finalDuration}`, 
+                    type: 'success' 
+                });
+            } else {
+                setModal({ 
+                    show: true, 
+                    title: "Shift Synchronized", 
+                    message: `Punch Out recorded at ${time}`, 
+                    type: 'success' 
+                });
+            }
 
-            // Refresh history immediately to get calculated hours from the backend
+            // Refresh history immediately to get calculated hours from the backend mock API
             loadHistory()
         } catch (error) {
             console.error("Check-out API error:", error)
-            alert("❌ Punch Out failed. Please try again.")
+            setModal({ 
+                show: true, 
+                title: "Synchronize Error", 
+                message: "Punch Out failed. Please try again.", 
+                type: 'error' 
+            });
         } finally {
             setActionLoading(false)
         }
@@ -252,6 +309,36 @@ const Attendance = ({ data }) => {
                 </div>
             )}
 
+
+            {/* ── MODAL NOTIFICATION ── */}
+            {modal.show && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[200] flex items-center justify-center p-4 animate-in fade-in duration-200">
+                    <div className="bg-white w-full max-w-sm rounded-[2rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 border border-slate-100 text-center">
+                        <div className={`${modal.type === 'success' ? 'bg-emerald-500' : 'bg-rose-500'} p-8 flex flex-col items-center gap-4 relative overflow-hidden`}>
+                            <div className="absolute top-2 right-4 opacity-10 rotate-12">
+                                {modal.type === 'success' ? <CheckCircle size={100} /> : <AlertCircle size={100} />}
+                            </div>
+                            <div className="relative z-10 w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-2xl">
+                                {modal.type === 'success' ? <CheckCircle className="text-emerald-500" size={32} /> : <AlertCircle className="text-rose-500" size={32} />}
+                            </div>
+                            <div className="relative z-10">
+                                <h3 className="font-black text-xl text-white tracking-tight">{modal.title}</h3>
+                            </div>
+                        </div>
+                        <div className="p-8">
+                            <p className="text-slate-600 font-bold text-sm leading-relaxed mb-6">
+                                {modal.message}
+                            </p>
+                            <button 
+                                onClick={() => setModal({ ...modal, show: false })}
+                                className={`w-full py-4 ${modal.type === 'success' ? 'bg-emerald-500 hover:bg-emerald-600 shadow-emerald-100' : 'bg-rose-500 hover:bg-rose-600 shadow-rose-100'} text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl active:scale-95`}
+                            >
+                                Acknowledge
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

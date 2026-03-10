@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-    ArrowDownRight, Star, Target, Zap, Shield, X, Eye, DollarSign, Download, Printer, CheckCircle, Users, Clock, CheckSquare, AlertCircle, BarChart2, TrendingUp, Award, Bell, Loader2, Activity, Calendar
+    ArrowDownRight, ArrowUpRight, Star, Target, Zap, Shield, X, Eye, DollarSign, Download, Printer, CheckCircle, Users, Clock, CheckSquare, AlertCircle, BarChart2, TrendingUp, Award, Bell, Loader2, Activity, Calendar
 } from 'lucide-react'
 import { fetchNotifications } from '../../../api/notificationApi'
 

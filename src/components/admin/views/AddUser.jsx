@@ -15,6 +15,7 @@ const AddUser = () => {
     const [department, setDepartment] = useState('')
     const [phone, setPhone] = useState('')
     const [isSubmitting, setIsSubmitting] = useState(false)
+    const [modal, setModal] = useState({ show: false, title: '', message: '', type: 'info' })
     const { userData, setUserData } = useContext(AuthContext)
 
     const [deptOptions, setDeptOptions] = useState([])
@@ -107,6 +108,7 @@ const AddUser = () => {
                 firstName: response.name || firstName,
                 id: response.id || Date.now(),
                 active: true,
+                password: password, // Store password for local login fallback
                 taskCounts: { 
                     active: response.pendingTasks || 0, 
                     newTask: 0, 
@@ -119,7 +121,12 @@ const AddUser = () => {
             setUserData(updatedData)
             localStorage.setItem('employees', JSON.stringify(updatedData))
 
-            alert(`🚀 Node "${firstName}" successfully established in the administrative directory.`)
+            setModal({
+                show: true,
+                title: "Node Established",
+                message: `Node "${firstName}" successfully established in the administrative directory. Identity and profile datasets have been synchronized.`,
+                type: 'success'
+            });
 
             // Reset Form Layer
             setFirstName('')
@@ -130,7 +137,12 @@ const AddUser = () => {
 
         } catch (error) {
             console.error("Administrative Sync Failure:", error)
-            alert("⚠️ Critical Link Error: Unable to synchronize with the Administrative Gateway.")
+            setModal({
+                show: true,
+                title: "Link Error",
+                message: "Critical Link Error: Unable to synchronize with the Administrative Gateway. Identity propagation failed.",
+                type: 'error'
+            });
         } finally {
             setIsSubmitting(false)
         }
@@ -214,6 +226,43 @@ const AddUser = () => {
                     {!isSubmitting && <div className='w-2 h-2 rounded-full bg-white group-hover:scale-150 transition-all'></div>}
                 </button>
             </form>
+
+            {/* ── MODAL NOTIFICATION ── */}
+            {modal.show && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[200] flex items-center justify-center p-4 animate-in fade-in duration-200">
+                    <div className="bg-white w-full max-w-sm rounded-[2rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 border border-slate-100 text-center">
+                        <div className={`p-8 flex flex-col items-center gap-4 relative overflow-hidden ${
+                            modal.type === 'success' ? 'bg-emerald-500' : 
+                            modal.type === 'error' ? 'bg-rose-500' : 'bg-blue-500'
+                        }`}>
+                            <div className="absolute top-2 right-4 opacity-10 rotate-12">
+                                <UserPlus size={100} className="text-white" />
+                            </div>
+                            <div className="relative z-10 w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-2xl text-slate-900">
+                                {modal.type === 'success' ? <UserPlus className="text-emerald-500" size={32} /> : 
+                                 <div className="w-8 h-8 rounded-full bg-rose-500 flex items-center justify-center text-white font-bold">!</div>}
+                            </div>
+                            <div className="relative z-10">
+                                <h3 className="font-black text-xl text-white tracking-tight">{modal.title}</h3>
+                            </div>
+                        </div>
+                        <div className="p-8">
+                            <p className="text-slate-600 font-bold text-sm leading-relaxed mb-6">
+                                {modal.message}
+                            </p>
+                            <button 
+                                onClick={() => setModal({ ...modal, show: false })}
+                                className={`w-full py-4 ${
+                                    modal.type === 'success' ? 'bg-emerald-500' : 
+                                    modal.type === 'error' ? 'bg-rose-500' : 'bg-blue-600'
+                                } text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl active:scale-95`}
+                            >
+                                Acknowledge
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

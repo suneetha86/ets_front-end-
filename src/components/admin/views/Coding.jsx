@@ -8,6 +8,7 @@ const Coding = () => {
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [selectedProblem, setSelectedProblem] = useState(null)
     const [isFetchingDetail, setIsFetchingDetail] = useState(false)
+    const [modal, setModal] = useState({ show: false, title: '', message: '', type: 'info' })
 
     const [title, setTitle] = useState('')
     const [desc, setDesc] = useState('')
@@ -35,7 +36,12 @@ const Coding = () => {
             setSelectedProblem(detail);
         } catch (error) {
             console.error("Detail Decryption Failure:", error);
-            alert("Security Error: Unable to retrieve protocol details.");
+            setModal({
+                show: true,
+                title: "Security Error",
+                message: "Unable to retrieve protocol details. Decryption handshake failed.",
+                type: 'error'
+            });
         } finally {
             setIsFetchingDetail(false);
         }
@@ -58,7 +64,12 @@ const Coding = () => {
             setProblems([response, ...problems])
             setTitle('')
             setDesc('')
-            alert("New protocol established: Challenge distributed to all reachable nodes.")
+            setModal({
+                show: true,
+                title: "Protocol Established",
+                message: "New protocol established: Challenge distributed to all reachable nodes.",
+                type: 'success'
+            });
         } catch (error) {
             console.error("Assignment Synchronization Failure:", error)
         } finally {
@@ -245,6 +256,44 @@ const Coding = () => {
                                 className='w-full py-5 bg-slate-900 hover:bg-black text-white rounded-[2rem] font-black uppercase tracking-widest text-[11px] transition-all shadow-xl shadow-slate-200 active:scale-95'
                             >
                                 Secure Terminal
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ── MODAL NOTIFICATION ── */}
+            {modal.show && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[200] flex items-center justify-center p-4 animate-in fade-in duration-200">
+                    <div className="bg-white w-full max-w-sm rounded-[2rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 border border-slate-100 text-center">
+                        <div className={`p-8 flex flex-col items-center gap-4 relative overflow-hidden ${
+                            modal.type === 'success' ? 'bg-emerald-500' : 
+                            modal.type === 'error' ? 'bg-rose-500' : 'bg-blue-500'
+                        }`}>
+                            <div className="absolute top-2 right-4 opacity-10 rotate-12">
+                                <Target size={100} className="text-white" />
+                            </div>
+                            <div className="relative z-10 w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-2xl text-slate-900">
+                                {modal.type === 'success' ? <Target className="text-emerald-500" size={32} /> : 
+                                 modal.type === 'error' ? <X size={32} className="text-rose-500" /> : 
+                                 <Plus className="text-blue-500" size={32} />}
+                            </div>
+                            <div className="relative z-10">
+                                <h3 className="font-black text-xl text-white tracking-tight">{modal.title}</h3>
+                            </div>
+                        </div>
+                        <div className="p-8">
+                            <p className="text-slate-600 font-bold text-sm leading-relaxed mb-6">
+                                {modal.message}
+                            </p>
+                            <button 
+                                onClick={() => setModal({ ...modal, show: false })}
+                                className={`w-full py-4 ${
+                                    modal.type === 'success' ? 'bg-emerald-500' : 
+                                    modal.type === 'error' ? 'bg-rose-500' : 'bg-blue-600'
+                                } text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl active:scale-95`}
+                            >
+                                Acknowledge
                             </button>
                         </div>
                     </div>

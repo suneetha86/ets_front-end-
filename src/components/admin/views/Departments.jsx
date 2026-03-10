@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Plus, X, Loader2, Database, ShieldCheck, RefreshCw, Trash2, Layers } from 'lucide-react'
-import { fetchDepartments, createDepartment, deleteDepartment } from '../../../api/departmentApi'
+import { fetchDepartments, createDepartment, deleteDepartment, updateDepartment } from '../../../api/departmentApi'
+import Modal from '../../common/Modal'
 
 const Departments = () => {
     const [departments, setDepartments] = useState([])
@@ -10,6 +11,26 @@ const Departments = () => {
     const [error, setError] = useState(null)
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [lastUpdated, setLastUpdated] = useState(null)
+    const [editingDept, setEditingDept] = useState(null)
+    const [editName, setEditName] = useState('')
+    
+    // Modal State
+    const [modalConfig, setModalConfig] = useState({
+        isOpen: false,
+        title: '',
+        message: '',
+        type: 'success',
+        isConfirm: false,
+        onConfirm: () => {}
+    })
+
+    const showModal = (config) => {
+        setModalConfig({ ...modalConfig, isOpen: true, ...config })
+    }
+
+    const closeModal = () => {
+        setModalConfig({ ...modalConfig, isOpen: false })
+    }
 
     const loadDepartments = async () => {
         try {
@@ -38,27 +59,76 @@ const Departments = () => {
         try {
             setIsSubmitting(true)
             await createDepartment(newDept)
-            alert("Department created successfully: New mission node established in the AJA repository.")
+            showModal({
+                title: "Success",
+                message: "Department created successfully",
+                type: 'success'
+            })
             setNewDept('')
             setIsFormVisible(false)
             loadDepartments()
         } catch (error) {
-            alert("Administrative Sync Failure: Unable to establish new department node.")
+            showModal({
+                title: "Sync Failure",
+                message: "Administrative Sync Failure: Unable to establish new department node.",
+                type: 'error'
+            })
+        } finally {
+            setIsSubmitting(false)
+        }
+    }
+
+    const handleUpdateDept = async (e) => {
+        e.preventDefault()
+        if (!editName || !editingDept) return;
+
+        try {
+            setIsSubmitting(true)
+            await updateDepartment(editingDept.id, editName)
+            showModal({
+                title: "Success",
+                message: "Update successfully",
+                type: 'success'
+            })
+            setEditingDept(null)
+            setEditName('')
+            loadDepartments()
+        } catch (error) {
+            showModal({
+                title: "Update Failure",
+                message: "Protocol Breach: Unable to synchronize changes to the department node.",
+                type: 'error'
+            })
         } finally {
             setIsSubmitting(false)
         }
     }
 
     const handleDelete = async (id) => {
-        if (!window.confirm("CRITICAL PROTOCOL: Decommission this department node from the master repository?")) return;
-        
-        try {
-            await deleteDepartment(id)
-            alert("Department deleted successfully")
-            loadDepartments()
-        } catch (error) {
-            alert("Decommissioning Refused: This node may contain active dependencies.")
-        }
+        showModal({
+            title: "Confirm Delete",
+            message: "Are you sure you want to delete this department?",
+            type: 'warning',
+            isConfirm: true,
+            confirmText: "Delete",
+            onConfirm: async () => {
+                try {
+                    await deleteDepartment(id)
+                    showModal({
+                        title: "Node Terminated",
+                        message: "Department decommissioned successfully from the grid.",
+                        type: 'success'
+                    })
+                    loadDepartments()
+                } catch (error) {
+                    showModal({
+                        title: "Access Denied",
+                        message: "Decommissioning Refused: This node may contain active dependencies or restricted assets.",
+                        type: 'error'
+                    })
+                }
+            }
+        })
     }
 
     if (loading && departments.length === 0) {
@@ -96,7 +166,7 @@ const Departments = () => {
                             onClick={() => setIsFormVisible(true)}
                             className='flex items-center gap-3 bg-purple-600 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-purple-200 hover:bg-purple-700 hover:-translate-y-1 transition-all'
                         >
-                            <Plus size={18} /> Initialize Node
+                            <Plus size={18} /> Create Department
                         </button>
                     </div>
                 </div>
@@ -113,17 +183,19 @@ const Departments = () => {
                     )}
                 </div>
 
-                {isFormVisible && (
+                {(isFormVisible || editingDept) && (
                     <div className='mb-12 animate-in fade-in slide-in-from-top-4 duration-500'>
-                        <form onSubmit={handleAddDept} className='bg-white p-8 rounded-[2.5rem] border border-purple-100 shadow-2xl relative overflow-hidden flex flex-col md:flex-row gap-6 items-center'>
-                            <div className='absolute top-0 left-0 w-full h-1.5 bg-purple-600'></div>
+                        <form onSubmit={editingDept ? handleUpdateDept : handleAddDept} className='bg-white p-8 rounded-[2.5rem] border border-purple-100 shadow-2xl relative overflow-hidden flex flex-col md:flex-row gap-6 items-center'>
+                            <div className={`absolute top-0 left-0 w-full h-1.5 ${editingDept ? 'bg-amber-500' : 'bg-purple-600'}`}></div>
                             <div className='flex-1 w-full'>
-                                <label className='text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 block ml-1'>Department Designation</label>
+                                <label className='text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 block ml-1'>
+                                    {editingDept ? 'Synchronize Designation' : 'Department Designation'}
+                                </label>
                                 <input
-                                    value={newDept}
-                                    onChange={(e) => setNewDept(e.target.value)}
+                                    value={editingDept ? editName : newDept}
+                                    onChange={(e) => editingDept ? setEditName(e.target.value) : setNewDept(e.target.value)}
                                     className='w-full p-5 bg-slate-50 rounded-2xl border border-slate-100 focus:bg-white focus:border-purple-500 focus:ring-4 focus:ring-purple-500/10 outline-none text-slate-800 font-bold placeholder-slate-300 transition-all'
-                                    placeholder='e.g. CORE SYSTEMS'
+                                    placeholder={editingDept ? 'UPDATE DESIGNATION' : 'e.g. CORE SYSTEMS'}
                                     autoFocus
                                     disabled={isSubmitting}
                                 />
@@ -132,14 +204,17 @@ const Departments = () => {
                                 <button
                                     type="submit"
                                     disabled={isSubmitting}
-                                    className='flex-1 md:flex-none px-10 py-5 bg-purple-600 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-purple-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2'
+                                    className={`flex-1 md:flex-none px-10 py-5 ${editingDept ? 'bg-amber-500' : 'bg-purple-600'} text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:opacity-90 transition-all disabled:opacity-50 flex items-center justify-center gap-2`}
                                 >
                                     {isSubmitting && <Loader2 className="animate-spin" size={16} />}
-                                    Establish
+                                    {editingDept ? 'Update' : 'Create'}
                                 </button>
                                 <button
                                     type="button"
-                                    onClick={() => setIsFormVisible(false)}
+                                    onClick={() => {
+                                        setIsFormVisible(false)
+                                        setEditingDept(null)
+                                    }}
                                     className='p-5 bg-slate-100 text-slate-400 rounded-2xl hover:bg-slate-200 transition-colors'
                                 >
                                     <X size={20} />
@@ -187,19 +262,44 @@ const Departments = () => {
                                         <div className='w-1.5 h-1.5 rounded-full bg-emerald-500'></div>
                                         <span className='text-[9px] font-black text-slate-400 uppercase tracking-widest'>Status: Stable</span>
                                     </div>
-                                    <button
-                                        onClick={() => handleDelete(dept.id)}
-                                        className='p-3 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all'
-                                        title="Decommission Node"
-                                    >
-                                        <Trash2 size={18} />
-                                    </button>
+                                    <div className='flex items-center gap-1'>
+                                        <button
+                                            onClick={() => {
+                                                setEditingDept(dept)
+                                                setEditName(dept.name)
+                                                setIsFormVisible(false)
+                                                window.scrollTo({ top: 0, behavior: 'smooth' })
+                                            }}
+                                            className='p-3 text-slate-300 hover:text-amber-500 hover:bg-amber-50 rounded-xl transition-all'
+                                            title="Recalibrate Node"
+                                        >
+                                            <RefreshCw size={18} />
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(dept.id)}
+                                            className='p-3 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all'
+                                            title="Decommission Node"
+                                        >
+                                            <Trash2 size={18} />
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     ))}
                 </div>
             </div>
+
+            <Modal 
+                isOpen={modalConfig.isOpen}
+                onClose={closeModal}
+                title={modalConfig.title}
+                message={modalConfig.message}
+                type={modalConfig.type}
+                isConfirm={modalConfig.isConfirm}
+                confirmText={modalConfig.confirmText}
+                onConfirm={modalConfig.onConfirm}
+            />
         </div>
     )
 }

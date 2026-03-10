@@ -1,6 +1,4 @@
-import axios from 'axios';
-
-const BASE_URL = '/api';
+import apiClient from './apiClient';
 
 /**
  * Fetch weekly attendance records for an employee by email
@@ -9,7 +7,7 @@ const BASE_URL = '/api';
  */
 export const fetchWeeklyAttendance = async (email) => {
     try {
-        const response = await axios.get(`${BASE_URL}/attendance/weekly`, {
+        const response = await apiClient.get(`/attendance/weekly`, {
             params: { email }
         });
         return response.data;
@@ -26,7 +24,7 @@ export const fetchWeeklyAttendance = async (email) => {
  */
 export const checkIn = async (email) => {
     try {
-        const response = await axios.post(`${BASE_URL}/attendance/check-in`, null, {
+        const response = await apiClient.post(`/attendance/check-in`, null, {
             params: { email }
         });
         return response.data;
@@ -43,7 +41,7 @@ export const checkIn = async (email) => {
  */
 export const checkOut = async (email) => {
     try {
-        const response = await axios.post(`${BASE_URL}/attendance/check-out`, null, {
+        const response = await apiClient.post(`/attendance/check-out`, null, {
             params: { email }
         });
         return response.data;
@@ -59,7 +57,7 @@ export const checkOut = async (email) => {
  */
 export const fetchAllAttendance = async () => {
     try {
-        const response = await axios.get(`${BASE_URL}/attendance/all`);
+        const response = await apiClient.get(`/attendance/all`);
         return response.data;
     } catch (error) {
         console.error('Error fetching all attendance:', error);
@@ -75,7 +73,7 @@ export const fetchAllAttendance = async () => {
  */
 export const fetchAdminAttendanceDashboard = async (date, historyDays = 7) => {
     try {
-        const response = await axios.get(`${BASE_URL}/admin/attendance/dashboard`, {
+        const response = await apiClient.get(`/admin/attendance/dashboard`, {
             params: { date, historyDays }
         });
         return response.data;
@@ -92,7 +90,7 @@ export const fetchAdminAttendanceDashboard = async (date, historyDays = 7) => {
  */
 export const markAdminAttendance = async (attendanceData) => {
     try {
-        const response = await axios.post(`${BASE_URL}/admin/attendance/mark`, attendanceData);
+        const response = await apiClient.post(`/admin/attendance/mark`, attendanceData);
         return response.data;
     } catch (error) {
         console.error('Error marking admin attendance:', error);
@@ -105,7 +103,7 @@ export const markAdminAttendance = async (attendanceData) => {
  */
 export const fetchEmployeeDetailedStats = async (name, date) => {
     try {
-        const response = await axios.get(`${BASE_URL}/admin/attendance/popup`, {
+        const response = await apiClient.get(`/admin/attendance/popup`, {
             params: { name, date }
         });
         return response.data;

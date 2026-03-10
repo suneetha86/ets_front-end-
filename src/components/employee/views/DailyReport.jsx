@@ -6,6 +6,7 @@ import { createTask } from '../../../api/taskApi'
 const DailyReport = ({ onViewHistory }) => {
     const navigate = useNavigate()
     const [submitting, setSubmitting] = useState(false);
+    const [showSuccess, setShowSuccess] = useState(false);
     const [formData, setFormData] = useState({
         date: new Date().toISOString().split('T')[0],
         time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
@@ -13,6 +14,8 @@ const DailyReport = ({ onViewHistory }) => {
         challenges: '',
         solution: '',
     })
+
+    const [modal, setModal] = useState({ show: false, title: '', message: '', type: 'error' })
 
     const [files, setFiles] = useState({
         challenges: [],
@@ -32,7 +35,12 @@ const DailyReport = ({ onViewHistory }) => {
         e.preventDefault()
         
         if (!formData.description.trim()) {
-            alert("Please provide a task description.");
+            setModal({
+                show: true,
+                title: "Validation Error",
+                message: "Please provide a task description before submitting the report.",
+                type: 'error'
+            });
             return;
         }
 
@@ -58,26 +66,23 @@ const DailyReport = ({ onViewHistory }) => {
             const response = await createTask(apiPayload);
             console.log("Mission Log Synchronized:", response);
 
-            alert("Handshake Success: Daily operational mission log has been synchronized with the master repository.");
+            setSubmitting(false);
+            setShowSuccess(true);
 
-
-            // Reset form
-            setFormData({
-                date: new Date().toISOString().split('T')[0],
-                time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
-                description: '',
-                challenges: '',
-                solution: '',
-            })
-            setFiles({ challenges: [], solution: [] })
-
-            // Reset file inputs manually
-            if (document.getElementById('challenges-upload')) document.getElementById('challenges-upload').value = ''
-            if (document.getElementById('solution-upload')) document.getElementById('solution-upload').value = ''
+            // Navigate to history to see the new record after reading the success message
+            setTimeout(() => {
+                setShowSuccess(false);
+                navigate('../daily-history');
+            }, 2500);
             
         } catch (error) {
             console.error("Failed to submit task:", error);
-            alert("Error submitting report. Please check the backend connection.");
+            setModal({
+                show: true,
+                title: "Transmission Error",
+                message: "Failed to submit report. Please check your network connection.",
+                type: 'error'
+            });
         } finally {
             setSubmitting(false);
         }
@@ -154,26 +159,26 @@ const DailyReport = ({ onViewHistory }) => {
                             ></textarea>
                         </div>
 
-                        <div className='bg-yellow-50 p-6 rounded-xl border border-yellow-100 space-y-4'>
+                        <div className='bg-blue-50/50 p-6 rounded-xl border border-blue-100 space-y-4'>
                             <div className='space-y-2'>
                                 <label className='text-sm font-bold text-gray-800 flex items-center gap-2'>
-                                    <AlertTriangle size={16} className='text-yellow-600' /> Challenges Faced
+                                    <AlertTriangle size={16} className='text-blue-600' /> Challenges Faced
                                 </label>
                                 <textarea
                                     name="challenges"
                                     value={formData.challenges}
                                     onChange={handleChange}
-                                    className='w-full h-24 p-4 bg-white border border-gray-200 rounded-xl focus:border-yellow-500 outline-none transition-colors text-gray-700 resize-none'
+                                    className='w-full h-24 p-4 bg-white border border-gray-200 rounded-xl focus:border-blue-500 outline-none transition-colors text-gray-700 resize-none shadow-sm'
                                     placeholder='What blocks or issues did you encounter?'
                                 ></textarea>
                             </div>
 
                             <div className='space-y-2'>
                                 <label className='text-sm font-bold text-gray-800 flex items-center gap-2'>
-                                    <Upload size={16} className='text-yellow-600' /> Upload Screenshots/Docs (Challenges)
+                                    <Upload size={16} className='text-blue-600' /> Upload Screenshots/Docs (Challenges)
                                 </label>
                                 <div className='flex items-center justify-center w-full'>
-                                    <label className='flex flex-col items-center justify-center w-full h-32 border-2 border-yellow-200 border-dashed rounded-xl cursor-pointer bg-white hover:bg-yellow-50 transition-colors'>
+                                    <label className='flex flex-col items-center justify-center w-full h-32 border-2 border-blue-200 border-dashed rounded-xl cursor-pointer bg-white hover:bg-blue-50 transition-colors shadow-sm'>
                                         <div className='flex flex-col items-center justify-center pt-5 pb-6'>
                                             <p className='mb-2 text-sm text-gray-500'><span className='font-semibold'>Click to upload</span> or drag and drop</p>
                                             <p className='text-xs text-gray-500'>SVG, PNG, JPG or PDF (MAX. 800x400px)</p>
@@ -191,7 +196,7 @@ const DailyReport = ({ onViewHistory }) => {
                                 {files.challenges.length > 0 && (
                                     <div className='flex flex-wrap gap-2 mt-2'>
                                         {files.challenges.map((f, idx) => (
-                                            <span key={idx} className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded border border-yellow-200 italic">
+                                            <span key={idx} className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded border border-blue-200 italic">
                                                 {f.name}
                                             </span>
                                         ))}
@@ -200,26 +205,26 @@ const DailyReport = ({ onViewHistory }) => {
                             </div>
                         </div>
 
-                        <div className='bg-green-50 p-6 rounded-xl border border-green-100 space-y-4'>
+                        <div className='bg-blue-50/50 p-6 rounded-xl border border-blue-100 space-y-4'>
                             <div className='space-y-2'>
                                 <label className='text-sm font-bold text-gray-800 flex items-center gap-2'>
-                                    <CheckCircle size={16} className='text-green-600' /> Solutions Implemented
+                                    <CheckCircle size={16} className='text-blue-600' /> Solutions Implemented
                                 </label>
                                 <textarea
                                     name="solution"
                                     value={formData.solution}
                                     onChange={handleChange}
-                                    className='w-full h-24 p-4 bg-white border border-gray-200 rounded-xl focus:border-green-500 outline-none transition-colors text-gray-700 resize-none'
+                                    className='w-full h-24 p-4 bg-white border border-gray-200 rounded-xl focus:border-blue-500 outline-none transition-colors text-gray-700 resize-none shadow-sm'
                                     placeholder='How did you resolve the issues?'
                                 ></textarea>
                             </div>
 
                             <div className='space-y-2'>
                                 <label className='text-sm font-bold text-gray-800 flex items-center gap-2'>
-                                    <Upload size={16} className='text-green-600' /> Upload Solution Docs
+                                    <Upload size={16} className='text-blue-600' /> Upload Solution Docs
                                 </label>
                                 <div className='flex items-center justify-center w-full'>
-                                    <label className='flex flex-col items-center justify-center w-full h-32 border-2 border-green-200 border-dashed rounded-xl cursor-pointer bg-white hover:bg-green-50 transition-colors'>
+                                    <label className='flex flex-col items-center justify-center w-full h-32 border-2 border-blue-200 border-dashed rounded-xl cursor-pointer bg-white hover:bg-blue-50 transition-colors shadow-sm'>
                                         <div className='flex flex-col items-center justify-center pt-5 pb-6'>
                                             <p className='mb-2 text-sm text-gray-500'><span className='font-semibold'>Click to upload</span> or drag and drop</p>
                                             <p className='text-xs text-gray-500'>DOCS, PDF, Images</p>
@@ -237,7 +242,7 @@ const DailyReport = ({ onViewHistory }) => {
                                 {files.solution.length > 0 && (
                                     <div className='flex flex-wrap gap-2 mt-2'>
                                         {files.solution.map((f, idx) => (
-                                            <span key={idx} className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded border border-green-200 italic">
+                                            <span key={idx} className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded border border-blue-200 italic">
                                                 {f.name}
                                             </span>
                                         ))}
@@ -264,6 +269,64 @@ const DailyReport = ({ onViewHistory }) => {
                 </div>
 
             </div>
+
+            {/* ── SUCCESS MODAL ── */}
+            {showSuccess && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[200] flex items-center justify-center p-4 animate-in fade-in duration-200">
+                    <div className="bg-white w-full max-w-md rounded-[2rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 border border-slate-100 text-center">
+                        <div className="bg-emerald-500 p-10 flex flex-col items-center gap-4 relative overflow-hidden">
+                            <div className="absolute top-2 right-4 opacity-10 rotate-12">
+                                <CheckCircle size={120} />
+                            </div>
+                            <div className="relative z-10 w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-2xl shadow-emerald-900/20 animate-bounce">
+                                <CheckCircle className="text-emerald-500" size={40} />
+                            </div>
+                            <div className="relative z-10">
+                                <h3 className="font-black text-2xl text-white tracking-tight">Submit Successful</h3>
+                            </div>
+                        </div>
+                        <div className="p-8">
+                            <p className="text-slate-700 font-bold text-sm leading-relaxed text-center">
+                                Your daily report has been <span className="text-emerald-600 font-black">saved successfully.</span>
+                            </p>
+                            <div className="mt-6 w-full bg-emerald-50 border border-emerald-100 rounded-2xl py-3 px-5 flex items-center gap-3">
+                                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                                <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest text-left">Redirecting...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ── MODAL NOTIFICATION ── */}
+            {modal.show && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[200] flex items-center justify-center p-4 animate-in fade-in duration-200">
+                    <div className="bg-white w-full max-w-sm rounded-[2rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 border border-slate-100 text-center">
+                        <div className="bg-rose-500 p-8 flex flex-col items-center gap-4 relative overflow-hidden">
+                            <div className="absolute top-2 right-4 opacity-10 rotate-12">
+                                <AlertTriangle size={100} />
+                            </div>
+                            <div className="relative z-10 w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-2xl">
+                                <AlertTriangle className="text-rose-500" size={32} />
+                            </div>
+                            <div className="relative z-10">
+                                <h3 className="font-black text-xl text-white tracking-tight">{modal.title}</h3>
+                            </div>
+                        </div>
+                        <div className="p-8">
+                            <p className="text-slate-600 font-bold text-sm leading-relaxed mb-6">
+                                {modal.message}
+                            </p>
+                            <button 
+                                onClick={() => setModal({ ...modal, show: false })}
+                                className="w-full py-4 bg-rose-500 hover:bg-rose-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-rose-100 active:scale-95"
+                            >
+                                Acknowledge
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

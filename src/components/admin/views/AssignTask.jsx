@@ -9,9 +9,10 @@ const AssignTask = () => {
     const [taskTitle, setTaskTitle] = useState('')
     const [taskDescription, setTaskDescription] = useState('')
     const [taskDate, setTaskDate] = useState('')
-    const [asignTo, setAsignTo] = useState('')
+    const [asignTo, setAsignTo] = useState('Suneetha')
     const [category, setCategory] = useState('')
     const [isSubmitting, setIsSubmitting] = useState(false)
+    const [modal, setModal] = useState({ show: false, title: '', message: '', type: 'info' })
 
     // MCQ Specific Fields
     const [question, setQuestion] = useState('')
@@ -97,10 +98,20 @@ const AssignTask = () => {
             setOption4('')
             setCorrectOption('')
 
-            alert("Handshake Success: Tactical task established and synchronized in the master vault.")
+            setModal({
+                show: true,
+                title: "Handshake Success",
+                message: "Tactical task established and synchronized in the master vault.",
+                type: 'success'
+            });
         } catch (err) {
             console.error("Task Deployment Failed:", err)
-            alert("PROTOCOL BREACH: Failed to synchronize mission parameters with the master gateway.")
+            setModal({
+                show: true,
+                title: "Protocol Breach",
+                message: "Failed to synchronize mission parameters with the master gateway.",
+                type: 'error'
+            });
         } finally {
             setIsSubmitting(false)
         }
@@ -129,7 +140,7 @@ const AssignTask = () => {
                             <input
                                 value={taskDate}
                                 onChange={(e) => setTaskDate(e.target.value)}
-                                className='text-sm py-3 px-4 w-full rounded-xl outline-none bg-gray-50 border border-gray-200 focus:border-purple-500 transition-colors text-gray-700'
+                                className='text-sm py-3 px-4 w-full rounded-xl outline-none bg-gray-50 border border-gray-200 focus:border-purple-500 transition-colors text-gray-700 cursor-pointer'
                                 type="date"
                                 required
                             />
@@ -143,8 +154,8 @@ const AssignTask = () => {
                                 required
                             >
                                 <option value="" disabled>Select Employee</option>
-                                {userData.map((user) => (
-                                    <option key={user.id} value={user.firstName}>{user.firstName}</option>
+                                {userData.map((user, idx) => (
+                                    <option key={`${user.id}-${idx}`} value={user.firstName}>{user.firstName}</option>
                                 ))}
                             </select>
                         </div>
@@ -225,7 +236,7 @@ const AssignTask = () => {
                     </div>
                 </div>
 
-                <button 
+                <button
                     disabled={isSubmitting}
                     className='w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 px-4 rounded-xl shadow-lg shadow-purple-200 transition-all flex items-center justify-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed'
                 >
@@ -233,6 +244,44 @@ const AssignTask = () => {
                     {isSubmitting ? 'Deploying Objective...' : 'Create Tactical Task'}
                 </button>
             </form>
+
+            {/* ── MODAL NOTIFICATION ── */}
+            {modal.show && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[200] flex items-center justify-center p-4 animate-in fade-in duration-200">
+                    <div className="bg-white w-full max-w-sm rounded-[2rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 border border-slate-100 text-center">
+                        <div className={`p-8 flex flex-col items-center gap-4 relative overflow-hidden ${
+                            modal.type === 'success' ? 'bg-emerald-500' : 
+                            modal.type === 'error' ? 'bg-rose-500' : 'bg-blue-500'
+                        }`}>
+                            <div className="absolute top-2 right-4 opacity-10 rotate-12">
+                                <Zap size={100} className="text-white" />
+                            </div>
+                            <div className="relative z-10 w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-2xl text-slate-900">
+                                {modal.type === 'success' ? <ShieldCheck className="text-emerald-500" size={32} /> : 
+                                 modal.type === 'error' ? <Database className="text-rose-500" size={32} /> : 
+                                 <Zap className="text-blue-500" size={32} />}
+                            </div>
+                            <div className="relative z-10">
+                                <h3 className="font-black text-xl text-white tracking-tight">{modal.title}</h3>
+                            </div>
+                        </div>
+                        <div className="p-8">
+                            <p className="text-slate-600 font-bold text-sm leading-relaxed mb-6">
+                                {modal.message}
+                            </p>
+                            <button 
+                                onClick={() => setModal({ ...modal, show: false })}
+                                className={`w-full py-4 ${
+                                    modal.type === 'success' ? 'bg-emerald-500' : 
+                                    modal.type === 'error' ? 'bg-rose-500' : 'bg-blue-600'
+                                } text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl active:scale-95`}
+                            >
+                                Acknowledge
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

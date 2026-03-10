@@ -9,6 +9,7 @@ const ResetPassword = ({ data }) => {
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState(null);
     const [error, setError] = useState(null);
+    const [showPlainPassword, setShowPlainPassword] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -115,7 +116,7 @@ const ResetPassword = ({ data }) => {
                         <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">New Access Key</label>
                         <div className="relative group">
                             <input
-                                type="password"
+                                type={showPlainPassword ? "text" : "password"}
                                 value={newPassword}
                                 onChange={(e) => setNewPassword(e.target.value)}
                                 placeholder="••••••••"
@@ -125,6 +126,13 @@ const ResetPassword = ({ data }) => {
                             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-500 transition-colors">
                                 <Lock size={20} />
                             </div>
+                            <button 
+                                type="button"
+                                onClick={() => setShowPlainPassword(!showPlainPassword)}
+                                className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-blue-500 transition-colors"
+                            >
+                                <span className="text-[8px] font-black uppercase tracking-widest">{showPlainPassword ? 'Hide' : 'Show'}</span>
+                            </button>
                         </div>
                     </div>
 
@@ -132,7 +140,7 @@ const ResetPassword = ({ data }) => {
                         <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Confirm Access Key</label>
                         <div className="relative group">
                             <input
-                                type="password"
+                                type={showPlainPassword ? "text" : "password"}
                                 value={confirmPassword}
                                 onChange={(e) => setConfirmPassword(e.target.value)}
                                 placeholder="••••••••"

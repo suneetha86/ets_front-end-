@@ -1,10 +1,8 @@
-import axios from 'axios';
-
-const BASE_URL = '/api';
+import apiClient from './apiClient';
 
 export const createProfile = async (profileData) => {
     try {
-        const response = await axios.post(`${BASE_URL}/profiles/create`, profileData);
+        const response = await apiClient.post(`/profiles/create`, profileData);
         return response.data;
     } catch (error) {
         console.error('Error creating profile:', error);
@@ -14,7 +12,7 @@ export const createProfile = async (profileData) => {
 
 export const fetchEmployeeProfile = async () => {
     try {
-        const response = await axios.get(`${BASE_URL}/profiles/employee`);
+        const response = await apiClient.get(`/profiles/employee`);
         return response.data;
     } catch (error) {
         console.error('Error fetching profile from compound API:', error);
@@ -24,7 +22,7 @@ export const fetchEmployeeProfile = async () => {
 
 export const updateProfile = async (id, profileData) => {
     try {
-        const response = await axios.put(`${BASE_URL}/profiles/${id}`, profileData);
+        const response = await apiClient.put(`/profiles/${id}`, profileData);
         return response.data;
     } catch (error) {
         console.error('Error updating profile:', error);
@@ -38,8 +36,8 @@ export const uploadProfileImage = async (file, employeeId) => {
         formData.append('file', file);
         formData.append('employeeId', employeeId);
 
-        const response = await axios.post(
-            `${BASE_URL}/profiles/upload-image`,
+        const response = await apiClient.post(
+            `/profiles/upload-image`,
             formData,
             {
                 headers: {
@@ -56,7 +54,7 @@ export const uploadProfileImage = async (file, employeeId) => {
 
 export const getEmployeeProfile = async (employeeId) => {
     try {
-        const response = await axios.get(`${BASE_URL}/profiles/${employeeId}`);
+        const response = await apiClient.get(`/profiles/${employeeId}`);
         return response.data;
     } catch (error) {
         console.error('Error fetching profile:', error);
@@ -65,7 +63,7 @@ export const getEmployeeProfile = async (employeeId) => {
 };
 export const createEmployee = async (employeeData) => {
     try {
-        const response = await axios.post(`${BASE_URL}/employees`, employeeData);
+        const response = await apiClient.post(`/employees`, employeeData);
         return response.data;
     } catch (error) {
         console.error('Error creating employee:', error);
@@ -74,7 +72,7 @@ export const createEmployee = async (employeeData) => {
 };
 export const fetchAllEmployees = async () => {
     try {
-        const response = await axios.get(`${BASE_URL}/employees`);
+        const response = await apiClient.get(`/employees`);
         return response.data;
     } catch (error) {
         console.error('Error fetching all employees:', error);
@@ -83,7 +81,7 @@ export const fetchAllEmployees = async () => {
 };
 export const fetchAdminEmployees = async () => {
     try {
-        const response = await axios.get(`/admin/employees`);
+        const response = await apiClient.get(`/admin/employees`);
         return response.data;
     } catch (error) {
         console.error('Error fetching admin employees:', error);
@@ -93,7 +91,7 @@ export const fetchAdminEmployees = async () => {
 
 export const fetchAdminEmployeeById = async (id) => {
     try {
-        const response = await axios.get(`/admin/employees/${id}`);
+        const response = await apiClient.get(`/admin/employees/${id}`);
         return response.data;
     } catch (error) {
         console.error(`Error fetching admin employee with ID ${id}:`, error);
@@ -103,7 +101,7 @@ export const fetchAdminEmployeeById = async (id) => {
 
 export const createAdminEmployee = async (employeeData) => {
     try {
-        const response = await axios.post(`/admin/employees`, employeeData);
+        const response = await apiClient.post(`/admin/employees`, employeeData);
         return response.data;
     } catch (error) {
         console.error('Error creating admin employee:', error);
@@ -113,7 +111,7 @@ export const createAdminEmployee = async (employeeData) => {
 
 export const deactivateEmployee = async (id) => {
     try {
-        const response = await axios.put(`/admin/employees/${id}/deactivate`);
+        const response = await apiClient.put(`/admin/employees/${id}/deactivate`);
         return response.data;
     } catch (error) {
         console.error(`Error deactivating employee with ID ${id}:`, error);
@@ -123,7 +121,7 @@ export const deactivateEmployee = async (id) => {
 
 export const fetchActiveEmployeeCount = async () => {
     try {
-        const response = await axios.get(`/admin/employees/active/count`);
+        const response = await apiClient.get(`/admin/employees/active/count`);
         return response.data;
     } catch (error) {
         console.error('Error fetching active employee count:', error);
@@ -133,7 +131,7 @@ export const fetchActiveEmployeeCount = async () => {
 
 export const adminLogin = async (credentials) => {
     try {
-        const response = await axios.post(`/api/admin/login`, credentials);
+        const response = await apiClient.post(`/admin/login`, credentials);
         return response.data;
     } catch (error) {
         console.error('Error logging in admin:', error);
@@ -143,7 +141,7 @@ export const adminLogin = async (credentials) => {
 
 export const adminForgotPassword = async (emailData) => {
     try {
-        const response = await axios.post(`/api/admin/forgot-password`, emailData);
+        const response = await apiClient.post(`/admin/forgot-password`, emailData);
         return response.data;
     } catch (error) {
         console.error('Error sending reset link:', error);
@@ -153,7 +151,7 @@ export const adminForgotPassword = async (emailData) => {
 
 export const adminResetPassword = async (resetData) => {
     try {
-        const response = await axios.post(`/api/admin/reset-password`, resetData);
+        const response = await apiClient.post(`/admin/reset-password`, resetData);
         return response.data;
     } catch (error) {
         console.error('Error resetting password:', error);
@@ -163,7 +161,7 @@ export const adminResetPassword = async (resetData) => {
 
 export const registerEmployee = async (employeeData) => {
     try {
-        const response = await axios.post(`${BASE_URL}/employee/register`, employeeData);
+        const response = await apiClient.post(`/employee/register`, employeeData);
         return response.data;
     } catch (error) {
         console.error('Error registering employee:', error);
@@ -173,7 +171,7 @@ export const registerEmployee = async (employeeData) => {
 
 export const employeeLogin = async (credentials) => {
     try {
-        const response = await axios.post(`${BASE_URL}/employee/login`, credentials);
+        const response = await apiClient.post(`/employee/login`, credentials);
         return response.data;
     } catch (error) {
         console.error('Error logging in employee:', error);
@@ -183,7 +181,7 @@ export const employeeLogin = async (credentials) => {
 
 export const employeeForgotPassword = async (emailData) => {
     try {
-        const response = await axios.post(`${BASE_URL}/employee/forgot-password`, emailData);
+        const response = await apiClient.post(`/employee/forgot-password`, emailData);
         return response.data;
     } catch (error) {
         console.error('Error verifying email:', error);
@@ -193,7 +191,7 @@ export const employeeForgotPassword = async (emailData) => {
 
 export const employeeResetPassword = async (resetData) => {
     try {
-        const response = await axios.post(`${BASE_URL}/employee/reset-password`, resetData);
+        const response = await apiClient.post(`/employee/reset-password`, resetData);
         return response.data;
     } catch (error) {
         console.error('Error resetting employee password:', error);

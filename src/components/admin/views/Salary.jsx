@@ -26,6 +26,7 @@ const Salary = () => {
     const [submitLoading, setSubmitLoading] = useState(false);
     const [activeTab, setActiveTab] = useState('issue'); // 'issue', 'history', or 'quick'
     const [selectedSalary, setSelectedSalary] = useState(null);
+    const [modal, setModal] = useState({ show: false, title: '', message: '', type: 'info', onConfirm: null });
 
     const [detailLoading, setDetailLoading] = useState(false);
     const [deptFilter, setDeptFilter] = useState('');
@@ -165,7 +166,12 @@ const Salary = () => {
             setSelectedSalary(data);
         } catch (err) {
             console.error("Failed to fetch salary details", err);
-            alert("Could not load salary details.");
+            setModal({
+                show: true,
+                title: "Decryption Interrupted",
+                message: "Could not load the requested salary archive from the core repository.",
+                type: 'error'
+            });
         } finally {
             setDetailLoading(false);
         }
@@ -219,7 +225,18 @@ const Salary = () => {
 
 
     const handleDelete = async (salary) => {
-        if (!window.confirm(`Are you sure you want to delete this salary record for ${salary.employeeName}? This action cannot be undone.`)) return;
+        setModal({
+            show: true,
+            title: "CRITICAL ACTION",
+            message: `Are you sure you want to permanently delete the salary record for ${salary.employeeName}? This operation is irreversible.`,
+            type: 'warning',
+            onConfirm: async () => {
+                await executeDelete(salary);
+            }
+        });
+    }
+
+    const executeDelete = async (salary) => {
 
         try {
             setHistoryLoading(true);
@@ -228,11 +245,21 @@ const Salary = () => {
             } else {
                 await deleteSalary(salary.id);
             }
-            alert("Salary record deleted successfully");
+            setModal({
+                show: true,
+                title: "Record Terminated",
+                message: "Salary archive has been wiped from the core successfully.",
+                type: 'success'
+            });
             loadSalaries(); // Refresh unified list
         } catch (err) {
             console.error("Failed to delete record", err);
-            alert("Failed to delete salary record.");
+            setModal({
+                show: true,
+                title: "Termination Blocked",
+                message: "System protocols prevented the deletion of this record.",
+                type: 'error'
+            });
         } finally {
             setHistoryLoading(false);
         }
@@ -242,7 +269,12 @@ const Salary = () => {
     const handleQuickSubmit = async (e) => {
         e.preventDefault();
         if (!quickFormData.employeeId) {
-            alert('Please select an employee');
+            setModal({
+                show: true,
+                title: "Validation Error",
+                message: "Please identify a target employee node before issuing remuneration.",
+                type: 'error'
+            });
             return;
         }
 
@@ -256,12 +288,22 @@ const Salary = () => {
             
             if (isEditingQuick) {
                 await updateEmployeeSalary(editId, payload);
-                alert("Simplified Salary record updated successfully!");
+                setModal({
+                    show: true,
+                    title: "Sync Success",
+                    message: "Simplified salary record updated and synchronized with core.",
+                    type: 'success'
+                });
                 setIsEditingQuick(false);
                 setEditId(null);
             } else {
                 await postEmployeeSalary(payload);
-                alert("Simplified Salary record posted successfully!");
+                setModal({
+                    show: true,
+                    title: "Issue Success",
+                    message: "Simplified salary record issued successfully.",
+                    type: 'success'
+                });
             }
             
             loadSalaries();
@@ -277,7 +319,12 @@ const Salary = () => {
             });
         } catch (err) {
             console.error("Failed to process simplified salary:", err);
-            alert(`Failed to ${isEditingQuick ? 'update' : 'post'} simplified salary record.`);
+            setModal({
+                show: true,
+                title: "Transaction Failed",
+                message: `Failed to ${isEditingQuick ? 'update' : 'post'} simplified salary record.`,
+                type: 'error'
+            });
         } finally {
             setSubmitLoading(false);
         }
@@ -360,15 +407,20 @@ const Salary = () => {
         const { name, value, type, checked } = e.target;
         
         if (name === 'employeeId') {
-            const selectedEmp = employees.find(emp => String(emp.empId) === String(value));
+            const selectedEmp = employees.find(emp => 
+                String(emp.empId) === String(value) || 
+                String(emp.id) === String(value)
+            );
+
             if (selectedEmp) {
+                const effectiveEmpId = selectedEmp.empId || selectedEmp.id;
                 setFormData(prev => ({
                     ...prev,
                     employeeId: value,
-                    employeeCode: selectedEmp.employeeCode || `EMP${String(selectedEmp.empId).padStart(3, '0')}`,
-                    employeeName: selectedEmp.username,
+                    employeeCode: selectedEmp.employeeCode || `EMP${String(effectiveEmpId).padStart(3, '0')}`,
+                    employeeName: selectedEmp.username || selectedEmp.firstName || '',
                     department: selectedEmp.department || 'IT',
-                    designation: selectedEmp.role || 'Software Engineer'
+                    designation: selectedEmp.role || selectedEmp.designation || 'Software Engineer'
                 }));
             } else {
                 setFormData(prev => ({
@@ -394,7 +446,12 @@ const Salary = () => {
         e.preventDefault();
         
         if (!formData.employeeCode) {
-            alert('Please select an employee');
+            setModal({
+                show: true,
+                title: "Target Missing",
+                message: "Please identify a valid target employee node.",
+                type: 'error'
+            });
             return;
         }
 
@@ -403,26 +460,38 @@ const Salary = () => {
             
             // Construct payload matching the required ResponseBody format
             const payload = {
-                employeeCode: formData.employeeCode,
-                employeeName: formData.employeeName,
-                department: formData.department,
-                designation: formData.designation,
-                grossSalary: calculated.grossAmount,
-                deductions: calculated.totalDeductions,
-                netSalary: calculated.netAmount,
-                receiptDate: formData.receiptDate,
+                employeeCode: formData.employeeCode || `EMP${Date.now().toString().slice(-3)}`,
+                employeeName: formData.employeeName || 'Unknown Employee',
+                department: formData.department || 'General',
+                designation: formData.designation || 'Staff',
+                grossSalary: Number(calculated.grossAmount) || 0,
+                deductions: Number(calculated.totalDeductions) || 0,
+                netSalary: Number(calculated.netAmount) || 0,
+                receiptDate: formData.receiptDate || new Date().toISOString().split('T')[0],
                 receiptIssued: formData.receiptIssued,
                 status: formData.status
             };
 
+            console.log("Salary Dispatch Payload:", payload);
+
             if (isEditing) {
                 await updateSalary(editId, payload);
-                alert("Salary record updated successfully!");
+                setModal({
+                    show: true,
+                    title: "Update Authorized",
+                    message: "Salary archive updated successfully.",
+                    type: 'success'
+                });
                 setIsEditing(false);
                 setEditId(null);
             } else {
                 await postSalary(payload);
-                alert("Salary record posted successfully!");
+                setModal({
+                    show: true,
+                    title: "Issue Successful",
+                    message: "Remuneration issued and logged in core repository.",
+                    type: 'success'
+                });
             }
 
             // Refresh history
@@ -451,8 +520,14 @@ const Salary = () => {
             });
 
         } catch (err) {
-            console.error("Failed to process salary:", err);
-            alert(`Failed to ${isEditing ? 'update' : 'post'} salary record.`);
+            console.error("Full Error Response:", err.response);
+            const errorMessage = err.response?.data?.message || err.response?.data || err.message;
+            setModal({
+                show: true,
+                title: "Backend Violation",
+                message: `Transaction Error: ${typeof errorMessage === 'string' ? errorMessage : 'Internal Protocol Error'}`,
+                type: 'error'
+            });
         } finally {
             setSubmitLoading(false);
         }
@@ -534,51 +609,55 @@ const Salary = () => {
 
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                         <div>
-                            <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Select Employee</label>
+                            <label className="block text-xs font-black text-black uppercase tracking-widest mb-2">Select Employee</label>
                             <select 
                                 name="employeeId" 
                                 value={formData.employeeId || ''} 
                                 onChange={handleChange}
                                 required
-                                className="w-full bg-white border border-gray-200 text-gray-800 text-sm rounded-xl p-3 outline-none focus:border-blue-500 transition-colors shadow-sm"
+                                className="w-full bg-white border border-gray-200 text-black font-bold text-sm rounded-xl p-3 outline-none focus:border-blue-500 transition-colors shadow-sm"
                             >
                                 <option value="">-- Choose Employee --</option>
-                                {employees.map(emp => (
-                                    <option key={emp.empId} value={emp.empId}>
-                                        {emp.username} (ID: {emp.empId})
-                                    </option>
-                                ))}
+                                {employees.map(emp => {
+                                    const empId = emp.empId || emp.id;
+                                    const name = emp.username || emp.firstName || 'Unknown';
+                                    return (
+                                        <option key={empId} value={empId}>
+                                            {name} (ID: {empId})
+                                        </option>
+                                    );
+                                })}
                             </select>
                         </div>
 
                         <div>
-                            <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Employee Code</label>
+                            <label className="block text-xs font-black text-black uppercase tracking-widest mb-2">Employee Code</label>
                             <input 
                                 type="text"
                                 name="employeeCode"
                                 value={formData.employeeCode}
                                 readOnly
-                                className="w-full bg-gray-50 border border-gray-200 text-gray-500 text-sm rounded-xl p-3 outline-none cursor-not-allowed shadow-inner"
+                                className="w-full bg-gray-50 border border-gray-200 text-black font-bold text-sm rounded-xl p-3 outline-none cursor-not-allowed shadow-inner"
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Receipt Date</label>
+                            <label className="block text-xs font-black text-black uppercase tracking-widest mb-2">Receipt Date</label>
                             <input 
                                 type="date"
                                 name="receiptDate"
                                 value={formData.receiptDate}
                                 onChange={handleChange}
                                 required
-                                className="w-full bg-white border border-gray-200 text-gray-800 text-sm rounded-xl p-3 outline-none focus:border-blue-500 transition-colors shadow-sm"
+                                className="w-full bg-white border border-gray-200 text-black font-bold text-sm rounded-xl p-3 outline-none focus:border-blue-500 transition-colors shadow-sm"
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Payment Status</label>
+                            <label className="block text-xs font-black text-black uppercase tracking-widest mb-2">Payment Status</label>
                             <select 
                                 name="status" 
                                 value={formData.status} 
                                 onChange={handleChange}
-                                className="w-full bg-white border border-gray-200 text-gray-800 text-sm rounded-xl p-3 outline-none focus:border-blue-500 transition-colors shadow-sm"
+                                className="w-full bg-white border border-gray-200 text-black font-bold text-sm rounded-xl p-3 outline-none focus:border-blue-500 transition-colors shadow-sm"
                             >
                                 <option value="PAID">PAID</option>
                                 <option value="PENDING">PENDING</option>
@@ -613,20 +692,20 @@ const Salary = () => {
                         
                         <div className="space-y-4">
                             <div className="flex flex-col">
-                                <label className="text-xs font-bold text-gray-500 uppercase mb-1">Basic Compensation (₹)</label>
-                                <input type="number" name="basicCompensation" value={formData.basicCompensation} onChange={handleChange} className="border border-gray-200 rounded-xl p-3 outline-none focus:border-emerald-500" />
+                                <label className="text-xs font-black text-black uppercase mb-1">Basic Compensation (₹)</label>
+                                <input type="number" name="basicCompensation" value={formData.basicCompensation} onChange={handleChange} className="border border-gray-200 rounded-xl p-3 outline-none focus:border-emerald-500 text-black font-bold" />
                             </div>
                             <div className="flex flex-col">
-                                <label className="text-xs font-bold text-gray-500 uppercase mb-1">HRA Support (₹)</label>
-                                <input type="number" name="hraSupport" value={formData.hraSupport} onChange={handleChange} className="border border-gray-200 rounded-xl p-3 outline-none focus:border-emerald-500" />
+                                <label className="text-xs font-black text-black uppercase mb-1">HRA Support (₹)</label>
+                                <input type="number" name="hraSupport" value={formData.hraSupport} onChange={handleChange} className="border border-gray-200 rounded-xl p-3 outline-none focus:border-emerald-500 text-black font-bold" />
                             </div>
                             <div className="flex flex-col">
-                                <label className="text-xs font-bold text-gray-500 uppercase mb-1">Medical Conveyance (₹)</label>
-                                <input type="number" name="medicalConveyance" value={formData.medicalConveyance} onChange={handleChange} className="border border-gray-200 rounded-xl p-3 outline-none focus:border-emerald-500" />
+                                <label className="text-xs font-black text-black uppercase mb-1">Medical Conveyance (₹)</label>
+                                <input type="number" name="medicalConveyance" value={formData.medicalConveyance} onChange={handleChange} className="border border-gray-200 rounded-xl p-3 outline-none focus:border-emerald-500 text-black font-bold" />
                             </div>
                             <div className="flex flex-col">
-                                <label className="text-xs font-bold text-gray-500 uppercase mb-1">Special Allowances (₹)</label>
-                                <input type="number" name="specialAllowances" value={formData.specialAllowances} onChange={handleChange} className="border border-gray-200 rounded-xl p-3 outline-none focus:border-emerald-500" />
+                                <label className="text-xs font-black text-black uppercase mb-1">Special Allowances (₹)</label>
+                                <input type="number" name="specialAllowances" value={formData.specialAllowances} onChange={handleChange} className="border border-gray-200 rounded-xl p-3 outline-none focus:border-emerald-500 text-black font-bold" />
                             </div>
                         </div>
                         <div className="bg-emerald-50 p-4 rounded-xl flex justify-between items-center border border-emerald-100">
@@ -641,20 +720,20 @@ const Salary = () => {
                         
                         <div className="space-y-4">
                             <div className="flex flex-col">
-                                <label className="text-xs font-bold text-gray-500 uppercase mb-1">Provident Fund (₹)</label>
-                                <input type="number" name="providentFund" value={formData.providentFund} onChange={handleChange} className="border border-gray-200 rounded-xl p-3 outline-none focus:border-red-500" />
+                                <label className="text-xs font-black text-black uppercase mb-1">Provident Fund (₹)</label>
+                                <input type="number" name="providentFund" value={formData.providentFund} onChange={handleChange} className="border border-gray-200 rounded-xl p-3 outline-none focus:border-red-500 text-black font-bold" />
                             </div>
                             <div className="flex flex-col">
-                                <label className="text-xs font-bold text-gray-500 uppercase mb-1">Professional Tax (₹)</label>
-                                <input type="number" name="professionalTax" value={formData.professionalTax} onChange={handleChange} className="border border-gray-200 rounded-xl p-3 outline-none focus:border-red-500" />
+                                <label className="text-xs font-black text-black uppercase mb-1">Professional Tax (₹)</label>
+                                <input type="number" name="professionalTax" value={formData.professionalTax} onChange={handleChange} className="border border-gray-200 rounded-xl p-3 outline-none focus:border-red-500 text-black font-bold" />
                             </div>
                             <div className="flex flex-col">
-                                <label className="text-xs font-bold text-gray-500 uppercase mb-1">Health Insurance (₹)</label>
-                                <input type="number" name="healthInsurance" value={formData.healthInsurance} onChange={handleChange} className="border border-gray-200 rounded-xl p-3 outline-none focus:border-red-500" />
+                                <label className="text-xs font-black text-black uppercase mb-1">Health Insurance (₹)</label>
+                                <input type="number" name="healthInsurance" value={formData.healthInsurance} onChange={handleChange} className="border border-gray-200 rounded-xl p-3 outline-none focus:border-red-500 text-black font-bold" />
                             </div>
                             <div className="flex flex-col">
-                                <label className="text-xs font-bold text-gray-500 uppercase mb-1">TDS (₹)</label>
-                                <input type="number" name="tds" value={formData.tds} onChange={handleChange} className="border border-gray-200 rounded-xl p-3 outline-none focus:border-red-500" />
+                                <label className="text-xs font-black text-black uppercase mb-1">TDS (₹)</label>
+                                <input type="number" name="tds" value={formData.tds} onChange={handleChange} className="border border-gray-200 rounded-xl p-3 outline-none focus:border-red-500 text-black font-bold" />
                             </div>
                         </div>
                         <div className="bg-red-50 p-4 rounded-xl flex justify-between items-center border border-red-100">
@@ -710,12 +789,12 @@ const Salary = () => {
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div>
-                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Select Employee</label>
+                                <label className="block text-xs font-black text-black uppercase tracking-widest mb-2">Select Employee</label>
                                 <select 
                                     value={quickFormData.employeeId} 
                                     onChange={(e) => setQuickFormData({...quickFormData, employeeId: e.target.value})}
                                     required
-                                    className="w-full bg-white border border-gray-200 text-gray-800 text-sm rounded-xl p-3 outline-none focus:border-amber-500 transition-colors shadow-sm"
+                                    className="w-full bg-white border border-gray-200 text-black font-bold text-sm rounded-xl p-3 outline-none focus:border-amber-500 transition-colors shadow-sm"
                                 >
                                     <option value="">-- Choose Employee --</option>
                                     {employees.map(emp => (
@@ -726,23 +805,23 @@ const Salary = () => {
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Billing Cycle</label>
+                                <label className="block text-xs font-black text-black uppercase tracking-widest mb-2">Billing Cycle</label>
                                 <input 
                                     type="text" 
                                     placeholder="e.g. September 2025" 
                                     value={quickFormData.cycle}
                                     onChange={(e) => setQuickFormData({...quickFormData, cycle: e.target.value})}
-                                    className="w-full border border-gray-200 rounded-xl p-3 outline-none focus:border-amber-500"
+                                    className="w-full border border-gray-200 rounded-xl p-3 outline-none focus:border-amber-500 text-black font-bold"
                                     required
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Transfer Date</label>
+                                <label className="block text-xs font-black text-black uppercase tracking-widest mb-2">Transfer Date</label>
                                 <input 
                                     type="date" 
                                     value={quickFormData.transferDate}
                                     onChange={(e) => setQuickFormData({...quickFormData, transferDate: e.target.value})}
-                                    className="w-full border border-gray-200 rounded-xl p-3 outline-none focus:border-amber-500"
+                                    className="w-full border border-gray-200 rounded-xl p-3 outline-none focus:border-amber-500 text-black font-bold"
                                     required
                                 />
                             </div>
@@ -751,33 +830,33 @@ const Salary = () => {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                             <div className="space-y-4 pt-4 border-t border-amber-100">
                                 <div>
-                                    <label className="text-xs font-bold text-gray-500 uppercase mb-1">Gross Amount (₹)</label>
+                                    <label className="text-xs font-black text-black uppercase mb-1">Gross Amount (₹)</label>
                                     <input 
                                         type="number" 
                                         value={quickFormData.gross}
                                         onChange={(e) => setQuickFormData({...quickFormData, gross: Number(e.target.value)})}
-                                        className="w-full border border-gray-200 rounded-xl p-3 outline-none focus:border-amber-500"
+                                        className="w-full border border-gray-200 rounded-xl p-3 outline-none focus:border-amber-500 text-black font-bold"
                                     />
                                 </div>
                                 <div>
-                                    <label className="text-xs font-bold text-gray-500 uppercase mb-1">Deductions (₹)</label>
+                                    <label className="text-xs font-black text-black uppercase mb-1">Deductions (₹)</label>
                                     <input 
                                         type="number" 
                                         value={quickFormData.deductions}
                                         onChange={(e) => setQuickFormData({...quickFormData, deductions: Number(e.target.value)})}
-                                        className="w-full border border-gray-200 rounded-xl p-3 outline-none focus:border-amber-500"
+                                        className="w-full border border-gray-200 rounded-xl p-3 outline-none focus:border-amber-500 text-black font-bold"
                                     />
                                 </div>
                             </div>
                             <div className="bg-white p-6 rounded-2xl border border-amber-100 flex flex-col justify-center items-center gap-2">
-                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Net Payable</p>
+                                <p className="text-[10px] font-black text-black uppercase tracking-widest">Net Payable</p>
                                 <p className="text-4xl font-black text-amber-600">₹{(quickFormData.gross - quickFormData.deductions).toLocaleString()}</p>
                                 <div className="mt-4 w-full">
-                                    <label className="block text-center text-xs font-bold text-gray-400 uppercase mb-2">Status</label>
+                                    <label className="block text-center text-xs font-black text-black uppercase mb-2">Status</label>
                                     <select 
                                         value={quickFormData.transactionStatus}
                                         onChange={(e) => setQuickFormData({...quickFormData, transactionStatus: e.target.value})}
-                                        className="w-full bg-amber-50 border border-amber-100 text-amber-800 text-sm font-bold rounded-xl p-2 outline-none text-center"
+                                        className="w-full bg-amber-50 border border-amber-100 text-black font-bold text-sm rounded-xl p-2 outline-none text-center"
                                     >
                                         <option value="PAID">PAID</option>
                                         <option value="PENDING">PENDING</option>
@@ -881,7 +960,7 @@ const Salary = () => {
 
                         <table className="w-full text-left border-collapse">
                             <thead className="bg-gray-50/80 backdrop-blur-md">
-                                <tr className="text-gray-400 text-[10px] font-black uppercase tracking-[0.2em] border-b border-gray-100">
+                                <tr className="text-black text-[10px] font-black uppercase tracking-[0.2em] border-b border-gray-100">
                                     <th className="p-6">Employee</th>
                                     <th className="p-6">Financials</th>
                                     <th className="p-6">Timeline</th>
@@ -1022,7 +1101,7 @@ const Salary = () => {
                                     {/* Stats Grid */}
                                     <div className="grid grid-cols-3 gap-4">
                                         <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
-                                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Gross Salary</p>
+                                            <p className="text-[10px] font-black text-black uppercase tracking-widest mb-1">Gross Salary</p>
                                             <p className="text-lg font-black text-gray-900">₹{selectedSalary.grossSalary?.toLocaleString()}</p>
                                         </div>
                                         <div className="p-4 bg-red-50 rounded-2xl border border-red-100">
@@ -1037,19 +1116,19 @@ const Salary = () => {
 
                                     {/* Professional Info */}
                                     <div className="space-y-4">
-                                        <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Assignment Details</h4>
+                                        <h4 className="text-[10px] font-black text-black uppercase tracking-[0.2em]">Assignment Details</h4>
                                         <div className="grid grid-cols-2 gap-4">
                                             <div className="flex items-center gap-4 p-4 bg-gray-50/50 rounded-2xl border border-gray-100">
                                                 <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl"><Building2 size={18} /></div>
                                                 <div>
-                                                    <p className="text-[10px] font-black text-gray-400 uppercase">Department</p>
+                                                    <p className="text-[10px] font-black text-black uppercase">Department</p>
                                                     <p className="text-sm font-bold text-gray-800">{selectedSalary.department}</p>
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-4 p-4 bg-gray-50/50 rounded-2xl border border-gray-100">
                                                 <div className="p-2.5 bg-purple-50 text-purple-600 rounded-xl"><Briefcase size={18} /></div>
                                                 <div>
-                                                    <p className="text-[10px] font-black text-gray-400 uppercase">Designation</p>
+                                                    <p className="text-[10px] font-black text-black uppercase">Designation</p>
                                                     <p className="text-sm font-bold text-gray-800">{selectedSalary.designation}</p>
                                                 </div>
                                             </div>
@@ -1084,6 +1163,69 @@ const Salary = () => {
                             </div>
                         </div>
                     )}
+                </div>
+            )}
+
+            {/* ── ACTION MODAL ── */}
+            {modal.show && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[200] flex items-center justify-center p-4 animate-in fade-in duration-200">
+                    <div className="bg-white w-full max-w-sm rounded-[2rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 border border-slate-100 text-center">
+                        <div className={`p-8 flex flex-col items-center gap-4 relative overflow-hidden ${
+                            modal.type === 'success' ? 'bg-emerald-500' : 
+                            modal.type === 'error' ? 'bg-rose-500' : 
+                            modal.type === 'warning' ? 'bg-amber-500' : 'bg-blue-500'
+                        }`}>
+                            <div className="absolute top-2 right-4 opacity-10 rotate-12">
+                                {modal.type === 'success' ? <CheckCircle size={100} /> : <AlertTriangle size={100} />}
+                            </div>
+                            <div className="relative z-10 w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-2xl text-slate-900">
+                                {modal.type === 'success' ? <CheckCircle className="text-emerald-500" size={32} /> : 
+                                 modal.type === 'error' ? <XCircle className="text-rose-500" size={32} /> : 
+                                 <AlertTriangle className="text-amber-500" size={32} />}
+                            </div>
+                            <div className="relative z-10">
+                                <h3 className="font-black text-xl text-white tracking-tight">{modal.title}</h3>
+                            </div>
+                        </div>
+                        <div className="p-8">
+                            <p className="text-slate-600 font-bold text-sm leading-relaxed mb-6">
+                                {modal.message}
+                            </p>
+                            <div className="flex gap-3">
+                                {modal.onConfirm ? (
+                                    <>
+                                        <button 
+                                            onClick={() => setModal({ ...modal, show: false })}
+                                            className="flex-1 py-4 bg-slate-100 text-slate-500 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95"
+                                        >
+                                            Abort
+                                        </button>
+                                        <button 
+                                            onClick={() => {
+                                                modal.onConfirm();
+                                                setModal({ ...modal, show: false });
+                                            }}
+                                            className={`flex-1 py-4 ${
+                                                modal.type === 'warning' ? 'bg-amber-500' : 'bg-blue-600'
+                                            } text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl active:scale-95`}
+                                        >
+                                            Confirm
+                                        </button>
+                                    </>
+                                ) : (
+                                    <button 
+                                        onClick={() => setModal({ ...modal, show: false })}
+                                        className={`w-full py-4 ${
+                                            modal.type === 'success' ? 'bg-emerald-500' : 
+                                            modal.type === 'error' ? 'bg-rose-500' : 'bg-blue-600'
+                                        } text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl active:scale-95`}
+                                    >
+                                        Acknowledge
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>

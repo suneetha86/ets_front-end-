@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useContext } from 'react'
-import { DollarSign, Download, Eye, TrendingUp, CreditCard, PieChart, X, FileText, Filter, ChevronLeft, ChevronRight, ArrowUpDown, Loader2 } from 'lucide-react'
+import { DollarSign, Download, Eye, TrendingUp, CreditCard, PieChart, X, FileText, Filter, ChevronLeft, ChevronRight, ArrowUpDown, Loader2, CheckCircle } from 'lucide-react'
 import { fetchEmployeeSalariesByEmployeeId, fetchEmployeeSalaryById, filterEmployeeSalaries, fetchPaginatedSalaries, fetchEmployeeSalarySummary, fetchEmployeeSalaryDashboard } from '../../../api/employeeSalaryApi';
 
 
@@ -25,6 +25,7 @@ const Salary = () => {
     const [loading, setLoading] = useState(false)
     const [totalElements, setTotalElements] = useState(0)
     const [summaryData, setSummaryData] = useState(null)
+    const [modal, setModal] = useState({ show: false, title: '', message: '', type: 'error' })
     const { currentUser } = useContext(AuthContext)
 
 
@@ -41,7 +42,8 @@ const Salary = () => {
     // 12 Quality Static Records (Covering Every Month)
     useEffect(() => {
         const loadHistory = async () => {
-            if (!currentUser?.data?.empId) return;
+            const userId = currentUser?.data?.empId || currentUser?.id || currentUser?.data?.id;
+            if (!userId) return;
             try {
                 setLoading(true);
                 let data;
@@ -49,7 +51,7 @@ const Salary = () => {
                 
                 // If filters are standard "All", use the optimized unified dashboard
                 if (selectedYear === 'All Years' && selectedMonth === 'All Months') {
-                    const dashboard = await fetchEmployeeSalaryDashboard(currentUser.data.empId, currentPage - 1, itemsPerPage);
+                    const dashboard = await fetchEmployeeSalaryDashboard(userId, currentPage - 1, itemsPerPage);
                     data = dashboard.records || [];
                     elements = dashboard.totalRecords || 0;
                     setSummaryData(dashboard.summary);
@@ -57,16 +59,16 @@ const Salary = () => {
                     // Specific filters use the granular endpoints
                     if (selectedYear !== 'All Years' && selectedMonth !== 'All Months') {
                         const monthIndex = months.indexOf(selectedMonth);
-                        data = await filterEmployeeSalaries(currentUser.data.empId, selectedYear, monthIndex);
+                        data = await filterEmployeeSalaries(userId, selectedYear, monthIndex);
                         elements = Array.isArray(data) ? data.length : 0;
                     } else {
-                        const paginated = await fetchPaginatedSalaries(currentUser.data.empId, currentPage - 1, itemsPerPage);
+                        const paginated = await fetchPaginatedSalaries(userId, currentPage - 1, itemsPerPage);
                         data = paginated.content || [];
                         elements = paginated.totalElements || 0;
                     }
 
                     // Fallback to fetch summary separately if granular was used
-                    const summary = await fetchEmployeeSalarySummary(currentUser.data.empId);
+                    const summary = await fetchEmployeeSalarySummary(userId);
                     setSummaryData(summary);
                 }
 
@@ -121,7 +123,7 @@ const Salary = () => {
             });
         }
         return filtered;
-    }, [selectedYear, selectedMonth, sortConfig]);
+    }, [history, selectedYear, selectedMonth, sortConfig]);
 
     // Live Aggregate Totals based on filtered history
     const aggregates = useMemo(() => {
@@ -132,7 +134,7 @@ const Salary = () => {
         }), { net: 0, gross: 0, deductions: 0 });
     }, [processedHistory]);
 
-    const totalPages = Math.ceil((selectedYear !== 'All Years' && selectedMonth !== 'All Months') ? processedHistory.length : totalElements) / itemsPerPage;
+    const totalPages = Math.ceil(((selectedYear !== 'All Years' && selectedMonth !== 'All Months') ? processedHistory.length : totalElements) / itemsPerPage);
     
     // For local sorting/filtering, use the processedHistory which handles year/month dropdowns locally 
     // when either one is "All". However, if both are specific, we fetch fresh data.
@@ -149,6 +151,9 @@ const Salary = () => {
         }
         setSortConfig({ key, direction });
     };
+
+    const userName = "Siva Yennam"; // Force name for requirement
+    const userEmpId = currentUser?.empId || currentUser?.id || currentUser?.data?.id || 'EMP-XXXX';
 
     const handleViewSlip = async (record) => {
         try {
@@ -169,7 +174,12 @@ const Salary = () => {
             setIsModalOpen(true);
         } catch (err) {
             console.error("Failed to load slip details", err);
-            alert("Could not load payslip details from server.");
+            setModal({ 
+                show: true, 
+                title: "Decryption Interrupted", 
+                message: "Could not load payslip details from the secure server layer.", 
+                type: 'error' 
+            });
         } finally {
             setLoading(false);
         }
@@ -219,8 +229,8 @@ const Salary = () => {
         </div>
         
         <div class="info-grid">
-            <div class="info-item"><span class="info-label">Employee Name</span><span class="info-value">Ravi Kumar</span></div>
-            <div class="info-item"><span class="info-label">Employee ID</span><span class="info-value">EMP-2041</span></div>
+            <div class="info-item"><span class="info-label">Employee Name</span><span class="info-value">${userName}</span></div>
+            <div class="info-item"><span class="info-label">Employee ID</span><span class="info-value">${userEmpId}</span></div>
             <div class="info-item"><span class="info-label">Designation</span><span class="info-value">Software Engineer</span></div>
             
             <div class="info-item"><span class="info-label">Department</span><span class="info-value">Engineering</span></div>
@@ -370,9 +380,9 @@ const Salary = () => {
                         <span className='text-[10px] font-black bg-white px-3 py-1 rounded shadow-sm text-slate-500 border border-slate-200'>{processedHistory.length} Monthly Records Collected</span>
                     </div>
                 </div>
-                <div className='overflow-x-auto'>
-                    <table className='w-full text-left'>
-                        <thead className='bg-slate-50/50 text-slate-500 text-[10px] font-bold uppercase tracking-wider'>
+                <div className='overflow-x-auto overflow-y-auto custom-scrollbar max-h-[450px]'>
+                    <table className='w-full text-left relative'>
+                        <thead className='bg-slate-50/95 backdrop-blur-md sticky top-0 z-10 text-slate-500 text-[10px] font-bold uppercase tracking-wider shadow-sm'>
                             <tr>
                                 <th className='px-6 py-8 cursor-pointer hover:text-blue-600 transition-colors' onClick={() => handleSort('month')}>
                                     <div className='flex items-center gap-2'>Cycle <ArrowUpDown size={14} className='text-blue-400' /></div>
@@ -477,99 +487,130 @@ const Salary = () => {
             {/* Payslip Modal */}
             {isModalOpen && currentSlip && (
                 <div className='fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4'>
-                    <div className='bg-white w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300'>
+                    <div className='bg-white w-full max-w-2xl max-h-[95vh] rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300 flex flex-col'>
                         {/* Header matching reference image */}
-                        <div className='bg-blue-600 p-8 text-white relative'>
+                        <div className='bg-blue-600 p-5 text-white relative shrink-0'>
                             <div className='flex justify-between items-start'>
                                 <div>
-                                    <h2 className="text-3xl font-black tracking-tighter mb-2">AJA CONSULTING SERVICRES LLP</h2>
-                                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-80 leading-relaxed max-w-xs">
+                                    <h2 className="text-2xl font-black tracking-tighter mb-1">AJA CONSULTING SERVICRES LLP</h2>
+                                    <p className="text-[9px] font-bold uppercase tracking-[0.2em] opacity-80 leading-relaxed max-w-xs">
                                         Official Remuneration Receipt<br />
                                         Employee Confidential Record
                                     </p>
-                                    <div className='mt-6 inline-block bg-white/20 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em]'>
+                                    <div className='mt-4 inline-block bg-white/20 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-[0.2em]'>
                                         Payslip — {currentSlip.month}
                                     </div>
                                 </div>
                                 <button onClick={() => setIsModalOpen(false)} className='p-2 hover:bg-white/20 rounded-full transition-colors'>
-                                    <X size={24} />
+                                    <X size={20} />
                                 </button>
                             </div>
                         </div>
 
-                        {/* Info Grid Card */}
-                        <div className='p-8'>
-                            <div className='bg-slate-50 border border-slate-200 rounded-2xl p-6 grid grid-cols-3 gap-y-6 gap-x-4 mb-8'>
-                                <div><p className='text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1'>Employee Name</p><p className='text-xs font-bold text-slate-800'>Ravi Kumar</p></div>
-                                <div><p className='text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1'>Employee ID</p><p className='text-xs font-bold text-slate-800'>EMP-2041</p></div>
-                                <div><p className='text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1'>Designation</p><p className='text-xs font-bold text-slate-800'>Software Engineer</p></div>
-                                <div><p className='text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1'>Department</p><p className='text-xs font-bold text-slate-800'>Engineering</p></div>
-                                <div><p className='text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1'>PAN</p><p className='text-xs font-bold text-slate-800'>ABCPK1234D</p></div>
-                                <div><p className='text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1'>UAN (PF)</p><p className='text-xs font-bold text-slate-800'>100987654321</p></div>
-                                <div><p className='text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1'>Bank Account</p><p className='text-xs font-bold text-slate-800'>**** **** **** 8821</p></div>
-                                <div><p className='text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1'>IFSC Code</p><p className='text-xs font-bold text-slate-800'>HDFC0001234</p></div>
-                                <div><p className='text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1'>Pay Date</p><p className='text-xs font-bold text-slate-800'>{currentSlip.date}</p></div>
-                                <div><p className='text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1'>Days Worked</p><p className='text-xs font-bold text-slate-800'>28</p></div>
-                                <div><p className='text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1'>LOP Days</p><p className='text-xs font-bold text-slate-800'>0</p></div>
-                                <div><p className='text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1'>Pay Period</p><p className='text-xs font-bold text-slate-800'>{currentSlip.month}</p></div>
+                        {/* Scrollable Body */}
+                        <div className='overflow-y-auto flex-1 p-5 custom-scrollbar'>
+                            {/* Info Grid Card */}
+                            <div className='bg-slate-50 border border-slate-200 rounded-2xl p-4 grid grid-cols-3 gap-y-3 gap-x-4 mb-4'>
+                                <div><p className='text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1'>Employee Name</p><p className='text-xs font-bold text-slate-800'>{userName}</p></div>
+                                <div><p className='text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1'>Employee ID</p><p className='text-xs font-bold text-slate-800'>{userEmpId}</p></div>
+                                <div><p className='text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1'>Designation</p><p className='text-xs font-bold text-slate-800'>Software Engineer</p></div>
+                                <div><p className='text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1'>Department</p><p className='text-xs font-bold text-slate-800'>Engineering</p></div>
+                                <div><p className='text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1'>PAN</p><p className='text-xs font-bold text-slate-800'>ABCPK1234D</p></div>
+                                <div><p className='text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1'>UAN (PF)</p><p className='text-xs font-bold text-slate-800'>100987654321</p></div>
+                                <div><p className='text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1'>Bank Account</p><p className='text-xs font-bold text-slate-800'>**** **** **** 8821</p></div>
+                                <div><p className='text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1'>IFSC Code</p><p className='text-xs font-bold text-slate-800'>HDFC0001234</p></div>
+                                <div><p className='text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1'>Pay Date</p><p className='text-xs font-bold text-slate-800'>{currentSlip.date}</p></div>
+                                <div><p className='text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1'>Days Worked</p><p className='text-xs font-bold text-slate-800'>28</p></div>
+                                <div><p className='text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1'>LOP Days</p><p className='text-xs font-bold text-slate-800'>0</p></div>
+                                <div><p className='text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1'>Pay Period</p><p className='text-xs font-bold text-slate-800'>{currentSlip.month}</p></div>
                             </div>
 
-                            <div className='grid grid-cols-2 gap-8'>
+                            <div className='grid grid-cols-2 gap-4'>
                                 {/* Earnings */}
                                 <div className='border border-slate-200 rounded-2xl overflow-hidden'>
-                                    <div className='bg-emerald-500 p-3 flex items-center gap-2 text-white text-[10px] font-black uppercase tracking-widest'>
-                                        <CheckCircle size={14} /> Earnings
+                                    <div className='bg-emerald-500 p-2 flex items-center gap-2 text-white text-[9px] font-black uppercase tracking-widest'>
+                                        <CheckCircle size={12} /> Earnings
                                     </div>
-                                    <div className='p-4 space-y-3'>
+                                    <div className='p-3 space-y-2'>
                                         <div className='flex justify-between text-xs'><span className='text-slate-500 font-medium'>Basic Salary</span><span className='font-bold text-slate-800'>₹{(currentSlip.gross * 0.6).toLocaleString()}</span></div>
                                         <div className='flex justify-between text-xs'><span className='text-slate-500 font-medium'>HRA</span><span className='font-bold text-slate-800'>₹{(currentSlip.gross * 0.2).toLocaleString()}</span></div>
                                         <div className='flex justify-between text-xs'><span className='text-slate-500 font-medium'>Transport Allowance</span><span className='font-bold text-slate-800'>₹2,000</span></div>
                                         <div className='flex justify-between text-xs'><span className='text-slate-500 font-medium'>Medical Allowance</span><span className='font-bold text-slate-800'>₹1,250</span></div>
                                         <div className='flex justify-between text-xs'><span className='text-slate-500 font-medium'>Special Allowance</span><span className='font-bold text-slate-800'>₹{(currentSlip.gross - (currentSlip.gross * 0.8) - 3250).toLocaleString()}</span></div>
-                                        <div className='pt-2 mt-2 border-t border-slate-100 flex justify-between text-sm font-black text-slate-800'><span>Gross Pay</span><span>₹{currentSlip.gross.toLocaleString()}</span></div>
+                                        <div className='pt-1 mt-1 border-t border-slate-100 flex justify-between text-xs font-black text-slate-800'><span>Gross Pay</span><span>₹{currentSlip.gross.toLocaleString()}</span></div>
                                     </div>
                                 </div>
 
                                 {/* Deductions */}
                                 <div className='border border-slate-200 rounded-2xl overflow-hidden'>
-                                    <div className='bg-red-500 p-3 flex items-center gap-2 text-white text-[10px] font-black uppercase tracking-widest'>
-                                        <PieChart size={14} /> Deductions
+                                    <div className='bg-red-500 p-2 flex items-center gap-2 text-white text-[9px] font-black uppercase tracking-widest'>
+                                        <PieChart size={12} /> Deductions
                                     </div>
-                                    <div className='p-4 space-y-3'>
+                                    <div className='p-3 space-y-2'>
                                         <div className='flex justify-between text-xs'><span className='text-slate-500 font-medium'>Provident Fund (PF)</span><span className='font-bold text-slate-800'>₹2,500</span></div>
                                         <div className='flex justify-between text-xs'><span className='text-slate-500 font-medium'>ESIC</span><span className='font-bold text-slate-800'>₹200</span></div>
                                         <div className='flex justify-between text-xs'><span className='text-slate-500 font-medium'>Professional Tax</span><span className='font-bold text-slate-800'>₹300</span></div>
                                         <div className='flex justify-between text-xs'><span className='text-slate-500 font-medium'>TDS (Income Tax)</span><span className='font-bold text-slate-800'>₹3,000</span></div>
-                                        <div className='pt-2 mt-10 border-t border-slate-100 flex justify-between text-sm font-black text-slate-800'><span>Total Deductions</span><span>₹{currentSlip.deductions.toLocaleString()}</span></div>
+                                        <div className='pt-1 mt-6 border-t border-slate-100 flex justify-between text-xs font-black text-slate-800'><span>Total Deductions</span><span>₹{currentSlip.deductions.toLocaleString()}</span></div>
                                     </div>
                                 </div>
                             </div>
 
                             {/* Net Pay Footer */}
-                            <div className='mt-8 bg-emerald-50 border-2 border-emerald-100 rounded-2xl p-6 flex justify-between items-center'>
+                            <div className='mt-4 bg-emerald-50 border-2 border-emerald-100 rounded-2xl p-4 flex justify-between items-center'>
                                 <div>
-                                    <p className='text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-1'>Net Take-Home Pay</p>
-                                    <h2 className='text-4xl font-black text-emerald-700 tracking-tighter'>₹{currentSlip.netPay.toLocaleString()}</h2>
-                                    <p className='text-[9px] font-bold text-emerald-600 mt-1 opacity-80'>Credited to **** 8821 on {currentSlip.date}</p>
+                                    <p className='text-[9px] font-black text-emerald-600 uppercase tracking-widest mb-1'>Net Take-Home Pay</p>
+                                    <h2 className='text-3xl font-black text-emerald-700 tracking-tighter'>₹{currentSlip.netPay.toLocaleString()}</h2>
+                                    <p className='text-[8px] font-bold text-emerald-600 mt-1 opacity-80'>Credited to **** 8821 on {currentSlip.date}</p>
                                 </div>
                                 <div className='text-right'>
                                     <button 
                                         onClick={() => handleDownload(currentSlip)}
-                                        className='bg-blue-600 text-white px-8 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-700 transition-all shadow-xl shadow-blue-200 flex items-center gap-2'
+                                        className='bg-blue-600 text-white px-6 py-2 rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-blue-700 transition-all shadow-xl shadow-blue-200 flex items-center gap-2'
                                     >
-                                        <Download size={16} /> Download AJA Payslip
+                                        <Download size={14} /> Download AJA Payslip
                                     </button>
                                 </div>
                             </div>
                         </div>
 
-                        <div className='bg-slate-50 p-4 text-center border-t border-slate-100'>
-                            <p className='text-[10px] text-slate-400 font-bold'>This is a system-generated payslip and does not require a physical signature. | AJA Pvt Ltd.</p>
+                        <div className='bg-slate-50 p-3 text-center border-t border-slate-100 shrink-0'>
+                            <p className='text-[9px] text-slate-400 font-bold'>This is a system-generated payslip and does not require a physical signature. | AJA Pvt Ltd.</p>
                         </div>
                     </div>
                 </div>
             )}
 
+
+            {/* ── MODAL NOTIFICATION ── */}
+            {modal.show && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[200] flex items-center justify-center p-4 animate-in fade-in duration-200">
+                    <div className="bg-white w-full max-w-sm rounded-[2rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 border border-slate-100 text-center">
+                        <div className="bg-rose-500 p-8 flex flex-col items-center gap-4 relative overflow-hidden">
+                            <div className="absolute top-2 right-4 opacity-10 rotate-12">
+                                <FileText size={100} />
+                            </div>
+                            <div className="relative z-10 w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-2xl">
+                                <FileText className="text-rose-500" size={32} />
+                            </div>
+                            <div className="relative z-10">
+                                <h3 className="font-black text-xl text-white tracking-tight">{modal.title}</h3>
+                            </div>
+                        </div>
+                        <div className="p-8">
+                            <p className="text-slate-600 font-bold text-sm leading-relaxed mb-6">
+                                {modal.message}
+                            </p>
+                            <button 
+                                onClick={() => setModal({ ...modal, show: false })}
+                                className="w-full py-4 bg-rose-500 hover:bg-rose-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-rose-100 active:scale-95"
+                            >
+                                Acknowledge
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

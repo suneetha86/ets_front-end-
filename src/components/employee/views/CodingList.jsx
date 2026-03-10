@@ -8,6 +8,7 @@ const CodingList = () => {
     const [selectedSolution, setSelectedSolution] = useState(null)
     const [isSolvingId, setIsSolvingId] = useState(null)
     const [isFetchingSolutionId, setIsFetchingSolutionId] = useState(null)
+    const [modal, setModal] = useState({ show: false, title: '', message: '', type: 'info' })
 
     // Example Solution Codes mapping (since Backend only has metadata)
     const solutionCodes = {
@@ -100,7 +101,12 @@ const CodingList = () => {
             })
         } catch (error) {
             console.error("Logic Retrieval Failure:", error)
-            alert("Security Protocol: Unable to decrypt logic for this node.")
+            setModal({
+                show: true,
+                title: "Security Protocol",
+                message: "Unable to decrypt logic for this node. Handshake failed in the secure sector.",
+                type: 'error'
+            });
         } finally {
             setIsFetchingSolutionId(null)
         }
@@ -124,41 +130,6 @@ const CodingList = () => {
                         <p className='text-blue-50 text-xs font-bold uppercase tracking-widest opacity-80'>AJA Engineering Intelligence</p>
                     </div>
                 </div>
-            </div>
-
-            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
-                {problems.map(prob => (
-                    <div key={prob.id} className='bg-gray-50 p-6 rounded-xl border border-gray-200 hover:shadow-md transition-all flex flex-col justify-between group'>
-                        <div>
-                            <div className='flex justify-between items-start mb-4'>
-                                <span className={`px-3 py-1 rounded-full text-xs font-bold ${prob.difficulty === 'Medium' ? 'bg-yellow-100 text-yellow-700' :
-                                    prob.difficulty === 'Hard' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
-                                    }`}>{prob.difficulty}</span>
-                                <span className={`text-xs font-bold ${prob.status === 'Solved' ? 'text-green-600' : 'text-gray-400'}`}>{prob.status}</span>
-                            </div>
-                            <h3 className='text-xl font-bold text-gray-800 mb-2 group-hover:text-blue-600 transition-colors'>{prob.title}</h3>
-                            <p className='text-gray-500 text-sm mb-6'>Write a function to solve the {prob.title} problem efficiently.</p>
-                        </div>
-
-                        <div className='flex gap-3'>
-                            <button
-                                onClick={() => handleSolve(prob.link)}
-                                className='flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all font-black text-[10px] flex items-center justify-center gap-2 shadow-lg shadow-blue-200 uppercase tracking-widest'
-                            >
-                                <ExternalLink size={16} /> Solve
-                            </button>
-                            {prob.status === 'Solved' && (
-                                <button
-                                    onClick={() => handleViewSolution(prob)}
-                                    className='px-3 py-2.5 bg-blue-500 text-white hover:bg-blue-600 rounded-lg transition-all shadow-md'
-                                    title="View Solution"
-                                >
-                                    <BookOpen size={18} />
-                                </button>
-                            )}
-                        </div>
-                    </div>
-                ))}
             </div>
 
             {loading ? (
@@ -225,10 +196,57 @@ const CodingList = () => {
                         </div>
                         <div className='p-6 border-t border-slate-100 bg-white flex justify-end gap-3 px-8'>
                             <button onClick={closeSolution} className='px-8 py-4 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all active:scale-95'>Close Protocol</button>
-                            <button onClick={() => {
-                                navigator.clipboard.writeText(selectedSolution.solutionCode)
-                                alert('Code synchronized with clipboard.')
-                            }} className='px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all shadow-lg shadow-blue-200 active:scale-95'>Copy Logic</button>
+                            <button 
+                                onClick={() => {
+                                    navigator.clipboard.writeText(selectedSolution.solutionCode)
+                                    setModal({
+                                        show: true,
+                                        title: "Clipboard Sync",
+                                        message: "Code logic successfully synchronized with your clipboard.",
+                                        type: 'success'
+                                    });
+                                }} 
+                                className='px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all shadow-lg shadow-blue-200 active:scale-95'
+                            >
+                                Copy Logic
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ── MODAL NOTIFICATION ── */}
+            {modal.show && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[200] flex items-center justify-center p-4 animate-in fade-in duration-200">
+                    <div className="bg-white w-full max-w-sm rounded-[2rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 border border-slate-100 text-center">
+                        <div className={`p-8 flex flex-col items-center gap-4 relative overflow-hidden ${
+                            modal.type === 'success' ? 'bg-emerald-500' : 
+                            modal.type === 'error' ? 'bg-rose-500' : 'bg-blue-500'
+                        }`}>
+                            <div className="absolute top-2 right-4 opacity-10 rotate-12">
+                                <Code size={100} className="text-white" />
+                            </div>
+                            <div className="relative z-10 w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-2xl text-slate-900">
+                                {modal.type === 'success' ? <Code className="text-emerald-500" size={32} /> : 
+                                 <BookOpen className="text-blue-500" size={32} />}
+                            </div>
+                            <div className="relative z-10">
+                                <h3 className="font-black text-xl text-white tracking-tight">{modal.title}</h3>
+                            </div>
+                        </div>
+                        <div className="p-8">
+                            <p className="text-slate-600 font-bold text-sm leading-relaxed mb-6">
+                                {modal.message}
+                            </p>
+                            <button 
+                                onClick={() => setModal({ ...modal, show: false })}
+                                className={`w-full py-4 ${
+                                    modal.type === 'success' ? 'bg-emerald-500' : 
+                                    modal.type === 'error' ? 'bg-rose-500' : 'bg-blue-600'
+                                } text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl active:scale-95`}
+                            >
+                                Acknowledge
+                            </button>
                         </div>
                     </div>
                 </div>

@@ -1,10 +1,8 @@
-import axios from 'axios';
-
-const BASE_URL = '/api';
+import apiClient from './apiClient';
 
 export const postUser = async (userData) => {
     try {
-        const response = await axios.post(`${BASE_URL}/users`, userData);
+        const response = await apiClient.post(`/users`, userData);
         return response.data;
     } catch (error) {
         console.error('Error adding user:', error);
@@ -13,7 +11,7 @@ export const postUser = async (userData) => {
 };
 export const fetchUsers = async () => {
     try {
-        const response = await axios.get(`${BASE_URL}/users`);
+        const response = await apiClient.get(`/users`);
         return response.data;
     } catch (error) {
         console.error('Error fetching users:', error);
@@ -22,7 +20,7 @@ export const fetchUsers = async () => {
 };
 export const fetchUserById = async (id) => {
     try {
-        const response = await axios.get(`${BASE_URL}/users/${id}`);
+        const response = await apiClient.get(`/users/${id}`);
         return response.data;
     } catch (error) {
         console.error(`Error fetching user ${id}:`, error);
@@ -31,7 +29,7 @@ export const fetchUserById = async (id) => {
 };
 export const updateUser = async (id, userData) => {
     try {
-        const response = await axios.put(`${BASE_URL}/users/${id}`, userData);
+        const response = await apiClient.put(`/users/${id}`, userData);
         return response.data;
     } catch (error) {
         console.error(`Error updating user ${id}:`, error);
@@ -40,7 +38,7 @@ export const updateUser = async (id, userData) => {
 };
 export const deleteUser = async (id) => {
     try {
-        const response = await axios.delete(`${BASE_URL}/users/${id}`);
+        const response = await apiClient.delete(`/users/${id}`);
         return response.data;
     } catch (error) {
         console.error(`Error deleting user ${id}:`, error);

@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react'
 import { AuthContext } from '../../../context/AuthProvider'
-import { Plus, X, Loader2, ShieldCheck, CheckCircle, Clock, Search, Filter, RefreshCw, Send, Layers } from 'lucide-react'
+import { Plus, X, Loader2, ShieldCheck, CheckCircle, Clock, Search, Filter, RefreshCw, Send, Layers, XCircle } from 'lucide-react'
 import { createSubmission, fetchSubmissions, approveSubmission, rejectSubmission, getPendingSubmissionsCount } from '../../../api/submissionApi'
 
 const Submissions = () => {
@@ -11,6 +11,7 @@ const Submissions = () => {
     const [lastSynced, setLastSynced] = useState(null)
     const [loading, setLoading] = useState(true)
     const [pendingCount, setPendingCount] = useState(0)
+    const [modal, setModal] = useState({ show: false, title: '', message: '', type: 'info' })
     
     // New submission form state
     const [formData, setFormData] = useState({
@@ -93,12 +94,21 @@ const Submissions = () => {
                 submissionDate: new Date().toISOString().split('T')[0],
                 status: 'PENDING'
             })
-            
-            alert("Handshake Success: Tactical submission has been established in the master repository.")
+            setModal({
+                show: true,
+                title: "Handshake Success",
+                message: "Tactical submission has been established in the master repository.",
+                type: 'success'
+            });
             loadSubmissions()
         } catch (error) {
             console.error("Transmission Breach:", error)
-            alert("PROTOCOL BREACH: Unable to synchronize submission with the master gateway.")
+            setModal({
+                show: true,
+                title: "Protocol Breach",
+                message: "Unable to synchronize submission with the master gateway.",
+                type: 'error'
+            });
         } finally {
             setIsSubmitting(false)
         }
@@ -112,7 +122,12 @@ const Submissions = () => {
                 // If it's a persistent API record, execute the PUT handshake
                 if (id && !id.toString().startsWith('local-')) {
                     await approveSubmission(id);
-                    alert("Submission approved successfully: Protocol authorization verified.");
+                    setModal({
+                        show: true,
+                        title: "Authorization Verified",
+                        message: "Submission approved successfully: Protocol authorization verified.",
+                        type: 'success'
+                    });
                     loadSubmissions();
                     return;
                 }
@@ -124,18 +139,33 @@ const Submissions = () => {
                 task.adminStatus = 'Approved'
                 setUserData(updatedUserData)
                 localStorage.setItem('employees', JSON.stringify(updatedUserData))
-                alert("Local Handshake Success: Offline record authorized.");
+                setModal({
+                    show: true,
+                    title: "Authorization Verified",
+                    message: "Local Handshake Success: Offline record authorized.",
+                    type: 'success'
+                });
                 loadSubmissions()
             } catch (error) {
                 console.error("Authorization Failure:", error)
-                alert("PROTOCOL BREACH: Failed to transmit authorization handshake to the master repository.")
+                setModal({
+                    show: true,
+                    title: "Authorization Refused",
+                    message: "PROTOCOL BREACH: Failed to transmit authorization handshake to the master repository.",
+                    type: 'error'
+                });
             }
         } else if (action === 'Reject') {
             try {
                 // If it's a persistent API record, execute the PUT handshake
                 if (id && !id.toString().startsWith('local-')) {
                     await rejectSubmission(id);
-                    alert("Submission rejected successfully: Tactical refusal confirmed.");
+                    setModal({
+                        show: true,
+                        title: "Refusal Confirmed",
+                        message: "Submission rejected successfully: Tactical refusal confirmed.",
+                        type: 'success'
+                    });
                     loadSubmissions();
                     return;
                 }
@@ -155,11 +185,21 @@ const Submissions = () => {
 
                 setUserData(updatedUserData)
                 localStorage.setItem('employees', JSON.stringify(updatedUserData))
-                alert("Local Handshake Success: Offline record refused.");
+                setModal({
+                    show: true,
+                    title: "Tactical Refusal",
+                    message: "Local Handshake Success: Offline record refused.",
+                    type: 'success'
+                });
                 loadSubmissions()
             } catch (error) {
                 console.error("Refusal Failure:", error)
-                alert("PROTOCOL BREACH: Failed to transmit refusal handshake to the master repository.")
+                setModal({
+                    show: true,
+                    title: "Refusal Blocked",
+                    message: "PROTOCOL BREACH: Failed to transmit refusal handshake to the master repository.",
+                    type: 'error'
+                });
             }
         }
     }
@@ -363,6 +403,44 @@ const Submissions = () => {
                     </tbody>
                 </table>
             </div>
+
+            {/* ── MODAL NOTIFICATION ── */}
+            {modal.show && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[200] flex items-center justify-center p-4 animate-in fade-in duration-200">
+                    <div className="bg-white w-full max-w-sm rounded-[2rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 border border-slate-100 text-center">
+                        <div className={`p-8 flex flex-col items-center gap-4 relative overflow-hidden ${
+                            modal.type === 'success' ? 'bg-emerald-500' : 
+                            modal.type === 'error' ? 'bg-rose-500' : 'bg-blue-500'
+                        }`}>
+                            <div className="absolute top-2 right-4 opacity-10 rotate-12">
+                                <CheckCircle size={100} className="text-white" />
+                            </div>
+                            <div className="relative z-10 w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-2xl text-slate-900">
+                                {modal.type === 'success' ? <CheckCircle className="text-emerald-500" size={32} /> : 
+                                 modal.type === 'error' ? <XCircle className="text-rose-500" size={32} /> : 
+                                 <Send className="text-blue-500" size={32} />}
+                            </div>
+                            <div className="relative z-10">
+                                <h3 className="font-black text-xl text-white tracking-tight">{modal.title}</h3>
+                            </div>
+                        </div>
+                        <div className="p-8">
+                            <p className="text-slate-600 font-bold text-sm leading-relaxed mb-6">
+                                {modal.message}
+                            </p>
+                            <button 
+                                onClick={() => setModal({ ...modal, show: false })}
+                                className={`w-full py-4 ${
+                                    modal.type === 'success' ? 'bg-emerald-500' : 
+                                    modal.type === 'error' ? 'bg-rose-500' : 'bg-blue-600'
+                                } text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl active:scale-95`}
+                            >
+                                Acknowledge
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

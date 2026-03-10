@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useContext } from 'react'
 import { Bell, Check, Clock, Trash2, Info, AlertTriangle, CheckCircle2, MoreVertical, Search, Filter, Eye, X, Loader2 } from 'lucide-react'
-import { fetchNotifications, markAsRead as apiMarkAsRead, fetchNotificationById, fetchUnreadNotifications, deleteNotification as apiDeleteNotification } from '../../../api/notificationApi'
+import { fetchEmployeeNotifications, markAsRead as apiMarkAsRead, fetchNotificationById, fetchEmployeeUnreadNotifications, deleteNotification as apiDeleteNotification } from '../../../api/notificationApi'
+import { AuthContext } from '../../../context/AuthProvider'
 
 
 
@@ -11,13 +12,16 @@ const Notifications = () => {
     const [selectedNotif, setSelectedNotif] = useState(null)
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [filterUnread, setFilterUnread] = useState(false)
+    const [modal, setModal] = useState({ show: false, title: '', message: '', type: 'info' })
+    const { userData } = useContext(AuthContext)
+    const email = userData?.email
 
 
     useEffect(() => {
         const loadNotifications = async () => {
             try {
                 setLoading(true)
-                const data = filterUnread ? await fetchUnreadNotifications() : await fetchNotifications()
+                const data = filterUnread ? await fetchEmployeeUnreadNotifications(email) : await fetchEmployeeNotifications(email)
                 setNotifications(Array.isArray(data) ? data : [])
             } catch (error) {
                 console.error("Transmission Interruption:", error)
@@ -54,7 +58,12 @@ const Notifications = () => {
             const unreadItems = notifications.filter(n => !n.read)
             await Promise.all(unreadItems.map(item => apiMarkAsRead(item.id)))
             setNotifications(notifications.map(n => ({ ...n, read: true })))
-            alert("All active signals acknowledged.")
+            setModal({
+                show: true,
+                title: "Acknowledge Success",
+                message: "All active signals have been acknowledged and synchronized.",
+                type: 'success'
+            });
         } catch (error) {
             console.error("Batch Acknowledgement Failed:", error)
         }
@@ -286,6 +295,44 @@ const Notifications = () => {
                                     Close Terminal
                                 </button>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ── MODAL NOTIFICATION ── */}
+            {modal.show && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[200] flex items-center justify-center p-4 animate-in fade-in duration-200">
+                    <div className="bg-white w-full max-w-sm rounded-[2rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 border border-slate-100 text-center">
+                        <div className={`p-8 flex flex-col items-center gap-4 relative overflow-hidden ${
+                            modal.type === 'success' ? 'bg-emerald-500' : 
+                            modal.type === 'error' ? 'bg-rose-500' : 'bg-blue-500'
+                        }`}>
+                            <div className="absolute top-2 right-4 opacity-10 rotate-12">
+                                <Bell size={100} className="text-white" />
+                            </div>
+                            <div className="relative z-10 w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-2xl text-slate-900">
+                                {modal.type === 'success' ? <CheckCircle2 className="text-emerald-500" size={32} /> : 
+                                 modal.type === 'error' ? <AlertTriangle className="text-rose-500" size={32} /> : 
+                                 <Bell className="text-blue-500" size={32} />}
+                            </div>
+                            <div className="relative z-10">
+                                <h3 className="font-black text-xl text-white tracking-tight">{modal.title}</h3>
+                            </div>
+                        </div>
+                        <div className="p-8">
+                            <p className="text-slate-600 font-bold text-sm leading-relaxed mb-6">
+                                {modal.message}
+                            </p>
+                            <button 
+                                onClick={() => setModal({ ...modal, show: false })}
+                                className={`w-full py-4 ${
+                                    modal.type === 'success' ? 'bg-emerald-500' : 
+                                    modal.type === 'error' ? 'bg-rose-500' : 'bg-blue-600'
+                                } text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl active:scale-95`}
+                            >
+                                Acknowledge
+                            </button>
                         </div>
                     </div>
                 </div>

@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from 'react'
 import { fetchAdminTasks, deleteAdminTask } from '../../../api/taskApi'
 import { deleteAssignTask } from '../../../api/assignTaskApi'
 import { Loader2, ClipboardList, CheckCircle2, Clock, AlertCircle, RefreshCw, BarChart3, User, Calendar, Trash2 } from 'lucide-react'
@@ -7,6 +8,7 @@ const TaskStatus = () => {
     const [tasks, setTasks] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
+    const [modal, setModal] = useState({ show: false, title: '', message: '', type: 'info', onConfirm: null })
 
     const loadTasks = async () => {
         try {
@@ -23,22 +25,46 @@ const TaskStatus = () => {
     }
 
     const handleDeleteTask = async (task) => {
-        if (!window.confirm("CRITICAL PROTOCOL: Are you sure you want to purge this tactical objective from the repository?")) return
+        setModal({
+            show: true,
+            title: "CRITICAL PROTOCOL",
+            message: "Are you sure you want to permanently purge this tactical objective from the repository? This action cannot be revoked.",
+            type: 'warning',
+            onConfirm: () => executeDelete(task)
+        })
+    }
+
+    const executeDelete = async (task) => {
         
         try {
             // First attempt with the new Assign Task deletion protocol
             await deleteAssignTask(task.id, task);
             setTasks(tasks.filter(t => t.id !== task.id))
-            alert("Task Deleted Successfully: Objective purged from core record.")
+            setModal({
+                show: true,
+                title: "Purge Success",
+                message: "Objective purged from core record successfully.",
+                type: 'success'
+            });
         } catch (err) {
             console.warn("New Protocol Failed, attempting legacy purge...")
             try {
                 await deleteAdminTask(task.id)
                 setTasks(tasks.filter(t => t.id !== task.id))
-                alert("Task Deleted Successfully: Legacy objective removed.")
+                setModal({
+                    show: true,
+                    title: "Legacy Purge Success",
+                    message: "Legacy objective removed successfully.",
+                    type: 'success'
+                });
             } catch (legacyErr) {
                 console.error("Archive Purge Blocked:", legacyErr)
-                alert("Protocol Breach: Failed to remove objective from core.")
+                setModal({
+                    show: true,
+                    title: "Protocol Breach",
+                    message: "Failed to remove objective from core repositories.",
+                    type: 'error'
+                });
             }
         }
     }
@@ -204,16 +230,68 @@ const TaskStatus = () => {
                 )}
             </div>
 
-            {/* Footer Summary */}
-            <div className='flex justify-between items-center py-4 px-2 border-t border-slate-50'>
-                <div className='text-[9px] font-black text-slate-300 uppercase tracking-[0.25em]'>
-                    AJA Operational Intelligence • Distributed Task Tracking Active
+            {/* ── ACTION MODAL ── */}
+            {modal.show && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[200] flex items-center justify-center p-4 animate-in fade-in duration-200">
+                    <div className="bg-white w-full max-w-sm rounded-[2rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 border border-slate-100 text-center">
+                        <div className={`p-8 flex flex-col items-center gap-4 relative overflow-hidden ${
+                            modal.type === 'success' ? 'bg-emerald-500' : 
+                            modal.type === 'error' ? 'bg-rose-500' : 
+                            modal.type === 'warning' ? 'bg-amber-500' : 'bg-blue-500'
+                        }`}>
+                            <div className="absolute top-2 right-4 opacity-10 rotate-12">
+                                <BarChart3 size={100} className="text-white" />
+                            </div>
+                            <div className="relative z-10 w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-2xl text-slate-900">
+                                {modal.type === 'success' ? <CheckCircle2 className="text-emerald-500" size={32} /> : 
+                                 modal.type === 'error' ? <AlertCircle className="text-rose-500" size={32} /> : 
+                                 <BarChart3 className="text-amber-500" size={32} />}
+                            </div>
+                            <div className="relative z-10">
+                                <h3 className="font-black text-xl text-white tracking-tight">{modal.title}</h3>
+                            </div>
+                        </div>
+                        <div className="p-8">
+                            <p className="text-slate-600 font-bold text-sm leading-relaxed mb-6">
+                                {modal.message}
+                            </p>
+                            <div className="flex gap-3">
+                                {modal.onConfirm ? (
+                                    <>
+                                        <button 
+                                            onClick={() => setModal({ ...modal, show: false })}
+                                            className="flex-1 py-4 bg-slate-100 text-slate-500 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95"
+                                        >
+                                            Abort
+                                        </button>
+                                        <button 
+                                            onClick={() => {
+                                                modal.onConfirm();
+                                                setModal({ ...modal, show: false });
+                                            }}
+                                            className={`flex-1 py-4 ${
+                                                modal.type === 'warning' ? 'bg-amber-500' : 'bg-blue-600'
+                                            } text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl active:scale-95`}
+                                        >
+                                            Confirm
+                                        </button>
+                                    </>
+                                ) : (
+                                    <button 
+                                        onClick={() => setModal({ ...modal, show: false })}
+                                        className={`w-full py-4 ${
+                                            modal.type === 'success' ? 'bg-emerald-500' : 
+                                            modal.type === 'error' ? 'bg-rose-500' : 'bg-blue-600'
+                                        } text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl active:scale-95`}
+                                    >
+                                        Acknowledge
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div className='flex items-center gap-2 text-emerald-500'>
-                    <div className='w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse'></div>
-                    <span className='text-[9px] font-black uppercase tracking-widest italic'>System Integrity Verified</span>
-                </div>
-            </div>
+            )}
         </div>
     )
 }

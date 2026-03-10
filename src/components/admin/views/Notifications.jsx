@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { fetchNotifications, postNotification, updateNotification, deleteNotification } from '../../../api/notificationApi';
-import { Bell, Send, Trash2, Clock, Info, AlertTriangle, CheckCircle2, Search, Filter, Loader2, Megaphone, Terminal, Edit, X } from 'lucide-react';
-
+import { fetchNotifications, postNotification, updateNotification, deleteNotification, markAsRead } from '../../../api/notificationApi';
+import { Bell, Send, Trash2, Clock, Info, AlertTriangle, CheckCircle2, Search, Filter, Loader2, Megaphone, Terminal, Edit, X, CheckCheck } from 'lucide-react';
+import Modal from '../../common/Modal';
 
 const Notifications = () => {
     const [notifications, setNotifications] = useState([]);
@@ -15,22 +15,69 @@ const Notifications = () => {
     const [type, setType] = useState('INFO');
     const [editingId, setEditingId] = useState(null);
 
+    // Modal state
+    const [modalConfig, setModalConfig] = useState({
+        isOpen: false,
+        title: '',
+        message: '',
+        type: 'success',
+        isConfirm: false,
+        onConfirm: () => { }
+    });
 
+    const showModal = (title, message, type = 'success', isConfirm = false, onConfirm = () => { }) => {
+        setModalConfig({
+            isOpen: true,
+            title,
+            message,
+            type,
+            isConfirm,
+            onConfirm
+        });
+    };
+
+    const loadNotifications = async () => {
+        try {
+            setLoading(true);
+            const data = await fetchNotifications();
+            const sortedData = Array.isArray(data) ? data : [];
+            setNotifications(sortedData);
+
+            // Automatically mark unread ones as read when visiting the log
+            const unreadIds = sortedData.filter(n => !n.read).map(n => n.id);
+            if (unreadIds.length > 0) {
+                // We do this in the background to avoid blocking the UI
+                Promise.all(unreadIds.map(id => markAsRead(id))).catch(err =>
+                    console.error("Archive Read Update Failed:", err)
+                );
+            }
+        } catch (error) {
+            console.error("Central Intelligence Offline:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        const loadNotifications = async () => {
-            try {
-                setLoading(true);
-                const data = await fetchNotifications();
-                setNotifications(Array.isArray(data) ? data : []);
-            } catch (error) {
-                console.error("Central Intelligence Offline:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
         loadNotifications();
     }, []);
+
+    const markAllAsRead = async () => {
+        const unreadIds = notifications.filter(n => !n.read).map(n => n.id);
+        if (unreadIds.length === 0) return;
+
+        try {
+            setIsSubmitting(true);
+            await Promise.all(unreadIds.map(id => markAsRead(id)));
+            setNotifications(notifications.map(n => ({ ...n, read: true })));
+            showModal("Success", "All transmissions marked as read.", "success");
+        } catch (error) {
+            console.error("Purge Read Status Failed:", error);
+            showModal("Error", "Failed to update read status.", "error");
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
 
     const handleBroadcast = async (e) => {
         e.preventDefault();
@@ -49,16 +96,16 @@ const Notifications = () => {
             if (editingId) {
                 const response = await updateNotification(editingId, payload);
                 setNotifications(notifications.map(n => n.id === editingId ? response : n));
-                alert("Archive entry updated successfully.");
+                showModal("Updated", "Archive entry recalibrated successfully.", "success");
             } else {
                 const response = await postNotification(payload);
                 setNotifications([response, ...notifications]);
-                alert("Broadcast transmitted successfully to all active nodes.");
+                showModal("Broadcasted", "Signal transmitted successfully to all active nodes.", "success");
             }
             handleReset();
         } catch (error) {
             console.error("Transmission Failure:", error);
-            alert("Emergency: Signal could not be processed.");
+            showModal("Crisis", "Emergency: Signal could not be processed.", "error");
         } finally {
             setIsSubmitting(false);
         }
@@ -83,18 +130,24 @@ const Notifications = () => {
 
 
     const handleDelete = async (id) => {
-        if (!window.confirm("Are you sure you want to purge this transmission signal?")) return;
-        try {
-            await deleteNotification(id);
-            setNotifications(notifications.filter(n => n.id !== id));
-        } catch (error) {
-            console.error("Purge Signal Failed:", error);
-            alert("Crisis: Transmission record could not be deleted.");
-        }
+        showModal(
+            "Confirm Purge",
+            "Are you sure you want to permanently delete this transmission record? This action is irreversible.",
+            "warning",
+            true,
+            async () => {
+                try {
+                    await deleteNotification(id);
+                    setNotifications(notifications.filter(n => n.id !== id));
+                } catch (error) {
+                    console.error("Purge Signal Failed:", error);
+                    showModal("Crisis", "Transmission record could not be deleted.", "error");
+                }
+            }
+        );
     };
 
     const getIcon = (type) => {
-
         switch (type?.toLowerCase()) {
             case 'success': return <CheckCircle2 className="text-emerald-500" size={18} />;
             case 'warning': return <AlertTriangle className="text-amber-500" size={18} />;
@@ -104,6 +157,16 @@ const Notifications = () => {
 
     return (
         <div className='flex gap-8 h-full bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 relative overflow-hidden'>
+            <Modal
+                isOpen={modalConfig.isOpen}
+                onClose={() => setModalConfig({ ...modalConfig, isOpen: false })}
+                title={modalConfig.title}
+                message={modalConfig.message}
+                type={modalConfig.type}
+                isConfirm={modalConfig.isConfirm}
+                onConfirm={modalConfig.onConfirm}
+            />
+
             <div className='w-full lg:w-1/3 p-10 bg-indigo-50/50 rounded-[3rem] border border-indigo-100 h-fit relative'>
                 <div className='absolute top-0 right-0 w-32 h-32 bg-indigo-200/20 rounded-full blur-3xl -z-10'></div>
                 <div className='flex items-center gap-4 mb-10'>
@@ -119,7 +182,7 @@ const Notifications = () => {
                         </p>
                     </div>
                     {editingId && (
-                        <button 
+                        <button
                             onClick={handleReset}
                             className='ml-auto p-2 bg-rose-100 text-rose-600 rounded-lg hover:bg-rose-200 transition-colors'
                             title="Cancel Edit"
@@ -142,7 +205,7 @@ const Notifications = () => {
                             className='w-full p-4 bg-white rounded-2xl border border-indigo-100 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all text-sm font-bold shadow-sm'
                         />
                     </div>
-                    
+
                     <div className='grid grid-cols-2 gap-4'>
                         <div className='space-y-2'>
                             <label className='text-[10px] font-black text-indigo-600 uppercase tracking-widest ml-1'>Category</label>
@@ -185,11 +248,10 @@ const Notifications = () => {
                         ></textarea>
                     </div>
 
-                    <button 
+                    <button
                         disabled={isSubmitting}
-                        className={`py-5 rounded-2xl transition-all font-black uppercase tracking-widest text-[11px] shadow-xl active:scale-95 flex items-center justify-center gap-3 group px-8 ${
-                            editingId ? 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-100' : 'bg-indigo-900 hover:bg-black shadow-indigo-100'
-                        } text-white`}
+                        className={`py-5 rounded-2xl transition-all font-black uppercase tracking-widest text-[11px] shadow-xl active:scale-95 flex items-center justify-center gap-3 group px-8 ${editingId ? 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-100' : 'bg-indigo-900 hover:bg-black shadow-indigo-100'
+                            } text-white`}
                     >
                         {isSubmitting ? <Loader2 size={16} className='animate-spin' /> : <Terminal size={16} className='group-hover:rotate-12 transition-transform' />}
                         {isSubmitting ? 'Processing Signal...' : editingId ? 'Update Archive' : 'Initiate Broadcast'}
@@ -209,6 +271,15 @@ const Notifications = () => {
                             <p className='text-slate-400 text-[10px] font-black uppercase tracking-widest mt-1'>Global History Audit</p>
                         </div>
                     </div>
+                    {notifications.some(n => !n.read) && (
+                        <button
+                            onClick={markAllAsRead}
+                            disabled={isSubmitting}
+                            className='flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-600 hover:text-white transition-all border border-indigo-100'
+                        >
+                            <CheckCheck size={14} /> Clear Unread
+                        </button>
+                    )}
                 </div>
 
                 <div className='flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-4'>
@@ -243,14 +314,14 @@ const Notifications = () => {
                                                     <Clock size={12} /> {notif.createdAt ? new Date(notif.createdAt).toLocaleDateString() : 'Active'}
                                                 </span>
                                                 <div className='flex gap-2 opacity-0 group-hover:opacity-100 transition-all'>
-                                                    <button 
+                                                    <button
                                                         onClick={() => handleEdit(notif)}
                                                         className='p-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-600 hover:text-white transition-all shadow-sm'
                                                         title="Edit Entry"
                                                     >
                                                         <Edit size={14} />
                                                     </button>
-                                                    <button 
+                                                    <button
                                                         onClick={() => handleDelete(notif.id)}
                                                         className='p-2 bg-rose-50 text-rose-600 rounded-lg hover:bg-rose-600 hover:text-white transition-all shadow-sm'
                                                         title="Purge Signal"
