@@ -98,9 +98,9 @@ const Notifications = () => {
                 setNotifications(notifications.map(n => n.id === editingId ? response : n));
                 showModal("Updated", "Archive entry recalibrated successfully.", "success");
             } else {
-                const response = await postNotification(payload);
-                setNotifications([response, ...notifications]);
-                showModal("Broadcasted", "Signal transmitted successfully to all active nodes.", "success");
+                await postNotification(payload);
+                showModal("Broadcasted", "Submit successfully: Signal transmitted successfully to all active nodes.", "success");
+                loadNotifications(); // Refresh all data from server
             }
             handleReset();
         } catch (error) {
@@ -167,7 +167,7 @@ const Notifications = () => {
                 onConfirm={modalConfig.onConfirm}
             />
 
-            <div className='w-full lg:w-1/3 p-10 bg-indigo-50/50 rounded-[3rem] border border-indigo-100 h-fit relative'>
+            <div className='w-full lg:w-1/3 p-10 text-black bg-indigo-50/50 rounded-[3rem] border border-indigo-100 h-fit relative'>
                 <div className='absolute top-0 right-0 w-32 h-32 bg-indigo-200/20 rounded-full blur-3xl -z-10'></div>
                 <div className='flex items-center gap-4 mb-10'>
                     <div className='p-4 bg-indigo-600 rounded-2xl text-white shadow-xl shadow-indigo-200'>
@@ -175,7 +175,7 @@ const Notifications = () => {
                     </div>
                     <div>
                         <h2 className='text-3xl font-black text-indigo-900 tracking-tight uppercase'>
-                            {editingId ? 'Modifier' : 'Broadcaster'}
+                            {editingId ? 'Modifier' : 'Notifications'}
                         </h2>
                         <p className='text-indigo-400 text-[10px] font-black uppercase tracking-widest mt-1'>
                             {editingId ? 'Adjusting Archive Entry' : 'Global Transmission Hub'}
@@ -237,7 +237,7 @@ const Notifications = () => {
                     </div>
 
                     <div className='space-y-2'>
-                        <label className='text-[10px] font-black text-indigo-600 uppercase tracking-widest ml-1'>Payload (Message)</label>
+                        <label className='text-[10px] font-black text-indigo-600 uppercase tracking-widest ml-1'>Description (Message)</label>
                         <textarea
                             value={message}
                             onChange={(e) => setMessage(e.target.value)}
@@ -254,7 +254,7 @@ const Notifications = () => {
                             } text-white`}
                     >
                         {isSubmitting ? <Loader2 size={16} className='animate-spin' /> : <Terminal size={16} className='group-hover:rotate-12 transition-transform' />}
-                        {isSubmitting ? 'Processing Signal...' : editingId ? 'Update Archive' : 'Initiate Broadcast'}
+                        {isSubmitting ? 'Processing Signal...' : editingId ? 'Update Archive' : 'SUBMIT'}
                     </button>
 
                 </form>
@@ -267,7 +267,7 @@ const Notifications = () => {
                             <Bell size={24} className='text-indigo-600' />
                         </div>
                         <div>
-                            <h2 className='text-3xl font-black text-slate-800 tracking-tight uppercase'>Transmission Log</h2>
+                            <h2 className='text-3xl font-black text-slate-800 tracking-tight uppercase'>Notification Log</h2>
                             <p className='text-slate-400 text-[10px] font-black uppercase tracking-widest mt-1'>Global History Audit</p>
                         </div>
                     </div>
@@ -306,7 +306,10 @@ const Notifications = () => {
                                     <div className='flex-1 min-w-0'>
                                         <div className='flex justify-between items-start mb-2'>
                                             <div className='flex-1'>
-                                                <h3 className='font-black text-lg text-slate-800 tracking-tight leading-tight uppercase group-hover:text-indigo-600 transition-colors'>{notif.title}</h3>
+                                                <div className='flex items-center gap-2 mb-1'>
+                                                    <span className='text-[10px] font-black text-indigo-600 uppercase tracking-widest'>Subject:</span>
+                                                    <h3 className='font-black text-lg text-slate-800 tracking-tight leading-tight uppercase group-hover:text-indigo-600 transition-colors'>{notif.title}</h3>
+                                                </div>
                                                 <span className='text-[9px] font-black text-indigo-400 uppercase tracking-widest mt-1 block'>{notif.category} Analysis</span>
                                             </div>
                                             <div className='flex flex-col items-end gap-2'>

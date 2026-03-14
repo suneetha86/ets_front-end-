@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { fetchAllAttendance, fetchAdminAttendanceDashboard, markAdminAttendance, fetchEmployeeDetailedStats } from '../../../api/attendanceApi'
-import { X, Clock, Calendar, Info, LogIn, LogOut, Loader2, AlertCircle, ArrowRightCircle, History, LayoutDashboard, Users, CheckSquare, BarChart3, CheckCircle2, XCircle, Target, TrendingUp, ShieldCheck } from 'lucide-react'
+import { X, Clock, Calendar, Info, LogIn, LogOut, Loader2, AlertCircle, ArrowRightCircle, History, LayoutDashboard, Users, CheckSquare, BarChart3, CheckCircle, XCircle, Target, TrendingUp, ShieldCheck } from 'lucide-react'
 
 const Attendance = () => {
     const [attendanceRecords, setAttendanceRecords] = useState([])

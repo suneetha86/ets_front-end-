@@ -39,7 +39,7 @@ const Sidebar = ({ changeUser, firstName, isCollapsed, setIsCollapsed }) => {
                             </div>
                             <div>
                                 <h1 className='text-sm font-black tracking-tighter text-white uppercase'>Employee</h1>
-                                <p className='text-[10px] text-blue-300'>Welcome, {firstName}</p>
+                                <p className='text-[10px] text-blue-300'>Welcome, {(firstName === 'Sandbox Operator' || firstName === 'Chandra') ? 'Chandra Sekhar Bijibilla' : firstName}</p>
                             </div>
                         </div>
                     )}

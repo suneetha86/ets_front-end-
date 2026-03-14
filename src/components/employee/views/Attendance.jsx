@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { fetchWeeklyAttendance, checkIn, checkOut } from '../../../api/attendanceApi'
-import { Loader2, AlertCircle, Clock, Calendar, User, History } from 'lucide-react'
+import { Loader2, AlertCircle, Clock, Calendar, User, History, CheckCircle } from 'lucide-react'
 
 const Attendance = ({ data }) => {
     const [status, setStatus] = useState('Checked Out') // Checked In, Checked Out
@@ -77,25 +77,25 @@ const Attendance = ({ data }) => {
             const now = new Date();
             localStorage.setItem('tempLoginTimestamp', now.toISOString());
             const time = now.toLocaleTimeString('en-US');
-            
+
             setLoginTime(time)
             setStatus('Checked In')
-            setModal({ 
-                show: true, 
-                title: "Handshake Successful", 
-                message: `Biometric identity verified. Clocked In at ${time}`, 
-                type: 'success' 
+            setModal({
+                show: true,
+                title: "Handshake Successful",
+                message: `Biometric identity verified. Clocked In at ${time}`,
+                type: 'success'
             });
 
             // Auto refresh history to show new record
             loadHistory()
         } catch (error) {
             console.error("Check-in API error:", error)
-            setModal({ 
-                show: true, 
-                title: "Handshake Failed", 
-                message: "Punch In failed. Please check your biometric gateway connection.", 
-                type: 'error' 
+            setModal({
+                show: true,
+                title: "Handshake Failed",
+                message: "Punch In failed. Please check your biometric gateway connection.",
+                type: 'error'
             });
         } finally {
             setActionLoading(false)
@@ -121,30 +121,30 @@ const Attendance = ({ data }) => {
             // Calculate duration
             const storedLogin = localStorage.getItem('tempLoginTimestamp');
             let finalDuration = '0h 0m 0s';
-            
+
             if (storedLogin) {
                 const loginDate = new Date(storedLogin);
                 const diffMs = now - loginDate;
                 const hours = Math.floor(diffMs / (1000 * 60 * 60));
                 const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
                 const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
-                
+
                 finalDuration = `${hours}h ${minutes}m ${seconds}s`;
                 setDuration(finalDuration);
                 localStorage.removeItem('tempLoginTimestamp');
-                
-                setModal({ 
-                    show: true, 
-                    title: "Shift Synchronized", 
-                    message: `Punch Out recorded at ${time}. Total Session: ${finalDuration}`, 
-                    type: 'success' 
+
+                setModal({
+                    show: true,
+                    title: "Shift Synchronized",
+                    message: `Punch Out recorded at ${time}. Total Session: ${finalDuration}`,
+                    type: 'success'
                 });
             } else {
-                setModal({ 
-                    show: true, 
-                    title: "Shift Synchronized", 
-                    message: `Punch Out recorded at ${time}`, 
-                    type: 'success' 
+                setModal({
+                    show: true,
+                    title: "Shift Synchronized",
+                    message: `Punch Out recorded at ${time}`,
+                    type: 'success'
                 });
             }
 
@@ -152,11 +152,11 @@ const Attendance = ({ data }) => {
             loadHistory()
         } catch (error) {
             console.error("Check-out API error:", error)
-            setModal({ 
-                show: true, 
-                title: "Synchronize Error", 
-                message: "Punch Out failed. Please try again.", 
-                type: 'error' 
+            setModal({
+                show: true,
+                title: "Synchronize Error",
+                message: "Punch Out failed. Please try again.",
+                type: 'error'
             });
         } finally {
             setActionLoading(false)
@@ -292,10 +292,10 @@ const Attendance = ({ data }) => {
                                             <td className='p-5 text-sm font-black text-gray-700 tracking-tight'>{record.hours}</td>
                                             <td className='p-5'>
                                                 <span className={`text-[10px] font-black px-3 py-1.5 rounded-xl uppercase tracking-widest flex items-center w-fit gap-1 shadow-sm ${record.status === 'Present' ? 'bg-green-100 text-green-700' :
-                                                        record.status === 'Absent' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'
+                                                    record.status === 'Absent' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'
                                                     }`}>
                                                     <div className={`w-1.5 h-1.5 rounded-full ${record.status === 'Present' ? 'bg-green-500' :
-                                                            record.status === 'Absent' ? 'bg-red-500' : 'bg-yellow-500'
+                                                        record.status === 'Absent' ? 'bg-red-500' : 'bg-yellow-500'
                                                         }`}></div>
                                                     {record.status}
                                                 </span>
@@ -329,7 +329,7 @@ const Attendance = ({ data }) => {
                             <p className="text-slate-600 font-bold text-sm leading-relaxed mb-6">
                                 {modal.message}
                             </p>
-                            <button 
+                            <button
                                 onClick={() => setModal({ ...modal, show: false })}
                                 className={`w-full py-4 ${modal.type === 'success' ? 'bg-emerald-500 hover:bg-emerald-600 shadow-emerald-100' : 'bg-rose-500 hover:bg-rose-600 shadow-rose-100'} text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl active:scale-95`}
                             >

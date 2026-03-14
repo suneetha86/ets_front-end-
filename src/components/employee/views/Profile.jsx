@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { fetchEmployeeProfile, uploadProfileImage, createProfile } from "../../../api/employeeApi";
 import EditProfile from "./EditProfile";
+import profilePic from "../../../assets/profile-pic.jpg";
 
 const Profile = ({ data }) => {
   const navigate = useNavigate();
@@ -70,7 +71,7 @@ const Profile = ({ data }) => {
           github: data?.github || "manucode",
           attendance: profileData.attendance ? `${profileData.attendance}%` : data?.analytics?.attendance || "0%",
           codingScore: profileData.codingScore || data?.analytics?.codingScore || 0,
-          profilePic: profileData.profileImage || null
+          profilePic: profileData.profileImage || profilePic
         });
         setLastSynced(new Date().toLocaleTimeString());
         setIsLive(true);
@@ -95,7 +96,7 @@ const Profile = ({ data }) => {
           github: data?.github || "manucode",
           attendance: data?.analytics?.attendance || "0%",
           codingScore: data?.analytics?.codingScore || 0,
-          profilePic: null,
+          profilePic: profilePic,
           firstName: data?.firstName || (firstNameFallback === "undefined" ? "" : firstNameFallback) || "",
           lastName: data?.lastName || (lastNameFallback === "undefined" ? "" : lastNameFallback) || "",
         });
@@ -259,7 +260,7 @@ const Profile = ({ data }) => {
         <div className="relative group">
           <div className="w-32 h-32 rounded-full overflow-hidden ring-4 ring-slate-100 bg-slate-100 flex items-center justify-center shadow-2xl">
             <img
-                src={profile.profilePic ? (profile.profilePic.startsWith('data:') ? profile.profilePic : `https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=1587&auto=format&fit=crop`) : `https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=1587&auto=format&fit=crop`}
+                src={profile.profilePic ? (profile.profilePic.startsWith('data:') ? profile.profilePic : profile.profilePic) : profilePic}
                 alt="Profile"
                 className="w-full h-full object-cover"
             />

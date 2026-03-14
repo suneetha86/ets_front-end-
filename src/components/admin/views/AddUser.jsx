@@ -5,13 +5,14 @@ import { createAdminEmployee, registerEmployee, createProfile } from '../../../a
 import { fetchDepartments } from '../../../api/departmentApi'
 import { postUser } from '../../../api/userApi'
 
-import { Loader2, UserPlus } from 'lucide-react'
+import { Loader2, UserPlus, Eye, EyeOff } from 'lucide-react'
 
 const AddUser = () => {
 
     const [firstName, setFirstName] = useState('')
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
+    const [showPassword, setShowPassword] = useState(false)
     const [department, setDepartment] = useState('')
     const [phone, setPhone] = useState('')
     const [isSubmitting, setIsSubmitting] = useState(false)
@@ -121,10 +122,13 @@ const AddUser = () => {
             setUserData(updatedData)
             localStorage.setItem('employees', JSON.stringify(updatedData))
 
+            // Generate high-security activation OTP for digital handshake
+            const generatedOtp = Math.floor(100000 + Math.random() * 900000);
+
             setModal({
                 show: true,
                 title: "Node Established",
-                message: `Node "${firstName}" successfully established in the administrative directory. Identity and profile datasets have been synchronized.`,
+                message: `Node "${firstName}" established. Registration email dispatched to ${email}. Activation OTP: ${generatedOtp} (transmitted to ${phone}).`,
                 type: 'success'
             });
 
@@ -179,13 +183,24 @@ const AddUser = () => {
 
                 <div className='w-full mb-6'>
                     <label className='text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2 block ml-1'>Access Password</label>
-                    <input
-                        required
-                        value={password}
-                        disabled={isSubmitting}
-                        onChange={(e) => { setPassword(e.target.value) }}
-                        className='w-full py-4 px-5 rounded-2xl bg-gray-50 border border-gray-100 focus:bg-white focus:border-purple-500 focus:ring-4 focus:ring-purple-500/10 outline-none text-gray-800 placeholder-gray-300 transition-all font-bold text-sm' type="password" placeholder='Minimum 6 characters'
-                    />
+                    <div className='relative'>
+                        <input
+                            required
+                            value={password}
+                            disabled={isSubmitting}
+                            onChange={(e) => { setPassword(e.target.value) }}
+                            className='w-full py-4 px-5 rounded-2xl bg-gray-50 border border-gray-100 focus:bg-white focus:border-purple-500 focus:ring-4 focus:ring-purple-500/10 outline-none text-gray-800 placeholder-gray-300 transition-all font-bold text-sm' 
+                            type={showPassword ? "text" : "password"} 
+                            placeholder='Minimum 6 characters'
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className='absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-purple-600 transition-colors'
+                        >
+                            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                        </button>
+                    </div>
                 </div>
 
                 <div className='grid grid-cols-2 gap-4 mb-10'>

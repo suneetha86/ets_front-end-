@@ -176,7 +176,7 @@ const Reports = () => {
                     </h3>
                     <div className='h-72 w-full flex items-center justify-center bg-gray-50/30 rounded-xl relative'>
                         {isMounted && Object.keys(deptCounts).length > 0 ? (
-                            <ResponsiveContainer width="99%" height="100%" minHeight={250} id="dept-dist-container">
+                            <ResponsiveContainer width="100%" height={260} id="dept-dist-container">
                                 <PieChart id="dept-dist-chart">
                                     <Pie
                                         data={pieData}

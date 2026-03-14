@@ -12,7 +12,7 @@ const Submissions = () => {
     const [loading, setLoading] = useState(true)
     const [pendingCount, setPendingCount] = useState(0)
     const [modal, setModal] = useState({ show: false, title: '', message: '', type: 'info' })
-    
+
     // New submission form state
     const [formData, setFormData] = useState({
         employeeName: '',
@@ -45,18 +45,18 @@ const Submissions = () => {
                     })
                 })
             }
-            
+
             // Uplink with live repository if available
             try {
                 const apiData = await fetchSubmissions()
                 const countData = await getPendingSubmissionsCount()
-                
+
                 if (Array.isArray(apiData) && apiData.length > 0) {
                     setSubmissions([...apiData, ...allSubmissions])
                 } else {
                     setSubmissions(allSubmissions)
                 }
-                
+
                 if (countData && countData.pendingCount !== undefined) {
                     setPendingCount(countData.pendingCount)
                 }
@@ -66,7 +66,7 @@ const Submissions = () => {
                 // Use local count as fallback
                 setPendingCount(allSubmissions.filter(s => s.status === 'PENDING' || s.status === 'Pending Review').length)
             }
-            
+
             setLastSynced(new Date().toLocaleTimeString())
         } catch (err) {
             console.error("Critical Synchronization Error:", err)
@@ -85,7 +85,7 @@ const Submissions = () => {
             setIsSubmitting(true)
             console.log("Transmitting mission data to core repository:", formData)
             await createSubmission(formData)
-            
+
             setIsFormVisible(false)
             setFormData({
                 employeeName: '',
@@ -131,7 +131,7 @@ const Submissions = () => {
                     loadSubmissions();
                     return;
                 }
-                
+
                 // Fallback for local state (mock data)
                 const updatedUserData = [...userData]
                 const user = updatedUserData[userIdx]
@@ -212,29 +212,29 @@ const Submissions = () => {
                         <div className='bg-purple-600 p-2.5 rounded-2xl shadow-xl shadow-purple-200'>
                             <Layers size={24} className="text-white" />
                         </div>
-                        <h2 className='text-4xl font-black text-slate-800 tracking-tight'>Mission Oversight</h2>
+                        <h2 className='text-4xl font-black text-slate-800 tracking-tight'>Submission</h2>
                     </div>
-                    <p className='text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] ml-14'>Review and authorize tactical mission completions</p>
+                    <p className='text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] ml-14'>Review and authorize submission completions</p>
                 </div>
-                
+
                 <div className='flex items-center gap-4'>
                     <div className='bg-white px-5 py-3 rounded-2xl border border-slate-100 flex items-center gap-3 shadow-sm'>
                         <div className='w-2 h-2 rounded-full bg-yellow-400 animate-pulse'></div>
                         <span className='text-[10px] font-black text-slate-600 uppercase tracking-widest'>{pendingCount} Awaiting Authorization</span>
                     </div>
-                    <button
+                    {/* <button
                         onClick={loadSubmissions}
                         className='p-4 bg-white text-slate-400 rounded-2xl border border-slate-100 hover:text-purple-600 hover:shadow-lg transition-all active:rotate-180 duration-500'
                         title="Sync with Repository"
                     >
                         <RefreshCw size={20} className={loading ? "animate-spin" : ""} />
-                    </button>
-                    <button
+                    </button> */}
+                    {/* <button
                         onClick={() => setIsFormVisible(true)}
                         className='bg-purple-600 hover:bg-purple-700 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-purple-200 transition-all flex items-center gap-2'
                     >
                         <Plus size={18} /> Initialize Submission
-                    </button>
+                    </button> */}
                 </div>
             </div>
 
@@ -248,25 +248,25 @@ const Submissions = () => {
                                 <X size={20} className="text-slate-400" />
                             </button>
                         </div>
-                        
+
                         <div className='p-8 space-y-6'>
                             <div className='grid grid-cols-1 gap-6'>
                                 <div>
                                     <label className='text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block ml-1'>Employee Designation</label>
-                                    <input 
+                                    <input
                                         required
                                         value={formData.employeeName}
-                                        onChange={(e) => setFormData({...formData, employeeName: e.target.value})}
+                                        onChange={(e) => setFormData({ ...formData, employeeName: e.target.value })}
                                         className='w-full p-4 bg-slate-50 rounded-2xl border border-slate-100 focus:bg-white focus:border-purple-500 outline-none transition-all font-bold text-sm'
                                         placeholder='e.g. Suneetha'
                                     />
                                 </div>
                                 <div>
                                     <label className='text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block ml-1'>Strategic Task Title</label>
-                                    <input 
+                                    <input
                                         required
                                         value={formData.taskTitle}
-                                        onChange={(e) => setFormData({...formData, taskTitle: e.target.value})}
+                                        onChange={(e) => setFormData({ ...formData, taskTitle: e.target.value })}
                                         className='w-full p-4 bg-slate-50 rounded-2xl border border-slate-100 focus:bg-white focus:border-purple-500 outline-none transition-all font-bold text-sm'
                                         placeholder='e.g. Login Module'
                                     />
@@ -274,37 +274,37 @@ const Submissions = () => {
                                 <div className='grid grid-cols-2 gap-4'>
                                     <div>
                                         <label className='text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block ml-1'>Category</label>
-                                        <input 
+                                        <input
                                             required
                                             value={formData.taskCategory}
-                                            onChange={(e) => setFormData({...formData, taskCategory: e.target.value})}
+                                            onChange={(e) => setFormData({ ...formData, taskCategory: e.target.value })}
                                             className='w-full p-4 bg-slate-50 rounded-2xl border border-slate-100 focus:bg-white focus:border-purple-500 outline-none transition-all font-bold text-sm'
                                             placeholder='e.g. Development'
                                         />
                                     </div>
                                     <div>
                                         <label className='text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block ml-1'>Handover Date</label>
-                                        <input 
+                                        <input
                                             type="date"
                                             required
                                             value={formData.submissionDate}
-                                            onChange={(e) => setFormData({...formData, submissionDate: e.target.value})}
+                                            onChange={(e) => setFormData({ ...formData, submissionDate: e.target.value })}
                                             className='w-full p-4 bg-slate-50 rounded-2xl border border-slate-100 focus:bg-white focus:border-purple-500 outline-none transition-all font-bold text-sm'
                                         />
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div className='p-8 bg-slate-50/50 flex gap-4'>
-                            <button 
+                            <button
                                 type="button"
                                 onClick={() => setIsFormVisible(false)}
                                 className='flex-1 py-4 px-6 rounded-2xl border border-slate-200 font-black text-[10px] uppercase tracking-widest text-slate-500 hover:bg-slate-100 transition-all'
                             >
                                 Cancel Sync
                             </button>
-                            <button 
+                            <button
                                 type="submit"
                                 disabled={isSubmitting}
                                 className='flex-[2] bg-purple-600 hover:bg-purple-700 text-white py-4 px-6 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-purple-200 transition-all flex items-center justify-center gap-2'
@@ -408,17 +408,16 @@ const Submissions = () => {
             {modal.show && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[200] flex items-center justify-center p-4 animate-in fade-in duration-200">
                     <div className="bg-white w-full max-w-sm rounded-[2rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 border border-slate-100 text-center">
-                        <div className={`p-8 flex flex-col items-center gap-4 relative overflow-hidden ${
-                            modal.type === 'success' ? 'bg-emerald-500' : 
+                        <div className={`p-8 flex flex-col items-center gap-4 relative overflow-hidden ${modal.type === 'success' ? 'bg-emerald-500' :
                             modal.type === 'error' ? 'bg-rose-500' : 'bg-blue-500'
-                        }`}>
+                            }`}>
                             <div className="absolute top-2 right-4 opacity-10 rotate-12">
                                 <CheckCircle size={100} className="text-white" />
                             </div>
                             <div className="relative z-10 w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-2xl text-slate-900">
-                                {modal.type === 'success' ? <CheckCircle className="text-emerald-500" size={32} /> : 
-                                 modal.type === 'error' ? <XCircle className="text-rose-500" size={32} /> : 
-                                 <Send className="text-blue-500" size={32} />}
+                                {modal.type === 'success' ? <CheckCircle className="text-emerald-500" size={32} /> :
+                                    modal.type === 'error' ? <XCircle className="text-rose-500" size={32} /> :
+                                        <Send className="text-blue-500" size={32} />}
                             </div>
                             <div className="relative z-10">
                                 <h3 className="font-black text-xl text-white tracking-tight">{modal.title}</h3>
@@ -428,12 +427,11 @@ const Submissions = () => {
                             <p className="text-slate-600 font-bold text-sm leading-relaxed mb-6">
                                 {modal.message}
                             </p>
-                            <button 
+                            <button
                                 onClick={() => setModal({ ...modal, show: false })}
-                                className={`w-full py-4 ${
-                                    modal.type === 'success' ? 'bg-emerald-500' : 
+                                className={`w-full py-4 ${modal.type === 'success' ? 'bg-emerald-500' :
                                     modal.type === 'error' ? 'bg-rose-500' : 'bg-blue-600'
-                                } text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl active:scale-95`}
+                                    } text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl active:scale-95`}
                             >
                                 Acknowledge
                             </button>

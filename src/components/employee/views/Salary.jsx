@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useContext } from 'react'
+﻿import React, { useState, useMemo, useEffect, useContext } from 'react'
 import { DollarSign, Download, Eye, TrendingUp, CreditCard, PieChart, X, FileText, Filter, ChevronLeft, ChevronRight, ArrowUpDown, Loader2, CheckCircle } from 'lucide-react'
 import { fetchEmployeeSalariesByEmployeeId, fetchEmployeeSalaryById, filterEmployeeSalaries, fetchPaginatedSalaries, fetchEmployeeSalarySummary, fetchEmployeeSalaryDashboard } from '../../../api/employeeSalaryApi';
 
@@ -48,7 +48,7 @@ const Salary = () => {
                 setLoading(true);
                 let data;
                 let elements = 0;
-                
+
                 // If filters are standard "All", use the optimized unified dashboard
                 if (selectedYear === 'All Years' && selectedMonth === 'All Months') {
                     const dashboard = await fetchEmployeeSalaryDashboard(userId, currentPage - 1, itemsPerPage);
@@ -111,7 +111,7 @@ const Salary = () => {
             filtered.sort((a, b) => {
                 let aVal = a[sortConfig.key];
                 let bVal = b[sortConfig.key];
-                
+
                 // Special handling for ID/Date to ensure real 'Latest' data
                 if (sortConfig.key === 'date' || sortConfig.key === 'id') {
                     return sortConfig.direction === 'asc' ? aVal - bVal : bVal - aVal;
@@ -135,13 +135,13 @@ const Salary = () => {
     }, [processedHistory]);
 
     const totalPages = Math.ceil(((selectedYear !== 'All Years' && selectedMonth !== 'All Months') ? processedHistory.length : totalElements) / itemsPerPage);
-    
+
     // For local sorting/filtering, use the processedHistory which handles year/month dropdowns locally 
     // when either one is "All". However, if both are specific, we fetch fresh data.
     // If the data is paginated from server, paginatedHistory should just be the history itself.
-    const paginatedHistory = (selectedYear !== 'All Years' && selectedMonth !== 'All Months') 
+    const paginatedHistory = (selectedYear !== 'All Years' && selectedMonth !== 'All Months')
         ? processedHistory.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
-        : processedHistory; 
+        : processedHistory;
 
 
     const handleSort = (key) => {
@@ -152,7 +152,7 @@ const Salary = () => {
         setSortConfig({ key, direction });
     };
 
-    const userName = "Siva Yennam"; // Force name for requirement
+    const userName = "Chandra Sekhar Bijibilla"; // Force name for requirement
     const userEmpId = currentUser?.empId || currentUser?.id || currentUser?.data?.id || 'EMP-XXXX';
 
     const handleViewSlip = async (record) => {
@@ -174,11 +174,11 @@ const Salary = () => {
             setIsModalOpen(true);
         } catch (err) {
             console.error("Failed to load slip details", err);
-            setModal({ 
-                show: true, 
-                title: "Decryption Interrupted", 
-                message: "Could not load payslip details from the secure server layer.", 
-                type: 'error' 
+            setModal({
+                show: true,
+                title: "Decryption Interrupted",
+                message: "Could not load payslip details from the secure server layer.",
+                type: 'error'
             });
         } finally {
             setLoading(false);
@@ -223,15 +223,15 @@ const Salary = () => {
 <body>
     <div class="payslip-card">
         <div class="header">
-            <h1>AJA CONSULTING SERVICRES LLP</h1>
-            <p>the square 4th floor , Gachibowli, Hyderabad • Official Payroll Statement</p>
+            <h1>AJA CONSULTING SERVICES LLP</h1>
+            <p>the square , 4th floor, A Block, Gachibowli, Hyderabad • Official Payroll Statement</p>
             <div class="payslip-badge">Salary Slip — ${record.month.toUpperCase()}</div>
         </div>
         
         <div class="info-grid">
             <div class="info-item"><span class="info-label">Employee Name</span><span class="info-value">${userName}</span></div>
             <div class="info-item"><span class="info-label">Employee ID</span><span class="info-value">${userEmpId}</span></div>
-            <div class="info-item"><span class="info-label">Designation</span><span class="info-value">Software Engineer</span></div>
+            <div class="info-item"><span class="info-label">Designation</span><span class="info-value">sr Backend Developer</span></div>
             
             <div class="info-item"><span class="info-label">Department</span><span class="info-value">Engineering</span></div>
             <div class="info-item"><span class="info-label">PAN (Tax ID)</span><span class="info-value">ABCPK1234D</span></div>
@@ -284,7 +284,7 @@ const Salary = () => {
             </div>
         </div>
 
-        <div class="sys-footer">© 2026 AJA Employee Portal | This is an encrypted system document. | AJA CONSULTING SERVICRES LLP</div>
+        <div class="sys-footer">Â© 2026 AJA Employee Portal | This is an encrypted system document. | AJA CONSULTING SERVICES LLP</div>
     </div>
 </body>
 </html>`;
@@ -299,7 +299,7 @@ const Salary = () => {
     }
 
     return (
-        <div 
+        <div
             className='flex flex-col gap-6 h-full overflow-y-auto pb-20 pr-2 custom-scrollbar scroll-smooth relative'
         >
             {/* Header */}
@@ -492,7 +492,7 @@ const Salary = () => {
                         <div className='bg-blue-600 p-5 text-white relative shrink-0'>
                             <div className='flex justify-between items-start'>
                                 <div>
-                                    <h2 className="text-2xl font-black tracking-tighter mb-1">AJA CONSULTING SERVICRES LLP</h2>
+                                    <h2 className="text-2xl font-black tracking-tighter mb-1">AJA CONSULTING SERVICES LLP</h2>
                                     <p className="text-[9px] font-bold uppercase tracking-[0.2em] opacity-80 leading-relaxed max-w-xs">
                                         Official Remuneration Receipt<br />
                                         Employee Confidential Record
@@ -513,7 +513,7 @@ const Salary = () => {
                             <div className='bg-slate-50 border border-slate-200 rounded-2xl p-4 grid grid-cols-3 gap-y-3 gap-x-4 mb-4'>
                                 <div><p className='text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1'>Employee Name</p><p className='text-xs font-bold text-slate-800'>{userName}</p></div>
                                 <div><p className='text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1'>Employee ID</p><p className='text-xs font-bold text-slate-800'>{userEmpId}</p></div>
-                                <div><p className='text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1'>Designation</p><p className='text-xs font-bold text-slate-800'>Software Engineer</p></div>
+                                <div><p className='text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1'>Designation</p><p className='text-xs font-bold text-slate-800'>sr Backend Developer</p></div>
                                 <div><p className='text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1'>Department</p><p className='text-xs font-bold text-slate-800'>Engineering</p></div>
                                 <div><p className='text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1'>PAN</p><p className='text-xs font-bold text-slate-800'>ABCPK1234D</p></div>
                                 <div><p className='text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1'>UAN (PF)</p><p className='text-xs font-bold text-slate-800'>100987654321</p></div>
@@ -564,7 +564,7 @@ const Salary = () => {
                                     <p className='text-[8px] font-bold text-emerald-600 mt-1 opacity-80'>Credited to **** 8821 on {currentSlip.date}</p>
                                 </div>
                                 <div className='text-right'>
-                                    <button 
+                                    <button
                                         onClick={() => handleDownload(currentSlip)}
                                         className='bg-blue-600 text-white px-6 py-2 rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-blue-700 transition-all shadow-xl shadow-blue-200 flex items-center gap-2'
                                     >
@@ -575,14 +575,14 @@ const Salary = () => {
                         </div>
 
                         <div className='bg-slate-50 p-3 text-center border-t border-slate-100 shrink-0'>
-                            <p className='text-[9px] text-slate-400 font-bold'>This is a system-generated payslip and does not require a physical signature. | AJA Pvt Ltd.</p>
+                            <p className='text-[9px] text-slate-400 font-bold'>This is a system-generated payslip and does not require a physical signature. | AJA CONSULTING SERVICES LLP</p>
                         </div>
                     </div>
                 </div>
             )}
 
 
-            {/* ── MODAL NOTIFICATION ── */}
+            {/* â”€â”€ MODAL NOTIFICATION â”€â”€ */}
             {modal.show && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[200] flex items-center justify-center p-4 animate-in fade-in duration-200">
                     <div className="bg-white w-full max-w-sm rounded-[2rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 border border-slate-100 text-center">
@@ -601,7 +601,7 @@ const Salary = () => {
                             <p className="text-slate-600 font-bold text-sm leading-relaxed mb-6">
                                 {modal.message}
                             </p>
-                            <button 
+                            <button
                                 onClick={() => setModal({ ...modal, show: false })}
                                 className="w-full py-4 bg-rose-500 hover:bg-rose-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-rose-100 active:scale-95"
                             >
@@ -616,4 +616,5 @@ const Salary = () => {
 }
 
 export default Salary
+
 

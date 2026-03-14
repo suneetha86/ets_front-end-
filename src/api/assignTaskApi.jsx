@@ -9,6 +9,17 @@ export const createAssignTask = async (taskData) => {
         throw error;
     }
 };
+
+export const fetchAssignedTasks = async () => {
+    try {
+        const response = await apiClient.get(`/admin/assign/tasks`);
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching assigned tasks:', error);
+        throw error;
+    }
+};
+
 export const deleteAssignTask = async (id, taskData = null) => {
     try {
         const response = await apiClient.delete(`/admin/assign/tasks/delete/${id}`, {

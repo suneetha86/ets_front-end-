@@ -11,6 +11,7 @@ const Login = () => {
 
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
+    const [showPassword, setShowPassword] = useState(false)
     const [isAdmin, setIsAdmin] = useState(location.state?.type === 'admin')
     const [loading, setLoading] = useState(false)
     const { userData, setUserData, setCurrentUser } = useContext(AuthContext)
@@ -150,17 +151,14 @@ const Login = () => {
             </div>
 
             <div className='w-full lg:w-1/2 flex items-center justify-center p-8 bg-gradient-to-br from-white to-indigo-50 relative z-20'>
-                <div className='absolute top-8 left-8 flex items-center gap-3 lg:hidden'>
-                    <img src="../../assets/aja-logo.png" alt="AJA Logo" className='w-8 h-8 rounded-lg object-contain' />
-                    <span className='font-black text-sm uppercase tracking-widest text-indigo-900'>AJA</span>
-                </div>
 
                 <div className='w-full max-w-md'>
                     <div className='mb-10'>
-                        <h2 className='text-4xl font-black text-indigo-900 tracking-tight mb-2'>
+                        {/* Logo and Company Name */}
+
+                        <h2 className='text-4xl font-black text-indigo-900 tracking-tight mb-2 text-center'>
                             {isAdmin ? 'Admin' : 'Employee'} Login
                         </h2>
-
                     </div>
 
                     <form onSubmit={submitHandler} className='space-y-6'>

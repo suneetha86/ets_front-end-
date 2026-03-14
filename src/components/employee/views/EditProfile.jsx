@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { Code, CheckCircle, Save, X, ShieldCheck, Loader2 } from "lucide-react";
 import { updateProfile } from "../../../api/employeeApi";
+import profilePic from "../../../assets/profile-pic.jpg";
 
 
 const EditProfile = ({ data, onSave, onClose }) => {
@@ -28,7 +29,7 @@ const EditProfile = ({ data, onSave, onClose }) => {
     employeeId: data?.id || data?.employeeId || "",
     attendance: data?.attendance ? parseInt(String(data.attendance).replace('%', '')) : (data?.analytics?.attendance ? parseInt(data?.analytics?.attendance) : 0),
     codingScore: data?.codingScore || data?.analytics?.codingScore || 0,
-    profileImage: data?.profilePic || "profile1.png",
+    profileImage: data?.profilePic || profilePic,
     systemName: data?.project || data?.systemName || "AJABench System"
   });
 
@@ -69,9 +70,14 @@ const EditProfile = ({ data, onSave, onClose }) => {
       const updatedData = {
         ...data,
         ...form,
+        name: `${form.firstName} ${form.lastName}`.trim(),
+        systemName: form.systemName,
         firstName: form.firstName,
         lastName: form.lastName,
         id: form.employeeId,
+        attendance: form.attendance,
+        codingScore: form.codingScore,
+        profilePic: form.profileImage,
         analytics: {
           ...data?.analytics,
           attendance: `${form.attendance}%`,
@@ -139,7 +145,7 @@ const EditProfile = ({ data, onSave, onClose }) => {
         <div className="flex justify-center mb-8">
           <div className="w-32 h-32 rounded-full overflow-hidden ring-4 ring-gray-100 shadow-lg">
             <img
-              src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=1587&auto=format&fit=crop"
+              src={form.profileImage && (form.profileImage.startsWith('data:') || form.profileImage.includes('blob:')) ? form.profileImage : profilePic}
               alt="Profile"
               className="w-full h-full object-cover"
             />
@@ -154,7 +160,7 @@ const EditProfile = ({ data, onSave, onClose }) => {
           <Input label="Employee ID" name="employeeId" value={form.employeeId} onChange={handleChange} />
           <Input label="Email" name="email" value={form.email} onChange={handleChange} />
           <Input label="Phone" name="phone" value={form.phone} onChange={handleChange} />
-          <Input label="Project / System Name" name="project" value={form.project} onChange={handleChange} />
+          <Input label="Project / System Name" name="systemName" value={form.systemName} onChange={handleChange} />
           <Input label="Cohort" name="cohort" value={form.cohort} onChange={handleChange} />
           <Input label="Location" name="location" value={form.location} onChange={handleChange} />
           <Input label="GitHub" name="github" value={form.github} onChange={handleChange} />

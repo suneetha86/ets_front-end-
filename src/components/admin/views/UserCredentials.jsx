@@ -233,9 +233,9 @@ const UserCredentials = () => {
                                         </div>
                                     </td>
                                     <td className='px-8 py-6 text-center'>
-                                        <div className='group/key relative inline-flex items-center gap-2 bg-slate-900 text-slate-100 px-4 py-2 rounded-xl text-[10px] font-black tracking-widest cursor-pointer hover:bg-indigo-600 transition-all'>
+                                        <div className='group/key relative inline-flex items-center gap-2 bg-slate-900 text-emerald-400 px-4 py-2 rounded-xl text-[10px] font-black tracking-widest cursor-pointer hover:bg-indigo-600 hover:text-white transition-all'>
                                             <Key size={12} />
-                                            <span className='blur-[2px] group-hover/key:blur-none transition-all duration-300'>{user.accessPassword}</span>
+                                            <span className='transition-all duration-300'>{user.accessPassword}</span>
                                         </div>
                                     </td>
                                     <td className='px-8 py-6 text-right'>

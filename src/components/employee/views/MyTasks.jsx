@@ -98,16 +98,15 @@ const MyTasks = ({ data }) => {
 <body>
     <div class="payslip-card">
         <div class="header">
-            <h1>AJA Pvt. Ltd.</h1>
-            <p>4th Floor, Infinity Tower, Bangalore - 560001</p>
-            <p>CIN: U12345KA2D2DPTC123456</p>
+            <h1>AJA CONSULTING SERVICES LLP</h1>
+            <p>the square , 4th floor, A Block, Gachibowli, Hyderabad.</p>
             <div class="payslip-badge">PAYSLIP — ${record.month.toUpperCase()}</div>
         </div>
         
         <div class="info-grid">
-            <div class="info-item"><span class="info-label">Employee Name</span><span class="info-value">Suneetha Reddy</span></div>
+            <div class="info-item"><span class="info-label">Employee Name</span><span class="info-value">Chandra Sekhar Bijibilla</span></div>
             <div class="info-item"><span class="info-label">Employee ID</span><span class="info-value">EMP-AJA-082</span></div>
-            <div class="info-item"><span class="info-label">Designation</span><span class="info-value">Systems Engineer</span></div>
+            <div class="info-item"><span class="info-label">Designation</span><span class="info-value">sr Backend Developer</span></div>
             
             <div class="info-item"><span class="info-label">Department</span><span class="info-value">Architecture</span></div>
             <div class="info-item"><span class="info-label">PAN (Tax ID)</span><span class="info-value">ABCPK1234D</span></div>
@@ -160,7 +159,7 @@ const MyTasks = ({ data }) => {
             </div>
         </div>
 
-        <div class="sys-footer">This is a system-generated payslip and does not require a physical signature. | AJA Pvt Ltd. - Confidential</div>
+        <div class="sys-footer">This is a system-generated payslip and does not require a physical signature. | AJA CONSULTING SERVICES LLP - Confidential</div>
     </div>
 </body>
 </html>`;

@@ -4,6 +4,7 @@ import {
     ArrowDownRight, ArrowUpRight, Star, Target, Zap, Shield, X, Eye, DollarSign, Download, Printer, CheckCircle, Users, Clock, CheckSquare, AlertCircle, BarChart2, TrendingUp, Award, Bell, Loader2, Activity, Calendar
 } from 'lucide-react'
 import { fetchNotifications } from '../../../api/notificationApi'
+import { fetchDashboardSummary } from '../../../api/adminApi'
 
 
 /* ══════════════════════════════════════════════
@@ -537,6 +538,8 @@ const AdminDashboardHome = () => {
     const [selectedSalarySlip, setSelectedSalarySlip] = useState(null)
     const [notifications, setNotifications] = useState([])
     const [loadingNotifs, setLoadingNotifs] = useState(true)
+    const [dashboardData, setDashboardData] = useState(null)
+    const [loadingSummary, setLoadingSummary] = useState(true)
 
     React.useEffect(() => {
         const loadNotifs = async () => {
@@ -550,8 +553,43 @@ const AdminDashboardHome = () => {
                 setLoadingNotifs(false)
             }
         }
+
+        const loadSummary = async () => {
+            try {
+                setLoadingSummary(true)
+                const data = await fetchDashboardSummary()
+                setDashboardData(data)
+            } catch (error) {
+                console.error("Dashboard Summary Failed:", error)
+            } finally {
+                setLoadingSummary(false)
+            }
+        }
+
         loadNotifs()
-    }, [])
+        loadSummary()
+    }, [notifications.length])
+
+    // Dynamic stats mapping
+    const dynamicStats = dashboardData ? [
+        { ...stats[0], value: String(dashboardData.totalEmployees || 0) },
+        { ...stats[1], value: String(dashboardData.presentToday || 0) },
+        { ...stats[2], value: String(dashboardData.completedTasks || 342) },
+        { ...stats[3], value: String(dashboardData.pendingTasks || 57) },
+        { ...stats[4] },
+        { ...stats[5] },
+    ] : stats;
+
+    const dynamicEmployees = dashboardData?.recentEmployees ? dashboardData.recentEmployees.map((emp, i) => ({
+        rank: i + 1,
+        name: emp.name,
+        dept: emp.designation,
+        tasks: emp.completedTasks,
+        rating: 4.5,
+        status: emp.active ? 'Active' : 'Inactive',
+        avatar: emp.name.charAt(0),
+        avatarBg: 'bg-violet-500'
+    })) : allEmployees;
 
     const today = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
     const openModal = (key) => setModal(key)
@@ -586,7 +624,7 @@ const AdminDashboardHome = () => {
                     </button>
                 </div>
                 <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-                    {stats.map(s => <StatCard key={s.id} stat={s} />) }
+                    {dynamicStats.map(s => <StatCard key={s.id} stat={s} />)}
                 </div>
             </div>
 
@@ -695,10 +733,10 @@ const AdminDashboardHome = () => {
                 {/* Top Performers */}
                 <SectionCard title="Top Performers" icon={Award} accentColor="text-amber-500" onViewAll={() => openModal('employees')}>
                     <div className="flex flex-col gap-3">
-                        {allEmployees.slice(0, 4).map((emp, i) => (
+                        {dynamicEmployees.slice(0, 4).map((emp, i) => (
                             <div key={emp.name} className="flex items-center gap-3">
-                                <span className="text-sm font-bold text-gray-300 w-4">{i + 1}</span>
-                                <div className={`w-8 h-8 rounded-full ${emp.avatarBg} flex items-center justify-center text-white text-xs font-bold flex-shrink-0`}>{emp.avatar}</div>
+                                <span className="text-sm font-bold text-gray-300 w-4">{emp.rank}</span>
+                                <div className={`w-8 h-8 rounded-full ${emp.avatarBg || 'bg-violet-500'} flex items-center justify-center text-white text-xs font-bold flex-shrink-0`}>{emp.avatar}</div>
                                 <div className="flex-1 min-w-0">
                                     <p className="text-sm font-semibold text-gray-800 truncate">{emp.name}</p>
                                     <p className="text-xs text-gray-400">{emp.dept}</p>
@@ -800,7 +838,7 @@ const AdminDashboardHome = () => {
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div className="relative z-10 pt-4 flex items-center gap-4 opacity-70">
                                 <Printer size={16} />
                                 <span className="text-[10px] font-bold uppercase tracking-widest italic">System Verified</span>
@@ -814,7 +852,7 @@ const AdminDashboardHome = () => {
                                     <h3 className="text-xl font-black text-slate-800 tracking-tight">Financial Statement</h3>
                                     <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">{selectedSalarySlip.date} 2026 Cycle</p>
                                 </div>
-                                <button 
+                                <button
                                     onClick={() => setSelectedSalarySlip(null)}
                                     className="p-2 bg-slate-50 hover:bg-rose-50 hover:text-rose-500 rounded-xl transition-colors text-slate-400"
                                 >
