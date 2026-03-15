@@ -1,9 +1,11 @@
-import React, { useState } from 'react'
+import React, { useState, useContext } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Calendar, Clock, FileText, AlertTriangle, Upload, CheckCircle, File, Image as ImageIcon, ExternalLink, History, Loader2 } from 'lucide-react'
 import { createTask } from '../../../api/taskApi'
+import { AuthContext } from '../../../context/AuthProvider'
 
 const DailyReport = ({ onViewHistory }) => {
+    const { currentUser, setCurrentUser, setUserData } = useContext(AuthContext)
     const navigate = useNavigate()
     const [submitting, setSubmitting] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
@@ -33,7 +35,7 @@ const DailyReport = ({ onViewHistory }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault()
-        
+
         if (!formData.description.trim()) {
             setModal({
                 show: true,
@@ -46,18 +48,29 @@ const DailyReport = ({ onViewHistory }) => {
 
         setSubmitting(true);
 
-        // Map files to filenames (as API example shows static string filename)
-        const screenshotsFilenames = files.challenges.map(f => f.name).join(', ') || "pending_upload.png";
-        const docsFilenames = files.solution.map(f => f.name).join(', ') || "pending_solution.pdf";
+        // Convert files to Base64 for the mock server to persist "real" images
+        const fileToBase64 = (file) => new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve({
+                name: file.name,
+                type: file.type,
+                data: reader.result // This is the Base64 string
+            });
+            reader.onerror = () => resolve(null);
+        });
+
+        const challengesFilesData = await Promise.all(files.challenges.map(fileToBase64));
+        const solutionFilesData = await Promise.all(files.solution.map(fileToBase64));
 
         const apiPayload = {
             date: formData.date,
             time: formData.time,
             taskDescription: formData.description,
             challengesFaced: formData.challenges || "No major challenges",
-            uploadScreenshots: screenshotsFilenames,
+            uploadScreenshots: challengesFilesData.filter(Boolean), // Send as array of objects
             solutionImplemented: formData.solution || "Working on it",
-            uploadSolutionDocuments: docsFilenames,
+            uploadSolutionDocuments: solutionFilesData.filter(Boolean), // Send as array of objects
             status: "PENDING"
         };
 
@@ -66,15 +79,42 @@ const DailyReport = ({ onViewHistory }) => {
             const response = await createTask(apiPayload);
             console.log("Mission Log Synchronized:", response);
 
+            // ── UPDATE TASK COUNTS ──
+            const updatedUser = { ...currentUser };
+            
+            if (updatedUser.data) {
+                if (!updatedUser.data.taskCounts) {
+                    updatedUser.data.taskCounts = { active: 0, newTask: 0, completed: 0, failed: 0 };
+                }
+                
+                updatedUser.data.taskCounts.completed = (updatedUser.data.taskCounts.completed || 0) + 1;
+                
+                if (updatedUser.data.taskCounts.active > 0) {
+                    updatedUser.data.taskCounts.active -= 1;
+                }
+            }
+
+            localStorage.setItem('loggedInUser', JSON.stringify(updatedUser));
+            
+            const employees = JSON.parse(localStorage.getItem('employees')) || [];
+            const updatedEmployees = employees.map(emp => 
+                emp.email === updatedUser.data.email ? updatedUser.data : emp
+            );
+            localStorage.setItem('employees', JSON.stringify(updatedEmployees));
+
+            setCurrentUser(updatedUser);
+            if (setUserData) {
+                setUserData(updatedEmployees);
+            }
+
             setSubmitting(false);
             setShowSuccess(true);
 
-            // Navigate to history to see the new record after reading the success message
             setTimeout(() => {
                 setShowSuccess(false);
-                navigate('../daily-history');
+                navigate('../dashboard'); 
             }, 2500);
-            
+
         } catch (error) {
             console.error("Failed to submit task:", error);
             setModal({
@@ -252,7 +292,7 @@ const DailyReport = ({ onViewHistory }) => {
                         </div>
 
                         <div className='flex justify-end pt-4 gap-4'>
-                            <button 
+                            <button
                                 disabled={submitting}
                                 className={`flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-10 rounded-xl transition-all shadow-lg shadow-blue-200 hover:shadow-blue-300 transform hover:-translate-y-1 ${submitting ? 'opacity-70 cursor-not-allowed' : ''}`}
                             >
@@ -317,7 +357,7 @@ const DailyReport = ({ onViewHistory }) => {
                             <p className="text-slate-600 font-bold text-sm leading-relaxed mb-6">
                                 {modal.message}
                             </p>
-                            <button 
+                            <button
                                 onClick={() => setModal({ ...modal, show: false })}
                                 className="w-full py-4 bg-rose-500 hover:bg-rose-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-rose-100 active:scale-95"
                             >

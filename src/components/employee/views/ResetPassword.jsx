@@ -29,14 +29,14 @@ const ResetPassword = ({ data }) => {
         try {
             setLoading(true);
             // Payload based on requirements
-            const response = await employeeResetPassword({ 
+            const response = await employeeResetPassword({
                 email: data?.email,
-                token, 
-                newPassword 
+                token,
+                newPassword
             });
-            
+
             const responseMessage = typeof response === 'string' ? response : (response.message || "Password reset successfully");
-            
+
             if (responseMessage.toLowerCase().includes("success")) {
                 setMessage(responseMessage);
                 setToken('');
@@ -73,8 +73,8 @@ const ResetPassword = ({ data }) => {
                         <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mx-auto mb-4 text-blue-600 shadow-sm border border-gray-100">
                             <ShieldCheck size={32} />
                         </div>
-                        <h3 className="text-xl font-black text-slate-800 tracking-tight">Identity Overwrite</h3>
-                        <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest px-4 mt-2 opacity-60">Enter verification hash <br/> to set new credentials</p>
+                        <h3 className="text-xl font-black text-slate-800 tracking-tight">Reset Password</h3>
+                        {/* <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest px-4 mt-2 opacity-60">Enter verification hash <br /> to set new credentials</p> */}
                     </div>
 
                     {message && (
@@ -96,7 +96,7 @@ const ResetPassword = ({ data }) => {
                     )}
 
                     <div className="space-y-1.5 relative z-10">
-                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Verification Token</label>
+                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">UserName</label>
                         <div className="relative group">
                             <input
                                 type="text"
@@ -113,7 +113,7 @@ const ResetPassword = ({ data }) => {
                     </div>
 
                     <div className="space-y-1.5 relative z-10">
-                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">New Access Key</label>
+                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Password</label>
                         <div className="relative group">
                             <input
                                 type={showPlainPassword ? "text" : "password"}
@@ -126,7 +126,7 @@ const ResetPassword = ({ data }) => {
                             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-500 transition-colors">
                                 <Lock size={20} />
                             </div>
-                            <button 
+                            <button
                                 type="button"
                                 onClick={() => setShowPlainPassword(!showPlainPassword)}
                                 className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-blue-500 transition-colors"
@@ -137,7 +137,7 @@ const ResetPassword = ({ data }) => {
                     </div>
 
                     <div className="space-y-1.5 relative z-10">
-                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Confirm Access Key</label>
+                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Confirm Password</label>
                         <div className="relative group">
                             <input
                                 type={showPlainPassword ? "text" : "password"}
@@ -159,11 +159,11 @@ const ResetPassword = ({ data }) => {
                         className="w-full bg-blue-900 hover:bg-blue-800 text-white font-black py-4 rounded-2xl transition-all shadow-xl shadow-blue-200 hover:shadow-blue-300 active:scale-[0.98] uppercase tracking-[0.2em] text-[10px] flex items-center justify-center gap-2 mt-4 relative z-10"
                     >
                         {loading ? <Loader2 className="animate-spin" size={16} /> : <KeyRound size={16} />}
-                        {loading ? 'Re-initializing Identity...' : 'Execute Key Overwrite'}
+                        {loading ? 'Re-initializing Identity...' : 'Rest Password'}
                     </button>
-                    
+
                     <div className="text-center pt-2 relative z-10">
-                         <p className="text-[8px] font-black uppercase tracking-widest text-slate-400 opacity-40">System Node Security Protocol Active</p>
+                        {/* <p className="text-[8px] font-black uppercase tracking-widest text-slate-400 opacity-40">System Node Security Protocol Active</p> */}
                     </div>
                 </form>
             </div>

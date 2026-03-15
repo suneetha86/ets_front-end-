@@ -39,13 +39,13 @@ apiClient.interceptors.response.use(
     (error) => {
         const isAuthRequest = error.config?.url?.includes('/login') || error.config?.url?.includes('/register');
         const errorMessage = error.response?.data?.message || error.response?.data || error.message;
-        
+
         if (!isAuthRequest && error.response && (error.response.status === 401 || error.response.status === 403)) {
             console.warn(`Authentication/Authorization error on protected route (${error.config.url}): ${errorMessage}`);
             // Optional: localStorage.removeItem('loggedInUser');
             // Optional: window.location.href = '/login';
         }
-        
+
         // Attach the message to the error object so components can use it
         error.apiMessage = errorMessage;
         return Promise.reject(error);

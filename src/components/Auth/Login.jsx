@@ -157,7 +157,7 @@ const Login = () => {
                         {/* Logo and Company Name */}
 
                         <h2 className='text-4xl font-black text-indigo-900 tracking-tight mb-2 text-center'>
-                            {isAdmin ? 'Admin' : 'Employee'} Login
+                            {isAdmin ? 'AJA Admin' : 'AJA Employee'} Login
                         </h2>
                     </div>
 
@@ -173,7 +173,7 @@ const Login = () => {
                                     required
                                     className='w-full border-2 border-indigo-200 bg-white text-sm rounded-2xl block p-4 pl-12 outline-none transition-all focus:border-indigo-600 focus:bg-indigo-50 text-indigo-900 group-hover:border-indigo-300'
                                     type="text"
-                                    placeholder={isAdmin ? 'Username' : 'user@aja.network'}
+                                    placeholder={isAdmin ? 'Username' : 'user@gmail.com'}
                                 />
                                 <div className='absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-indigo-400 group-focus-within:text-indigo-600 transition-colors'>
                                     {isAdmin ? <User size={20} /> : <Mail size={20} />}
@@ -236,9 +236,9 @@ const Login = () => {
                             <p className='text-[9px] font-black text-indigo-700 uppercase tracking-widest mb-2 opacity-70 text-center'>Sandbox Node Access</p>
                             <div className='text-[11px] font-mono text-center'>
                                 {isAdmin ? (
-                                    <span className='text-indigo-800'>ID: <b className='text-indigo-600'>admin@example.com</b> | KEY: <b className='text-indigo-600'>123</b></span>
+                                    <span className='text-indigo-800'>ID: <b className='text-indigo-600'>admin</b> | KEY: <b className='text-indigo-600'>admin@123</b></span>
                                 ) : (
-                                    <span className='text-indigo-800'>ID: <b className='text-indigo-700'>suneetha@aja.com</b> | KEY: <b className='text-indigo-700'>123</b></span>
+                                    <span className='text-indigo-800'>ID: <b className='text-indigo-700'>chandrab@gmail.com</b> | KEY: <b className='text-indigo-700'>chandra@123</b></span>
                                 )}
                             </div>
                         </div>

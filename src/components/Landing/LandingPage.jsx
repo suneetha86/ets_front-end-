@@ -25,7 +25,7 @@ const LandingPage = () => {
                         <div className='w-8 h-8 bg-blue-600 rounded-lg transform rotate-45 flex items-center justify-center'>
                             <div className='w-4 h-4 bg-white rounded-sm transform -rotate-45'></div>
                         </div>
-                        <span className='text-2xl font-bold tracking-tight text-blue-900'>ETS</span>
+                        <span className='text-2xl font-bold tracking-tight text-blue-900'>AJA ETS</span>
                         {/* Employee Tracker System (Ets) */}
                     </div>
 
@@ -54,7 +54,7 @@ const LandingPage = () => {
                         {/* v2.0 is now live */}
                     </div>
                     <h1 className='text-5xl md:text-7xl font-extrabold tracking-tight text-gray-900 mb-6 leading-tigher'>
-                        The Ultimate <span className='text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600'>Employee Tracker</span> System.
+                        The Ultimate <span className='text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600'>AJA Employee Tracker</span> System.
                     </h1>
                     <p className='text-xl text-gray-600 max-w-2xl mb-10 leading-relaxed font-light'>
                         Streamline your workforce, track attendance, assign tasks, and manage coding challenges all in one beautiful, unified platform.

@@ -123,7 +123,7 @@ const DailyReportHistory = ({ onBack }) => {
                 setError(null);
                 const data = await getTasks();
                 console.log("Strategic History Handshake:", data);
-                
+
                 const reportsArray = Array.isArray(data) ? data : (data ? [data] : []);
 
                 if (reportsArray.length > 0) {
@@ -131,20 +131,25 @@ const DailyReportHistory = ({ onBack }) => {
                         // Helper to split filenames and format into file objects
                         const formatFiles = (filenames, defaultType) => {
                             if (!filenames) return [];
-                            return String(filenames).split(',').map(name => {
-                                const trimmedName = name.trim();
-                                if (!trimmedName) return null;
+                            // Handle both comma-separated string and already-parsed array
+                            const filesArray = Array.isArray(filenames) ? filenames : String(filenames).split(',');
+                            
+                            return filesArray.map(name => {
+                                const trimmedName = typeof name === 'string' ? name.trim() : (name.name || '');
+                                if (!trimmedName || trimmedName === "No challenges files" || trimmedName === "No solution files" || trimmedName === "pending_upload.png" || trimmedName === "pending_solution.pdf") return null;
+                                
                                 const ext = trimmedName.toLowerCase().split('.').pop();
                                 
                                 let type = 'image/png';
                                 if (ext === 'pdf') type = 'application/pdf';
                                 else if (['doc', 'docx'].includes(ext)) type = 'application/msword';
                                 else if (ext === 'txt') type = 'text/plain';
+                                else if (['jpg', 'jpeg'].includes(ext)) type = 'image/jpeg';
                                 
                                 return {
                                     name: trimmedName,
-                                    type: type,
-                                    url: `/api/tasks/download/${trimmedName}` // Constructed download URL
+                                    type: typeof name === 'object' ? (name.type || type) : type,
+                                    url: (typeof name === 'object' && name.data) ? name.data : `/api/tasks/download/${trimmedName}`
                                 };
                             }).filter(Boolean);
                         };
@@ -190,9 +195,9 @@ const DailyReportHistory = ({ onBack }) => {
                     <div key={idx} className='relative group'>
                         {file.type.startsWith('image/') ? (
                             <div className='w-32 h-32 rounded-lg overflow-hidden border border-gray-200 bg-gray-50 flex items-center justify-center relative'>
-                                <img 
-                                    src={file.url} 
-                                    alt={file.name} 
+                                <img
+                                    src={file.url}
+                                    alt={file.name}
                                     className="w-full h-full object-cover"
                                 />
                                 <div className="absolute inset-0 bg-black/5 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
@@ -290,7 +295,7 @@ const DailyReportHistory = ({ onBack }) => {
                                 <div className={`absolute top-0 right-0 px-4 py-1 text-[10px] font-black uppercase tracking-widest rounded-bl-xl ${report.status === 'PENDING' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'}`}>
                                     {report.status}
                                 </div>
-                                
+
                                 <div className='flex justify-between items-start mb-6 border-b border-gray-50 pb-5'>
                                     <div className='flex items-center gap-4'>
                                         <div className='px-4 py-2 bg-blue-50 text-blue-700 rounded-xl font-bold text-sm flex items-center gap-2 border border-blue-100'>
@@ -307,24 +312,28 @@ const DailyReportHistory = ({ onBack }) => {
                                         <h4 className='text-xs font-black text-gray-400 uppercase tracking-widest mb-3'>Task Description</h4>
                                         <p className='text-gray-800 leading-relaxed font-medium mb-8 text-sm'>{report.description}</p>
 
-                                        {report.challenges && (
+                                         {(report.challenges || report.challengesFiles.length > 0) && (
                                             <div className="space-y-3">
                                                 <h4 className='text-xs font-black text-yellow-600 uppercase tracking-widest flex items-center gap-2'>
                                                     <AlertTriangle size={14} /> Challenges Faced
                                                 </h4>
-                                                <p className='text-gray-700 text-sm bg-yellow-50/50 p-4 rounded-xl border border-yellow-100 leading-relaxed italic'>{report.challenges}</p>
+                                                {report.challenges && (
+                                                    <p className='text-gray-700 text-sm bg-yellow-50/50 p-4 rounded-xl border border-yellow-100 leading-relaxed italic'>{report.challenges}</p>
+                                                )}
                                                 {renderFilePreview(report.challengesFiles)}
                                             </div>
                                         )}
                                     </div>
 
                                     <div className="space-y-8">
-                                        {report.solution && (
+                                        {(report.solution || report.solutionFiles.length > 0) && (
                                             <div className="space-y-3">
                                                 <h4 className='text-xs font-black text-green-600 uppercase tracking-widest flex items-center gap-2'>
                                                     <CheckCircle size={14} /> Solution Implemented
                                                 </h4>
-                                                <p className='text-gray-700 text-sm bg-green-50/50 p-4 rounded-xl border border-green-100 leading-relaxed'>{report.solution}</p>
+                                                {report.solution && (
+                                                    <p className='text-gray-700 text-sm bg-green-50/50 p-4 rounded-xl border border-green-100 leading-relaxed'>{report.solution}</p>
+                                                )}
                                                 {renderFilePreview(report.solutionFiles)}
                                             </div>
                                         )}
@@ -348,15 +357,15 @@ const DailyReportHistory = ({ onBack }) => {
                                 <p className='text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5'>Secure Document Preview</p>
                             </div>
                             <div className='flex items-center gap-3'>
-                                <a 
-                                    href={selectedFile.url} 
+                                <a
+                                    href={selectedFile.url}
                                     download={selectedFile.name}
                                     className='p-3 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all border border-blue-100'
                                     title="Download File"
                                 >
                                     <Download size={20} />
                                 </a>
-                                <button 
+                                <button
                                     onClick={() => setSelectedFile(null)}
                                     className='p-3 bg-gray-100 text-gray-500 rounded-xl hover:bg-rose-500 hover:text-white transition-all active:scale-95'
                                 >
@@ -366,16 +375,16 @@ const DailyReportHistory = ({ onBack }) => {
                         </div>
                         <div className='flex-1 overflow-auto bg-gray-100 p-8 flex items-center justify-center'>
                             {selectedFile.type === 'application/pdf' ? (
-                                <iframe 
-                                    src={selectedFile.url} 
+                                <iframe
+                                    src={selectedFile.url}
                                     className="w-full h-full rounded-xl shadow-inner border border-gray-200"
                                     title="PDF Document"
                                 />
                             ) : selectedFile.type.includes('msword') || selectedFile.type.includes('plain') ? (
                                 <div className='relative w-full h-full flex flex-col items-center justify-center gap-6'>
-                                     <img 
-                                        src="/api/tasks/preview/document" 
-                                        alt="Document Preview" 
+                                    <img
+                                        src="/api/tasks/preview/document"
+                                        alt="Document Preview"
                                         className="max-w-[70%] max-h-full object-contain rounded-xl shadow-2xl border-8 border-white"
                                     />
                                     <div className='bg-white/80 backdrop-blur-md px-6 py-3 rounded-2xl border border-white/50 shadow-xl text-center'>
@@ -384,9 +393,9 @@ const DailyReportHistory = ({ onBack }) => {
                                     </div>
                                 </div>
                             ) : (
-                                <img 
-                                    src={selectedFile.url} 
-                                    alt={selectedFile.name} 
+                                <img
+                                    src={selectedFile.url}
+                                    alt={selectedFile.name}
                                     className="max-w-full max-h-full object-contain rounded-xl shadow-2xl"
                                 />
                             )}
