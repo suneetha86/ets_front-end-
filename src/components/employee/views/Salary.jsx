@@ -347,7 +347,7 @@ const Salary = () => {
                         <CreditCard size={24} />
                     </div>
                     <div>
-                        <p className='text-slate-500 text-[10px] font-black uppercase tracking-widest'>Total Net Value</p>
+                        <p className='text-slate-500 text-[10px] font-black uppercase tracking-widest'>Total Net Salary</p>
                         <h3 className='text-3xl font-black text-slate-800 tracking-tighter'>₹{(summaryData?.totalNetValue || aggregates.net).toLocaleString()}</h3>
                     </div>
                 </div>
@@ -357,7 +357,7 @@ const Salary = () => {
                         <TrendingUp size={24} />
                     </div>
                     <div>
-                        <p className='text-slate-500 text-[10px] font-black uppercase tracking-widest'>Filtered Period Gross</p>
+                        <p className='text-slate-500 text-[10px] font-black uppercase tracking-widest'>Total Gross Salary</p>
                         <h3 className='text-3xl font-black text-slate-800 tracking-tighter'>₹{(summaryData?.filteredPeriodGross || aggregates.gross).toLocaleString()}</h3>
                     </div>
                 </div>
@@ -367,7 +367,7 @@ const Salary = () => {
                         <PieChart size={24} />
                     </div>
                     <div>
-                        <p className='text-slate-500 text-[10px] font-black uppercase tracking-widest'>Filtered Period Deductions</p>
+                        <p className='text-slate-500 text-[10px] font-black uppercase tracking-widest'>Total Deductions</p>
                         <h3 className='text-3xl font-black text-slate-800 tracking-tighter text-red-600'>₹{(summaryData?.filteredPeriodDeductions || aggregates.deductions).toLocaleString()}</h3>
                     </div>
                 </div>

@@ -14,11 +14,19 @@ export default defineConfig({
     {
       name: 'mock-api-middleware',
       configureServer(server) {
-        let mockAttendanceHistory = [];
+        let mockAttendanceHistory = [
+            { id: 1001, employee: { username: 'Suneetha', email: 'suneetha@aja.com' }, date: '2026-03-12', loginTime: '2026-03-12T09:00:00.000Z', logoutTime: '2026-03-12T18:00:00.000Z', workingHours: '9h 0m 0s', status: 'Present' },
+            { id: 1002, employee: { username: 'Sravani', email: 'sravani@aja.com' }, date: '2026-03-13', loginTime: '2026-03-13T09:15:00.000Z', logoutTime: '2026-03-13T17:45:00.000Z', workingHours: '8h 30m 0s', status: 'Present' },
+            { id: 1003, employee: { username: 'Chandra', email: 'chandrab@gmail.com' }, date: '2026-03-14', loginTime: '2026-03-14T09:30:00.000Z', logoutTime: '2026-03-14T10:30:00.000Z', workingHours: '1h 0m 0s', status: 'Present' },
+            { id: 1004, employee: { username: 'Chandra', email: 'chandrab@gmail.com' }, date: '2026-03-14', loginTime: '2026-03-14T11:00:00.000Z', logoutTime: '2026-03-14T18:00:00.000Z', workingHours: '7h 0m 0s', status: 'Present' }
+        ];
         let mockActivePunchIn = null;
         let mockSimplifiedSalaries = [
           { id: 1, employeeId: 1, employeeName: "Suneetha", cycle: "March 2026", gross: 80000, deductions: 5000, netAmount: 75000, transferDate: "2026-03-10", transactionStatus: "PAID" },
-          { id: 2, employeeId: 2, employeeName: "Arjun Pishke", cycle: "March 2026", gross: 73000, deductions: 5000, netAmount: 68000, transferDate: "2026-03-10", transactionStatus: "PAID" }
+          { id: 2, employeeId: 1, employeeName: "Suneetha", cycle: "February 2026", gross: 80000, deductions: 5000, netAmount: 75000, transferDate: "2026-02-10", transactionStatus: "PAID" },
+          { id: 4, employeeId: 6, employeeName: "Suneetha Gmail", cycle: "March 2026", gross: 85000, deductions: 7000, netAmount: 78000, transferDate: "2026-03-10", transactionStatus: "PAID" },
+          { id: 1000, employeeId: 1003, employeeName: "Chandra Sekhar Bijibilla", cycle: "March 2026", gross: 90000, deductions: 10000, netAmount: 80000, transferDate: "2026-03-12", transactionStatus: "PAID" },
+          { id: 6, employeeId: 2, employeeName: "Arjun Pishke", cycle: "March 2026", gross: 73000, deductions: 5000, netAmount: 68000, transferDate: "2026-03-10", transactionStatus: "PAID" }
         ];
         let mockStandardSalaries = [
           { id: 101, employeeName: "Suneetha", employeeCode: "EMP001", amount: 75000, status: "PAID", month: "March 2026", receiptDate: "2026-03-10", department: "Engineering", designation: "Software Engineer", netSalary: 75000, grossSalary: 80000, deductions: 5000, receiptIssued: true },
@@ -98,9 +106,10 @@ export default defineConfig({
 
         let mockUsers = [
           { id: 1, firstName: "Suneetha", nameUsername: "Suneetha", emailAddress: "suneetha@aja.com", phone: "+91 9666477844", dept: "Engineering", accessPassword: "123" },
+          { id: 6, firstName: "Suneetha", nameUsername: "Suneetha Gmail", emailAddress: "suneetha@gmail.com", phone: "+91 9666477845", dept: "Engineering", accessPassword: "123" },
           { id: 2, firstName: "Sravani", nameUsername: "Sravani", emailAddress: "sravani@aja.com", phone: "+91 9988776655", dept: "Engineering", accessPassword: "123" },
           { id: 3, firstName: "Arjun", nameUsername: "Arjun", emailAddress: "arjun@aja.com", phone: "+91 8877665544", dept: "Finance", accessPassword: "123" },
-          { id: 4, firstName: "Chandrasekar", nameUsername: "Chandrasekar", emailAddress: "chandrasekar@aja.com", phone: "+91 7766554433", dept: "Design", accessPassword: "123" },
+          { id: 1003, firstName: "Chandra", nameUsername: "Chandra Sekhar Bijibilla", emailAddress: "chandrab@gmail.com", phone: "+91 7766554433", dept: "Design", accessPassword: "123" },
           { id: 5, firstName: "Siva", nameUsername: "Siva", emailAddress: "siva@aja.com", phone: "+91 6655443322", dept: "HR", accessPassword: "123" }
         ];
 
@@ -186,7 +195,6 @@ export default defineConfig({
                 const data = JSON.parse(body);
                 console.log("Login Trial:", data);
 
-                // Check against stateful mockUsers array (case insensitive email/name)
                 const user = mockUsers.find(u =>
                   (u.emailAddress?.toLowerCase() === data.email?.toLowerCase() ||
                     u.nameUsername?.toLowerCase() === data.email?.toLowerCase()) &&
@@ -210,23 +218,27 @@ export default defineConfig({
                   return;
                 }
 
-                // Static sandbox fallbackschandra
-                if ((data.email === 'chandrab@gmail.com' && data.password === 'chandra123') ||
-                  (data.email === 'suneetha@aja.com' && data.password === '123')) {
+                // Static sandbox fallbackschandra (now case-insensitive)
+                const isChandra = data.email?.toLowerCase() === 'chandrab@gmail.com';
+                const isValidChandraPass = data.password === '123' || data.password === 'chandra123' || data.password === 'chandra@123';
+                
+                if ((isChandra && isValidChandraPass) || (data.email?.toLowerCase() === 'suneetha@aja.com' && data.password === '123')) {
                   res.setHeader('Content-Type', 'application/json');
                   res.statusCode = 200;
                   res.end(JSON.stringify({
-                    message: "Login successful",
+                    message: "Login successful (Sandbox)",
                     token: "mock-jwt-token-sandbox",
-                    id: 99,
-                    empId: 99,
+                    id: isChandra ? 1003 : 1,
+                    empId: isChandra ? 1003 : 1,
                     email: data.email,
-                    firstName: "Chandra",
+                    firstName: isChandra ? "Chandra" : "Suneetha",
                     role: 'employee',
                     taskCounts: { active: 1, newTask: 0, completed: 10, failed: 0 }
                   }));
                   return;
                 }
+
+                console.log("Login Failed for:", data.email, "pass:", data.password);
               } catch (e) {
                 console.error("Login Parse Error:", e);
               }
@@ -322,15 +334,35 @@ export default defineConfig({
             const urlObj = new URL(req.url, `http://${req.headers.host}`);
             const page = parseInt(urlObj.searchParams.get('page')) || 0;
             const size = parseInt(urlObj.searchParams.get('size')) || 5;
+            
+            // Try getting employeeId from query params first, then from path
+            let employeeId = parseInt(urlObj.searchParams.get('employeeId'));
+            if (isNaN(employeeId)) {
+                employeeId = parseInt(urlObj.pathname.split('/').pop());
+            }
+
+            // Filter records for the specific employee
+            const userRecords = employeeId && !isNaN(employeeId)
+              ? mockSimplifiedSalaries.filter(s => s.employeeId === employeeId)
+              : mockSimplifiedSalaries;
 
             const start = page * size;
             const end = start + size;
-            const paginatedRecords = mockSimplifiedSalaries.slice(start, end);
+            const paginatedRecords = userRecords.slice(start, end);
+
+            // Calculate dynamic summary
+            const totalNetValue = userRecords.reduce((sum, r) => sum + r.netAmount, 0);
+            const filteredPeriodGross = userRecords.reduce((sum, r) => sum + r.gross, 0);
+            const filteredPeriodDeductions = userRecords.reduce((sum, r) => sum + r.deductions, 0);
 
             res.end(JSON.stringify({
               "records": paginatedRecords,
-              "totalRecords": mockSimplifiedSalaries.length,
-              "summary": { "totalNetValue": 756400, "filteredPeriodGross": 828400, "filteredPeriodDeductions": 72000 }
+              "totalRecords": userRecords.length,
+              "summary": { 
+                "totalNetValue": totalNetValue, 
+                "filteredPeriodGross": filteredPeriodGross, 
+                "filteredPeriodDeductions": filteredPeriodDeductions 
+              }
             }));
             return;
           }
@@ -348,9 +380,29 @@ export default defineConfig({
                   transactionStatus: data.transactionStatus || 'PAID'
                 };
                 mockSimplifiedSalaries.unshift(newRecord);
+
+                // Also sync back to standard list for Admin History
+                const emp = mockUsers.find(u => u.id === Number(data.employeeId));
+                const standardRecord = {
+                  id: newRecord.id,
+                  employeeName: emp ? emp.nameUsername : (data.employeeName || 'Unknown'),
+                  employeeCode: emp ? (emp.employeeCode || `EMP${String(emp.id).padStart(3, '0')}`) : `EMP${String(data.employeeId).padStart(3, '0')}`,
+                  amount: Number(newRecord.netAmount),
+                  status: newRecord.transactionStatus,
+                  month: newRecord.cycle || new Date(newRecord.transferDate).toLocaleString('default', { month: 'long', year: 'numeric' }),
+                  receiptDate: newRecord.transferDate,
+                  department: emp ? emp.dept : 'N/A',
+                  designation: emp ? 'Staff' : 'N/A',
+                  netSalary: Number(newRecord.netAmount),
+                  grossSalary: Number(newRecord.gross),
+                  deductions: Number(newRecord.deductions),
+                  receiptIssued: true
+                };
+                mockStandardSalaries.unshift(standardRecord);
+
                 res.setHeader('Content-Type', 'application/json');
                 res.statusCode = 200;
-                res.end(JSON.stringify({ message: "Simplified salary record issued successfully (Mock Signal)", data: newRecord }));
+                res.end(JSON.stringify({ message: "Simplified salary record issued successfully and synced with history.", data: newRecord }));
               } catch (e) {
                 res.statusCode = 400;
                 res.end(JSON.stringify({ message: "Invalid JSON in mock handler" }));
@@ -379,8 +431,23 @@ export default defineConfig({
           if (req.url.startsWith('/api/attendance/check-in') && req.method === 'POST') {
             res.setHeader('Content-Type', 'application/json');
             res.statusCode = 200;
-            mockActivePunchIn = new Date().toISOString();
-            res.end(JSON.stringify({ message: "Check-in successful", loginTime: mockActivePunchIn }));
+            const now = new Date().toISOString();
+            
+            const url = new URL(req.url, `http://${req.headers.host}`);
+            const email = url.searchParams.get('email') || '';
+            const username = email.split('@')[0];
+
+            mockAttendanceHistory.push({
+               id: Date.now(),
+               employee: { username, email },
+               date: now.split('T')[0],
+               loginTime: now,
+               logoutTime: null,
+               workingHours: 'In Progress',
+               status: 'In Progress'
+            });
+
+            res.end(JSON.stringify({ message: "Check-in successful", loginTime: now }));
             return;
           }
 
@@ -388,32 +455,44 @@ export default defineConfig({
             res.setHeader('Content-Type', 'application/json');
             res.statusCode = 200;
 
-            const punchOutTimer = new Date().toISOString();
-            let hours = '0h 0m 0s';
-            if (mockActivePunchIn) {
-              const diffMs = new Date(punchOutTimer) - new Date(mockActivePunchIn);
+            const url = new URL(req.url, `http://${req.headers.host}`);
+            const email = url.searchParams.get('email') || '';
+            const punchOutTime = new Date().toISOString();
+            
+            // Find the most recent "In Progress" record for THIS user
+            const currentRecord = mockAttendanceHistory.slice().reverse().find(r => r.employee.email === email && r.logoutTime === null);
+
+            if (currentRecord) {
+              const diffMs = new Date(punchOutTime) - new Date(currentRecord.loginTime);
               const h = Math.floor(diffMs / (1000 * 60 * 60));
               const m = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
               const s = Math.floor((diffMs % (1000 * 60)) / 1000);
-              hours = `${h}h ${m}m ${s}s`;
+              const hoursFormatted = `${h}h ${m}m ${s}s`;
+              
+              currentRecord.logoutTime = punchOutTime;
+              currentRecord.workingHours = hoursFormatted;
+              currentRecord.status = 'Present';
+
+              res.end(JSON.stringify({ message: "Check-out successful", logoutTime: punchOutTime, workingHours: hoursFormatted }));
             } else {
-              // If mocked server restarted during a punch-in, fake it
-              mockActivePunchIn = new Date(Date.now() - 5000).toISOString();
-              hours = "0h 0m 5s";
+              res.statusCode = 400;
+              res.end(JSON.stringify({ message: "No active session found for this identity" }));
             }
+            return;
+          }
 
-            mockAttendanceHistory.push({
-              id: Date.now(),
-              employee: { username: 'Attendance' },
-              date: new Date().toISOString().split('T')[0],
-              loginTime: mockActivePunchIn,
-              logoutTime: punchOutTimer,
-              workingHours: hours,
-              status: 'Present'
-            });
-            mockActivePunchIn = null;
-
-            res.end(JSON.stringify({ message: "Check-out successful", logoutTime: punchOutTimer, workingHours: hours }));
+          if (req.url.startsWith('/api/attendance/weekly')) {
+            const url = new URL(req.url, `http://${req.headers.host}`);
+            const email = url.searchParams.get('email');
+            
+            res.setHeader('Content-Type', 'application/json');
+            res.statusCode = 200;
+            
+            let filteredHistory = mockAttendanceHistory;
+            if (email) {
+              filteredHistory = mockAttendanceHistory.filter(h => h.employee.email === email);
+            }
+            res.end(JSON.stringify(filteredHistory));
             return;
           }
 
@@ -421,12 +500,26 @@ export default defineConfig({
           // The original /api/employee-salary-management/all handler is now replaced by the new one above.
 
           if (req.url.includes('/api/employee-salary-management/summary')) {
+            const urlObj = new URL(req.url, `http://${req.headers.host}`);
+            let employeeId = parseInt(urlObj.searchParams.get('employeeId'));
+            if (isNaN(employeeId)) {
+                employeeId = parseInt(urlObj.pathname.split('/').pop());
+            }
+            
+            const userRecords = employeeId && !isNaN(employeeId)
+              ? mockSimplifiedSalaries.filter(s => s.employeeId === employeeId)
+              : mockSimplifiedSalaries;
+
+            const totalNetValue = userRecords.reduce((sum, r) => sum + r.netAmount, 0);
+            const filteredPeriodGross = userRecords.reduce((sum, r) => sum + r.gross, 0);
+            const filteredPeriodDeductions = userRecords.reduce((sum, r) => sum + r.deductions, 0);
+
             res.setHeader('Content-Type', 'application/json');
             res.statusCode = 200;
             res.end(JSON.stringify({
-              totalNetValue: 756400,
-              filteredPeriodGross: 828400,
-              filteredPeriodDeductions: 72000
+              totalNetValue,
+              filteredPeriodGross,
+              filteredPeriodDeductions
             }));
             return;
           }
@@ -583,14 +676,19 @@ export default defineConfig({
               res.end(JSON.stringify(128));
               return;
             }
-
             if (req.url === '/api/admin/employees' && req.method === 'GET') {
-              res.end(JSON.stringify([
-                { id: 1, empId: 1, username: "Suneetha", firstName: "Suneetha", lastName: "Namburi", email: "suneetha@aja.com", department: "Engineering", designation: "Software Engineer", status: "Active" },
-                { id: 2, empId: 2, username: "Arjun", firstName: "Arjun", lastName: "Mehta", email: "arjun@aja.com", department: "Finance", designation: "Analyst", status: "Active" },
-                { id: 3, empId: 3, username: "Chandrasekar", firstName: "Chandrasekar", lastName: "Nair", email: "chandrasekar@aja.com", department: "Design", designation: "UI Designer", status: "Active" },
-                { id: 4, empId: 4, username: "Siva", firstName: "Siva", lastName: "Yennam", email: "siva@aja.com", department: "HR", designation: "Manager", status: "Active" }
-              ]));
+              const employees = mockUsers.map(u => ({
+                id: u.id,
+                empId: u.id,
+                username: u.nameUsername,
+                firstName: u.firstName,
+                lastName: (u.nameUsername || '').split(' ').slice(1).join(' '),
+                email: u.emailAddress,
+                department: u.dept || 'Engineering',
+                designation: u.dept === 'Design' ? 'UI Designer' : 'Staff',
+                status: "Active"
+              }));
+              res.end(JSON.stringify(employees));
               return;
             }
           }
@@ -623,9 +721,24 @@ export default defineConfig({
                     status: data.status || 'PAID'
                   };
                   mockStandardSalaries.unshift(newRecord);
+
+                  // Also sync to simplified records so it shows up in Employee View
+                  const simplifiedRecord = {
+                    id: newRecord.id,
+                    employeeId: Number(data.employeeId),
+                    employeeName: data.employeeName,
+                    cycle: new Date(newRecord.receiptDate).toLocaleString('default', { month: 'long', year: 'numeric' }),
+                    gross: Number(newRecord.grossSalary),
+                    deductions: Number(newRecord.deductions),
+                    netAmount: Number(newRecord.netSalary),
+                    transferDate: newRecord.receiptDate,
+                    transactionStatus: newRecord.status
+                  };
+                  mockSimplifiedSalaries.unshift(simplifiedRecord);
+
                   res.statusCode = 200;
                   res.end(JSON.stringify({
-                    message: "Salary record processed successfully (Mock Signal)",
+                    message: "Salary record processed successfully and synchronized with employee dashboard.",
                     data: newRecord
                   }));
                 } catch (e) {
@@ -882,6 +995,52 @@ export default defineConfig({
               res.setHeader('Content-Type', 'application/json');
               res.statusCode = 200;
               res.end(JSON.stringify({ message: "Employee registered successfully", user: data }));
+            });
+            return;
+          }
+
+          if (req.url.startsWith('/api/employee/forgot-password') && req.method === 'POST') {
+            res.setHeader('Content-Type', 'application/json');
+            res.statusCode = 200;
+            res.end(JSON.stringify({ 
+              message: "Verification token sent to your email. (Dev Hint: It is 123456)", 
+              token: "123456" 
+            }));
+            return;
+          }
+
+          if (req.url.startsWith('/api/employee/reset-password') && req.method === 'POST') {
+            let body = '';
+            req.on('data', chunk => body += chunk.toString());
+            req.on('end', () => {
+              try {
+                const data = JSON.parse(body || '{}');
+                console.log("Processing Mock Password Reset:", data);
+                res.setHeader('Content-Type', 'application/json');
+                
+                if (String(data.token || '').trim() === '123456') {
+                  // Actually update the password in our mock state
+                  const userIndex = mockUsers.findIndex(u => 
+                    u.emailAddress?.toLowerCase() === data.email?.toLowerCase()
+                  );
+                  
+                  if (userIndex !== -1) {
+                    mockUsers[userIndex].accessPassword = data.newPassword;
+                    console.log(`Password updated successfully for ${data.email}. New: ${data.newPassword}`);
+                    res.statusCode = 200;
+                    res.end(JSON.stringify({ message: "Success: Password reset successfully" }));
+                  } else {
+                    res.statusCode = 404;
+                    res.end(JSON.stringify({ message: "Error: Account not found in current session memory." }));
+                  }
+                } else {
+                  res.statusCode = 400;
+                  res.end(JSON.stringify({ message: "Error: Invalid token code. Please use 123456." }));
+                }
+              } catch (e) {
+                res.statusCode = 400;
+                res.end(JSON.stringify({ message: "Data processing error" }));
+              }
             });
             return;
           }

@@ -238,7 +238,7 @@ const Login = () => {
                                 {isAdmin ? (
                                     <span className='text-indigo-800'>ID: <b className='text-indigo-600'>admin</b> | KEY: <b className='text-indigo-600'>admin@123</b></span>
                                 ) : (
-                                    <span className='text-indigo-800'>ID: <b className='text-indigo-700'>chandrab@gmail.com</b> | KEY: <b className='text-indigo-700'>chandra@123</b></span>
+                                    <span className='text-indigo-800'>ID: <b className='text-indigo-700'>chandrab@gmail.com</b> | KEY: <b className='text-indigo-700'>123</b></span>
                                 )}
                             </div>
                         </div>

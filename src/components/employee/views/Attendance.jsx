@@ -25,24 +25,29 @@ const Attendance = ({ data }) => {
 
             const mappedHistory = (Array.isArray(response) ? response : []).map(record => ({
                 id: record.id,
-                name: record.employee?.username || data?.fullName || 'User',
+                name: (record.employee?.username && record.employee.username !== 'Attendance') 
+                    ? record.employee.username 
+                    : (data?.fullName || data?.firstName || 'Current User'),
                 date: record.date || 'N/A',
-                login: record.loginTime ? new Date(record.loginTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : '-',
-                logout: record.logoutTime ? new Date(record.logoutTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : '-',
-                hours: record.workingHours || '0h 0m',
+                login: record.loginTime ? new Date(record.loginTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '-',
+                logout: record.logoutTime ? new Date(record.logoutTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '-',
+                hours: record.workingHours || '0h 0m 0s',
                 status: record.status || 'Present'
             }))
 
             setHistory(mappedHistory.reverse())
 
-            // Update Current Status from today's record if any
+            // Update Current Status from today's record (find the most recent one for today)
             const todayISO = new Date().toISOString().split('T')[0]
-            const todaysRecord = response.find(r => r.date === todayISO)
+            const todaysRecords = response.filter(r => r.date === todayISO)
+            const todaysRecord = todaysRecords.length > 0 ? todaysRecords[todaysRecords.length - 1] : null
+            
             if (todaysRecord) {
-                setLoginTime(todaysRecord.loginTime ? new Date(todaysRecord.loginTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : null)
-                setLogoutTime(todaysRecord.logoutTime ? new Date(todaysRecord.logoutTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : null)
-                setDuration(todaysRecord.workingHours || '0h 0m')
-                setStatus(todaysRecord.logoutTime ? 'Shift Completed' : 'Checked In')
+                const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit' };
+                setLoginTime(todaysRecord.loginTime ? new Date(todaysRecord.loginTime).toLocaleTimeString('en-US', timeOptions) : null)
+                setLogoutTime(todaysRecord.logoutTime ? new Date(todaysRecord.logoutTime).toLocaleTimeString('en-US', timeOptions) : null)
+                setDuration(todaysRecord.workingHours || '0h 0m 0s')
+                setStatus(todaysRecord.logoutTime ? 'Checked Out' : 'Checked In')
             }
 
         } catch (err) {
@@ -216,7 +221,16 @@ const Attendance = ({ data }) => {
                     </div>
 
                     <div className='flex gap-4 justify-center'>
-                        {status === 'Checked Out' && !loginTime ? (
+                        {status === 'Checked In' ? (
+                            <button
+                                onClick={handleCheckOut}
+                                disabled={actionLoading}
+                                className={`bg-blue-600 hover:bg-blue-700 text-white px-10 py-4 rounded-2xl font-black shadow-xl shadow-blue-200 transition-all hover:-translate-y-1 active:scale-95 flex items-center gap-2 ${actionLoading ? 'opacity-80' : ''}`}
+                            >
+                                {actionLoading ? <Loader2 className="animate-spin" size={20} /> : null}
+                                {actionLoading ? 'Clocking Out...' : 'Punch Out'}
+                            </button>
+                        ) : (
                             <button
                                 onClick={handleCheckIn}
                                 disabled={actionLoading}
@@ -225,25 +239,11 @@ const Attendance = ({ data }) => {
                                 {actionLoading ? <Loader2 className="animate-spin" size={20} /> : null}
                                 {actionLoading ? 'Clocking In...' : 'Punch In'}
                             </button>
-                        ) : (
-                            status === 'Checked In' ? (
-                                <button
-                                    onClick={handleCheckOut}
-                                    disabled={actionLoading}
-                                    className={`bg-blue-600 hover:bg-blue-700 text-white px-10 py-4 rounded-2xl font-black shadow-xl shadow-blue-200 transition-all hover:-translate-y-1 active:scale-95 flex items-center gap-2 ${actionLoading ? 'opacity-80' : ''}`}
-                                >
-                                    {actionLoading ? <Loader2 className="animate-spin" size={20} /> : null}
-                                    {actionLoading ? 'Clocking Out...' : 'Punch Out'}
-                                </button>
-                            ) : (
-                                <button disabled className='bg-gray-200 text-gray-400 px-10 py-4 rounded-2xl font-black cursor-not-allowed border border-gray-100'>Shift Ended</button>
-                            )
                         )}
                     </div>
                 </div>
             </div>
 
-            {/* Attendance History */}
             <h3 className='text-xl font-bold text-gray-800 mb-6 flex items-center gap-2'>
                 <History className="text-blue-500" size={20} /> Weekly History
             </h3>

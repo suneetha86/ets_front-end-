@@ -7,9 +7,29 @@ const ResetPassword = ({ data }) => {
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [loading, setLoading] = useState(false);
+    const [tokenLoading, setTokenLoading] = useState(false);
     const [message, setMessage] = useState(null);
     const [error, setError] = useState(null);
     const [showPlainPassword, setShowPlainPassword] = useState(false);
+    const [email, setEmail] = useState(data?.email || '');
+
+    const handleSendToken = async () => {
+        try {
+            setTokenLoading(true);
+            setError(null);
+            setMessage(null);
+            const response = await employeeForgotPassword({ email });
+            setMessage(response.message || "Security token has been sent to your email.");
+            // For mock/dev convenience, we can pre-fill or alert the token
+            if (response.token) {
+                setToken(response.token);
+            }
+        } catch (err) {
+            setError(err.response?.data?.message || "Failed to send security token.");
+        } finally {
+            setTokenLoading(false);
+        }
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -29,11 +49,13 @@ const ResetPassword = ({ data }) => {
         try {
             setLoading(true);
             // Payload based on requirements
+            console.log("Attempting password reset for:", email);
             const response = await employeeResetPassword({
-                email: data?.email,
-                token,
+                email,
+                token: token.trim(),
                 newPassword
             });
+            console.log("Reset password response:", response);
 
             const responseMessage = typeof response === 'string' ? response : (response.message || "Password reset successfully");
 
@@ -47,7 +69,8 @@ const ResetPassword = ({ data }) => {
             }
         } catch (err) {
             console.error("Employee reset password failed:", err);
-            setError(err.response?.data?.message || "Failed to reset password. Security token may be incorrect.");
+            const apiMessage = err.response?.data?.message || err.response?.data || err.apiMessage || "Failed to reset password. Security token may be incorrect.";
+            setError(typeof apiMessage === 'object' ? JSON.stringify(apiMessage) : apiMessage);
         } finally {
             setLoading(false);
         }
@@ -96,18 +119,47 @@ const ResetPassword = ({ data }) => {
                     )}
 
                     <div className="space-y-1.5 relative z-10">
-                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">UserName</label>
+                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Email Identity</label>
+                        <div className="relative group">
+                            <input
+                                type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                placeholder="name@company.com"
+                                required
+                                className="w-full border-2 border-slate-100 bg-slate-100 text-sm font-bold rounded-2xl block p-4 pl-12 outline-none transition-all text-slate-500 shadow-sm cursor-not-allowed"
+                                readOnly
+                            />
+                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-500 transition-colors">
+                                <ShieldCheck size={20} />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="space-y-1.5 relative z-10">
+                        <div className="flex justify-between items-center px-1">
+                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Security Token</label>
+                            <button
+                                type="button"
+                                onClick={handleSendToken}
+                                disabled={tokenLoading}
+                                className="text-[8px] font-black text-blue-600 hover:text-blue-700 uppercase tracking-widest flex items-center gap-1"
+                            >
+                                {tokenLoading ? <Loader2 className="animate-spin" size={10} /> : null}
+                                {tokenLoading ? 'Sending...' : 'Get Token'}
+                            </button>
+                        </div>
                         <div className="relative group">
                             <input
                                 type="text"
                                 value={token}
                                 onChange={(e) => setToken(e.target.value)}
-                                placeholder="Enter Security Token"
+                                placeholder="Enter (Mock: 123456)"
                                 required
                                 className="w-full border-2 border-slate-100 bg-white text-sm font-bold rounded-2xl block p-4 pl-12 outline-none transition-all focus:border-blue-500 text-slate-900 group-hover:border-slate-200 shadow-sm"
                             />
                             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-500 transition-colors">
-                                <ShieldCheck size={20} />
+                                <KeyRound size={20} />
                             </div>
                         </div>
                     </div>
@@ -159,7 +211,7 @@ const ResetPassword = ({ data }) => {
                         className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-4 rounded-2xl transition-all shadow-xl shadow-blue-200 hover:shadow-blue-300 active:scale-[0.98] uppercase tracking-[0.2em] text-[10px] flex items-center justify-center gap-2 mt-4 relative z-10"
                     >
                         {loading ? <Loader2 className="animate-spin" size={16} /> : <KeyRound size={16} />}
-                        {loading ? 'Re-initializing Identity...' : 'Rest Password'}
+                        {loading ? 'Re-initializing Identity...' : 'Reset Password'}
                     </button>
 
                     <div className="text-center pt-2 relative z-10">

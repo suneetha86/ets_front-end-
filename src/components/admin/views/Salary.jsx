@@ -485,6 +485,7 @@ const Salary = () => {
 
             // Construct payload matching the required ResponseBody format
             const payload = {
+                employeeId: Number(formData.employeeId),
                 employeeCode: formData.employeeCode || `EMP${Date.now().toString().slice(-3)}`,
                 employeeName: formData.employeeName || 'Unknown Employee',
                 department: formData.department || 'General',
