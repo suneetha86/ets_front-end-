@@ -31,6 +31,13 @@ const Profile = ({ data }) => {
   const [isLive, setIsLive] = useState(false);
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState({});
+  const [repoUrl, setRepoUrl] = useState('');
+  const [githubStats, setGithubStats] = useState({
+    repos: 24,
+    followers: 142,
+    contributions: 842,
+    loading: false
+  });
 
 
   
@@ -62,19 +69,19 @@ const Profile = ({ data }) => {
         const userId = data?.id || profileData.employeeId;
         const persistedPic = userId ? localStorage.getItem(`aja_profile_pic_${userId}`) : null;
 
-        // Map API fields to our UI structure
+        // Map API fields to our UI structure - Prefer API data (source of truth) over props
         setProfile({
-          fullName: [data?.firstName, data?.lastName].filter(Boolean).join(" ") || profileData.name || "Employee Node",
-          designation: data?.designation || profileData.designation || "Sr Backend Developer",
-          project: data?.dept || data?.project || profileData.systemName || "Not Assigned",
-          cohort: data?.cohort || profileData.cohort || "N/A",
-          location: data?.location || profileData.location || "Hyderabad, India",
-          email: data?.email || profileData.email,
-          phone: data?.phone || profileData.phone,
+          fullName: profileData.name || [data?.firstName, data?.lastName].filter(Boolean).join(" ") || "Employee Node",
+          designation: profileData.designation || data?.designation || "Sr Backend Developer",
+          project: profileData.systemName || data?.dept || data?.project || "Not Assigned",
+          cohort: profileData.cohort || data?.cohort || "N/A",
+          location: profileData.location || data?.location || "Hyderabad, India",
+          email: profileData.email || data?.email,
+          phone: profileData.phone || data?.phone,
           id: userId,
-          github: data?.github || "manucode",
-          attendance: profileData.attendance ? `${profileData.attendance}%` : data?.analytics?.attendance || "0%",
-          codingScore: profileData.codingScore || data?.analytics?.codingScore || 0,
+          github: profileData.github || data?.github || "manucode",
+          attendance: profileData.attendance ? `${profileData.attendance}%` : (data?.analytics?.attendance || "0%"),
+          codingScore: profileData.codingScore !== undefined ? profileData.codingScore : (data?.analytics?.codingScore || 0),
           profilePic: persistedPic || profileData.profileImage || DEFAULT_AVATAR
         });
         setLastSynced(new Date().toLocaleTimeString());
@@ -266,6 +273,36 @@ const Profile = ({ data }) => {
     }
   };
 
+  useEffect(() => {
+    const fetchGithubData = async () => {
+      if (!profile.github) return;
+      
+      const username = profile.github.replace('@', '');
+      try {
+        setGithubStats(prev => ({ ...prev, loading: true }));
+        const response = await axios.get(`https://api.github.com/users/${username}`);
+        
+        // GitHub API doesn't provide total contributions directly without complex GraphQL/Auth
+        // So we'll use a realistic estimation based on public metrics for the UI
+        const estimatedContributions = (response.data.public_repos * 12) + (response.data.followers * 5) + (response.data.public_gists * 8);
+        
+        setGithubStats({
+          repos: response.data.public_repos,
+          followers: response.data.followers,
+          contributions: estimatedContributions || 842,
+          loading: false
+        });
+      } catch (err) {
+        console.error("GitHub Protocol Breach:", err);
+        setGithubStats(prev => ({ ...prev, loading: false }));
+      }
+    };
+
+    if (profile.github) {
+      fetchGithubData();
+    }
+  }, [profile.github]);
+
 
   if (loading) {
     return (
@@ -383,9 +420,9 @@ const Profile = ({ data }) => {
       </div>
 
       {/* BODY */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
+      <div className="flex flex-col gap-8 mb-10">
         {/* LEFT */}
-        <div className="lg:col-span-2 space-y-8 animate-in fade-in slide-in-from-left-4 duration-700">
+        <div className="space-y-8 animate-in fade-in slide-in-from-left-4 duration-700">
           {/* Metrics */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div className="bg-gradient-to-br from-sky-400 to-sky-600 p-6 rounded-2xl flex items-center gap-5 shadow-lg shadow-sky-100 hover:shadow-sky-200 hover:scale-[1.02] transition-all duration-300 text-white">
@@ -444,46 +481,6 @@ const Profile = ({ data }) => {
           </div>
         </div>
 
-        {/* RIGHT */}
-        <div className="animate-in fade-in slide-in-from-right-4 duration-700">
-          <div 
-            style={{ backgroundColor: '#81e3e3' }}
-            className="text-slate-900 p-8 rounded-[2rem] shadow-2xl space-y-8 relative overflow-hidden group hover:shadow-cyan-200 transition-all duration-500 border border-cyan-200"
-          >
-            <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-125 group-hover:rotate-12 transition-transform duration-700">
-              <Github size={120} />
-            </div>
-
-            <div className="flex items-center gap-5">
-              <div className="bg-white/10 p-3 rounded-xl">
-                <Github size={28} />
-              </div>
-              <div>
-                <h3 className="font-bold text-xl">GitHub Activity</h3>
-                <p className="text-gray-400 text-sm">@{profile.github}</p>
-              </div>
-            </div>
-
-            <div className="space-y-4 pt-4">
-              <div className="flex justify-between items-center text-sm border-b border-white/10 pb-3">
-                <span className="text-gray-400">Repositories</span>
-                <span className="font-bold">24</span>
-              </div>
-              <div className="flex justify-between items-center text-sm border-b border-white/10 pb-3">
-                <span className="text-gray-400">Followers</span>
-                <span className="font-bold">142</span>
-              </div>
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-gray-400">Contributions</span>
-                <span className="font-bold">842</span>
-              </div>
-            </div>
-
-            <button className="w-full bg-white text-gray-900 py-3 rounded-xl font-bold text-sm tracking-wide hover:bg-gray-100 transition-colors shadow-lg active:scale-95">
-              View GitHub Profile
-            </button>
-          </div>
-        </div>
       </div>
 
       {/* IMAGE UPLOAD MODAL */}

@@ -105,13 +105,29 @@ export default defineConfig({
         ];
 
         let mockUsers = [
-          { id: 1, firstName: "Suneetha", nameUsername: "Suneetha", emailAddress: "suneetha@aja.com", phone: "+91 9666477844", dept: "Engineering", accessPassword: "123" },
-          { id: 6, firstName: "Suneetha", nameUsername: "Suneetha Gmail", emailAddress: "suneetha@gmail.com", phone: "+91 9666477845", dept: "Engineering", accessPassword: "123" },
-          { id: 2, firstName: "Sravani", nameUsername: "Sravani", emailAddress: "sravani@aja.com", phone: "+91 9988776655", dept: "Engineering", accessPassword: "123" },
-          { id: 3, firstName: "Arjun", nameUsername: "Arjun", emailAddress: "arjun@aja.com", phone: "+91 8877665544", dept: "Finance", accessPassword: "123" },
-          { id: 1003, firstName: "Chandra", nameUsername: "Chandra Sekhar Bijibilla", emailAddress: "chandrab@gmail.com", phone: "+91 7766554433", dept: "Design", accessPassword: "123" },
-          { id: 5, firstName: "Siva", nameUsername: "Siva", emailAddress: "siva@aja.com", phone: "+91 6655443322", dept: "HR", accessPassword: "123" }
+          { id: 1, firstName: "Suneetha", nameUsername: "Suneetha", emailAddress: "suneetha@aja.com", phone: "+91 9666477844", dept: "Engineering", accessPassword: "123", github: "suneetha86" },
+          { id: 6, firstName: "Suneetha", nameUsername: "Suneetha Gmail", emailAddress: "suneetha@gmail.com", phone: "+91 9666477845", dept: "Engineering", accessPassword: "123", github: "suneetha86" },
+          { id: 2, firstName: "Sravani", nameUsername: "Sravani", emailAddress: "sravani@aja.com", phone: "+91 9988776655", dept: "Engineering", accessPassword: "123", github: "sravani-dev" },
+          { id: 3, firstName: "Arjun", nameUsername: "Arjun", emailAddress: "arjun@aja.com", phone: "+91 8877665544", dept: "Finance", accessPassword: "123", github: "arjun-codes" },
+          { id: 1003, firstName: "Chandra", nameUsername: "Chandra Sekhar Bijibilla", emailAddress: "chandrab@gmail.com", phone: "+91 7766554433", dept: "Design", accessPassword: "123", github: "chandra-bijibilla" },
+          { id: 5, firstName: "Siva", nameUsername: "Siva", emailAddress: "siva@aja.com", phone: "+91 6655443322", dept: "HR", accessPassword: "123", github: "siva-hr" }
         ];
+
+        let mockProfiles = {
+          "1003": {
+            name: "Chandra Sekhar Bijibilla",
+            designation: "Software Engineer",
+            systemName: "AJA ETS Project",
+            cohort: "2026",
+            location: "Hyderabad, India",
+            email: "chandrab@gmail.com",
+            phone: "+91 0000000000",
+            employeeId: 1003,
+            attendance: 100,
+            codingScore: 100,
+            profileImage: null
+          }
+        };
 
         let mockDepartments = [
           { id: 1, name: 'Engineering', count: 42, percent: 33, head: 'Suneetha', budget: '₹18L', status: 'Active', description: 'Technical development and infrastructure management.' },
@@ -213,6 +229,7 @@ export default defineConfig({
                     email: user.emailAddress,
                     firstName: user.firstName || user.nameUsername,
                     role: 'employee',
+                    github: user.github,
                     taskCounts: { active: 2, newTask: 1, completed: 5, failed: 0 }
                   }));
                   return;
@@ -233,6 +250,7 @@ export default defineConfig({
                     email: data.email,
                     firstName: isChandra ? "Chandra" : "Suneetha",
                     role: 'employee',
+                    github: isChandra ? "chandra-bijibilla" : "suneetha86",
                     taskCounts: { active: 1, newTask: 0, completed: 10, failed: 0 }
                   }));
                   return;
@@ -289,7 +307,8 @@ export default defineConfig({
           if (req.url === '/api/profiles/employee' && req.method === 'GET') {
             res.setHeader('Content-Type', 'application/json');
             res.statusCode = 200;
-            res.end(JSON.stringify({
+            // Return stored profile for user 1003 (test user) or default if none
+            const profile = mockProfiles["1003"] || {
               name: "Employee Node",
               designation: "Software Engineer",
               systemName: "Core Project",
@@ -301,7 +320,8 @@ export default defineConfig({
               attendance: 100,
               codingScore: 100,
               profileImage: null
-            }));
+            };
+            res.end(JSON.stringify(profile));
             return;
           }
 
@@ -313,6 +333,8 @@ export default defineConfig({
           }
 
           if (req.url.match(/^\/api\/profiles\/(.+)$/) && req.method === 'PUT') {
+            const match = req.url.match(/^\/api\/profiles\/(.+)$/);
+            const id = match[1];
             res.setHeader('Content-Type', 'application/json');
             res.statusCode = 200;
             let body = '';
@@ -320,6 +342,9 @@ export default defineConfig({
             req.on('end', () => {
               try {
                 const updated = JSON.parse(body || '{}');
+                // Store the update in our mock repository
+                mockProfiles[id] = updated;
+                console.log(`Profile for Node #${id} synchronized in repository:`, updated);
                 res.end(JSON.stringify({ message: "Profile updated successfully", data: updated }));
               } catch (e) {
                 res.end(JSON.stringify({ message: "Profile updated successfully" }));

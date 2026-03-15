@@ -5,6 +5,7 @@ import {
 } from 'lucide-react'
 import { fetchNotifications } from '../../../api/notificationApi'
 import { fetchDashboardSummary } from '../../../api/adminApi'
+import { fetchAllEmployeeSalaries } from '../../../api/employeeSalaryApi'
 
 
 /* ══════════════════════════════════════════════
@@ -456,10 +457,10 @@ function EventsModalContent() {
 /* ══════════════════════════════════════════════
    SALARY MODAL CONTENT
    ══════════════════════════════════════════════ */
-function SalaryModalContent({ onView, onDownload }) {
+function SalaryModalContent({ salaries, onView, onDownload }) {
     return (
         <div className="flex flex-col gap-3">
-            {recentSalaries.map(s => (
+            {salaries.map(s => (
                 <div key={s.id} className="flex items-center justify-between p-4 rounded-xl border border-gray-100 bg-white hover:bg-violet-50 transition-all">
                     <div className="flex items-center gap-3">
                         <div className={`w-10 h-10 rounded-full ${s.avatarBg} flex items-center justify-center text-white font-bold text-xs`}>{s.avatar}</div>
@@ -539,6 +540,7 @@ const AdminDashboardHome = () => {
     const [notifications, setNotifications] = useState([])
     const [loadingNotifs, setLoadingNotifs] = useState(true)
     const [dashboardData, setDashboardData] = useState(null)
+    const [dashboardSalaries, setDashboardSalaries] = useState([])
     const [loadingSummary, setLoadingSummary] = useState(true)
 
     React.useEffect(() => {
@@ -566,8 +568,35 @@ const AdminDashboardHome = () => {
             }
         }
 
+        const loadSalaries = async () => {
+            try {
+                const data = await fetchAllEmployeeSalaries()
+                const formatted = (Array.isArray(data) ? data : []).map(r => ({
+                    id: `PAY-${r.id}`,
+                    name: r.employeeName || 'Unknown',
+                    amount: `₹${(r.netAmount || 0).toLocaleString()}`,
+                    status: r.transactionStatus || 'Generated',
+                    date: r.transferDate ? new Date(r.transferDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A',
+                    avatar: (r.employeeName || 'U').substring(0, 2).toUpperCase(),
+                    avatarBg: 'bg-emerald-500',
+                    dept: 'Staff',
+                    role: 'Employee',
+                    gross: r.gross || 0,
+                    net: r.netAmount || 0,
+                    deductions: r.deductions || 0,
+                    cycleDate: new Date(r.transferDate || 0)
+                }));
+                // Sort by date (descending) to show newest salaries first
+                formatted.sort((a, b) => b.cycleDate - a.cycleDate);
+                setDashboardSalaries(formatted)
+            } catch (error) {
+                console.error("Dashboard Salaries Failed:", error)
+            }
+        }
+
         loadNotifs()
         loadSummary()
+        loadSalaries()
     }, [notifications.length])
 
     // Dynamic stats mapping
@@ -642,7 +671,7 @@ const AdminDashboardHome = () => {
                     </button>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {recentSalaries.map(s => (
+                    {dashboardSalaries.slice(0, 4).map(s => (
                         <div key={s.id} className="p-4 rounded-2xl border border-slate-50 bg-slate-50/50 flex flex-col gap-3 hover:shadow-md transition-all group">
                             <div className="flex items-center justify-between">
                                 <div className={`w-9 h-9 rounded-xl ${s.avatarBg} flex items-center justify-center text-white font-bold text-xs ring-4 ring-white shadow-sm`}>
@@ -800,7 +829,7 @@ const AdminDashboardHome = () => {
             {modal === 'metrics' && <Modal title="All Quick Metrics" icon={BarChart2} accentColor="text-violet-700" onClose={closeModal}><MetricsModalContent /></Modal>}
             {modal === 'departments' && <Modal title="All Departments" icon={Target} accentColor="text-sky-600" onClose={closeModal}><DepartmentsModalContent /></Modal>}
             {modal === 'events' && <Modal title="All Upcoming Events" icon={Calendar} accentColor="text-rose-600" onClose={closeModal}><EventsModalContent /></Modal>}
-            {modal === 'salaries' && <Modal title="Recent Salary Receipts" icon={DollarSign} accentColor="text-emerald-700" onClose={closeModal}><SalaryModalContent onView={(s) => { closeModal(); setSelectedSalarySlip(s); }} onDownload={handleDownloadPayslip} /></Modal>}
+            {modal === 'salaries' && <Modal title="Recent Salary Receipts" icon={DollarSign} accentColor="text-emerald-700" onClose={closeModal}><SalaryModalContent salaries={dashboardSalaries} onView={(s) => { closeModal(); setSelectedSalarySlip(s); }} onDownload={handleDownloadPayslip} /></Modal>}
 
             {/* Detailed Salary View Modal */}
             {selectedSalarySlip && (

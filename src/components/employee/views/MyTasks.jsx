@@ -4,6 +4,7 @@ import { fetchEmployeeNotifications } from '../../../api/notificationApi'
 
 import TaskListNumbers from '../../other/TaskListNumbers'
 import Analytics from './Analytics'
+import { fetchEmployeeSalaryDashboard } from '../../../api/employeeSalaryApi'
 
 const MyTasks = ({ data }) => {
     const [selectedNotif, setSelectedNotif] = useState(null)
@@ -13,42 +14,56 @@ const MyTasks = ({ data }) => {
     const [isStatsModalOpen, setIsStatsModalOpen] = useState(false)
     const [currentSlip, setCurrentSlip] = useState(null)
 
-    const monthlySalaries = [
-        { id: 1, month: "September 2025", date: "2025-09-30", netPay: 65700, gross: 71700, deductions: 6000, status: "Paid" },
-        { id: 2, month: "August 2025", date: "2025-08-31", netPay: 65700, gross: 71700, deductions: 6000, status: "Paid" },
-        { id: 3, month: "July 2025", date: "2025-07-31", netPay: 65700, gross: 71700, deductions: 6000, status: "Paid" },
-        { id: 4, month: "June 2025", date: "2025-06-30", netPay: 64200, gross: 70200, deductions: 6000, status: "Paid" },
-        { id: 5, month: "May 2025", date: "2025-05-31", netPay: 64200, gross: 70200, deductions: 6000, status: "Paid" },
-        { id: 6, month: "April 2025", date: "2025-04-30", netPay: 64200, gross: 70200, deductions: 6000, status: "Paid" },
-        { id: 7, month: "March 2025", date: "2025-03-31", netPay: 62500, gross: 68500, deductions: 6000, status: "Paid" },
-        { id: 8, month: "February 2025", date: "2025-02-28", netPay: 62500, gross: 68500, deductions: 6000, status: "Paid" },
-        { id: 9, month: "January 2025", date: "2025-01-31", netPay: 62500, gross: 68500, deductions: 6000, status: "Paid" },
-        { id: 10, month: "December 2024", date: "2024-12-31", netPay: 60000, gross: 66000, deductions: 6000, status: "Paid" },
-        { id: 11, month: "November 2024", date: "2024-11-30", netPay: 60000, gross: 66000, deductions: 6000, status: "Paid" },
-        { id: 12, month: "October 2024", date: "2024-10-31", netPay: 60000, gross: 66000, deductions: 6000, status: "Paid" },
-    ]
-
+    const [monthlySalaries, setMonthlySalaries] = useState([])
+    const [summaryData, setSummaryData] = useState(null)
     const [notifications, setNotifications] = useState([])
     const [loadingNotifs, setLoadingNotifs] = useState(true)
+    const [loadingSalary, setLoadingSalary] = useState(true)
 
     useEffect(() => {
-        const loadNotifs = async () => {
+        const loadDashboardData = async () => {
+            // Priority 1: Fetch Salary Intelligence
+            const userId = data?.empId || data?.id;
+            if (userId) {
+                try {
+                    setLoadingSalary(true);
+                    const salaryData = await fetchEmployeeSalaryDashboard(userId, 0, 12);
+                    const formattedHistory = (salaryData.records || []).map(r => ({
+                        id: r.id,
+                        month: r.cycle,
+                        date: r.transferDate,
+                        netPay: r.netAmount,
+                        gross: r.gross,
+                        deductions: r.deductions,
+                        status: r.transactionStatus
+                    }));
+                    // Sort descending by date to show most recent slip as primary
+                    formattedHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
+                    setMonthlySalaries(formattedHistory);
+                    setSummaryData(salaryData.summary);
+                } catch (err) {
+                    console.error("Salary Synchronization Interrupted:", err);
+                } finally {
+                    setLoadingSalary(false);
+                }
+            }
+
+            // Priority 2: Fetch Pulse Notifications
             try {
                 setLoadingNotifs(true)
                 const responseData = await fetchEmployeeNotifications(data?.email)
                 setNotifications(Array.isArray(responseData) ? responseData.slice(0, 3) : [])
             } catch (error) {
-                // Silently ignore network errors (backend offline)
                 if (error?.message !== 'Network Error') {
-                    console.error("Dashboard Signal Interrupted:", error)
+                    console.error("Notification Stream Interrupted:", error)
                 }
                 setNotifications([])
             } finally {
                 setLoadingNotifs(false)
             }
         }
-        loadNotifs()
-    }, [])
+        loadDashboardData()
+    }, [data])
 
     const handleViewNotif = (notif) => {
         setSelectedNotif(notif)
@@ -189,7 +204,9 @@ const MyTasks = ({ data }) => {
                         <div className='flex justify-between items-start'>
                             <div>
                                 <p className='text-xs font-bold uppercase tracking-widest text-blue-100 opacity-80'>Net Compensation</p>
-                                <h3 className='text-3xl font-black mt-1 tracking-tighter'>₹65,700</h3>
+                                <h3 className='text-3xl font-black mt-1 tracking-tighter'>
+                                    {loadingSalary ? <Loader2 size={24} className="animate-spin" /> : `₹${(summaryData?.totalNetValue || (monthlySalaries[0]?.netPay || 0)).toLocaleString()}`}
+                                </h3>
                             </div>
                             <button
                                 onClick={() => setIsStatsModalOpen(true)}
@@ -203,7 +220,7 @@ const MyTasks = ({ data }) => {
                         <div className='mt-6 pt-4 border-t border-white/10 flex justify-between items-center'>
                             <div>
                                 <p className='text-[10px] uppercase font-black text-blue-100 opacity-60'>Expected Cycle</p>
-                                <p className='text-sm font-bold'>30 Sept, 2025</p>
+                                <p className='text-sm font-bold'>{loadingSalary ? "..." : (monthlySalaries[0]?.month || "Cycle Pending")}</p>
                             </div>
                             <button
                                 onClick={() => setIsHistoryModalOpen(true)}
