@@ -156,7 +156,7 @@ const ResetPassword = ({ data }) => {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full bg-blue-900 hover:bg-blue-800 text-white font-black py-4 rounded-2xl transition-all shadow-xl shadow-blue-200 hover:shadow-blue-300 active:scale-[0.98] uppercase tracking-[0.2em] text-[10px] flex items-center justify-center gap-2 mt-4 relative z-10"
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-4 rounded-2xl transition-all shadow-xl shadow-blue-200 hover:shadow-blue-300 active:scale-[0.98] uppercase tracking-[0.2em] text-[10px] flex items-center justify-center gap-2 mt-4 relative z-10"
                     >
                         {loading ? <Loader2 className="animate-spin" size={16} /> : <KeyRound size={16} />}
                         {loading ? 'Re-initializing Identity...' : 'Rest Password'}

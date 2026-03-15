@@ -38,12 +38,7 @@ export const uploadProfileImage = async (file, employeeId) => {
 
         const response = await apiClient.post(
             `/profiles/upload-image`,
-            formData,
-            {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
-                }
-            }
+            formData
         );
         return response.data;
     } catch (error) {

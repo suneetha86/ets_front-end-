@@ -61,7 +61,7 @@ const Login = () => {
                     }
                     setCurrentUser(user)
                     localStorage.setItem('loggedInUser', JSON.stringify(user))
-                    navigate('/employee/dashboard')
+                    navigate('/employee/profile')
                 } else {
                     showAlert(response.message || "Invalid Credentials")
                 }
@@ -76,7 +76,7 @@ const Login = () => {
                     const user = { role: 'employee', data: employee }
                     setCurrentUser(user)
                     localStorage.setItem('loggedInUser', JSON.stringify(user))
-                    navigate('/employee/dashboard')
+                    navigate('/employee/profile')
                     return; // Early return prevents loading state from being cleared if we navigate
                 }
             }

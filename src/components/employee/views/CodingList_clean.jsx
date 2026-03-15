@@ -78,11 +78,11 @@ const CodingList = () => {
         try {
             setIsFetchingSolutionId(problem.id)
             const solutionData = await fetchChallengeSolution(problem.id)
-            
+
             // Format data based on backend response which user described
             // "I got link with the matter and the code"
             let logicDisplay = "// Protocol Logic Initialization failed.";
-            
+
             if (typeof solutionData === 'string') {
                 logicDisplay = solutionData;
             } else if (solutionData.solutionCode || solutionData.code) {
@@ -90,7 +90,7 @@ const CodingList = () => {
             } else if (solutionData.content) {
                 logicDisplay = solutionData.content;
             } else {
-                 logicDisplay = JSON.stringify(solutionData, null, 2);
+                logicDisplay = JSON.stringify(solutionData, null, 2);
             }
 
             setSelectedSolution({
@@ -121,45 +121,12 @@ const CodingList = () => {
                         <h2 className='text-3xl font-black text-white tracking-tight drop-shadow-sm'>
                             Coding Challenges
                         </h2>
-                        <p className='text-blue-50 text-xs font-bold uppercase tracking-widest opacity-80'>AJA Engineering Intelligence</p>
+
                     </div>
                 </div>
             </div>
 
-            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
-                {problems.map(prob => (
-                    <div key={prob.id} className='bg-gray-50 p-6 rounded-xl border border-gray-200 hover:shadow-md transition-all flex flex-col justify-between group'>
-                        <div>
-                            <div className='flex justify-between items-start mb-4'>
-                                <span className={`px-3 py-1 rounded-full text-xs font-bold ${prob.difficulty === 'Medium' ? 'bg-yellow-100 text-yellow-700' :
-                                    prob.difficulty === 'Hard' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
-                                    }`}>{prob.difficulty}</span>
-                                <span className={`text-xs font-bold ${prob.status === 'Solved' ? 'text-green-600' : 'text-gray-400'}`}>{prob.status}</span>
-                            </div>
-                            <h3 className='text-xl font-bold text-gray-800 mb-2 group-hover:text-blue-600 transition-colors'>{prob.title}</h3>
-                            <p className='text-gray-500 text-sm mb-6'>Write a function to solve the {prob.title} problem efficiently.</p>
-                        </div>
 
-                        <div className='flex gap-3'>
-                            <button
-                                onClick={() => handleSolve(prob.link)}
-                                className='flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all font-black text-[10px] flex items-center justify-center gap-2 shadow-lg shadow-blue-200 uppercase tracking-widest'
-                            >
-                                <ExternalLink size={16} /> Solve
-                            </button>
-                            {prob.status === 'Solved' && (
-                                <button
-                                    onClick={() => handleViewSolution(prob)}
-                                    className='px-3 py-2.5 bg-blue-500 text-white hover:bg-blue-600 rounded-lg transition-all shadow-md'
-                                    title="View Solution"
-                                >
-                                    <BookOpen size={18} />
-                                </button>
-                            )}
-                        </div>
-                    </div>
-                ))}
-            </div>
 
             {loading ? (
                 <div className='flex flex-col items-center justify-center h-64 gap-4'>
@@ -172,10 +139,9 @@ const CodingList = () => {
                         <div key={prob.id || prob.title} className='bg-gray-50 p-6 rounded-[2rem] border border-gray-100 hover:shadow-xl hover:shadow-blue-500/5 transition-all flex flex-col justify-between group h-full'>
                             <div>
                                 <div className='flex justify-between items-start mb-4'>
-                                    <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm ${
-                                        prob.difficulty === 'MEDIUM' ? 'bg-amber-100 text-amber-700' :
-                                        prob.difficulty === 'HARD' ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700'
-                                    }`}>{prob.difficulty}</span>
+                                    <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm ${prob.difficulty?.toUpperCase() === 'MEDIUM' ? 'bg-amber-100 text-amber-700' :
+                                        prob.difficulty?.toUpperCase() === 'HARD' ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700'
+                                        }`}>{prob.difficulty}</span>
                                     <div className='flex items-center gap-1.5'>
                                         <div className={`w-1.5 h-1.5 rounded-full ${prob.status === 'SOLVED' ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`}></div>
                                         <span className={`text-[10px] font-black uppercase tracking-widest ${prob.status === 'SOLVED' ? 'text-emerald-600' : 'text-slate-400'}`}>{prob.status}</span>
@@ -189,21 +155,19 @@ const CodingList = () => {
                                 <button
                                     onClick={() => handleSolve(prob.id, prob.solveUrl)}
                                     disabled={isSolvingId === prob.id}
-                                    className='flex-1 py-4 bg-slate-900 hover:bg-black text-white rounded-2xl transition-all font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg shadow-slate-200 active:scale-95 disabled:opacity-50'
+                                    className='flex-1 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl transition-all font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg shadow-blue-100 active:scale-95 disabled:opacity-50'
                                 >
                                     {isSolvingId === prob.id ? <Loader2 size={14} className='animate-spin' /> : <ExternalLink size={14} />}
                                     {isSolvingId === prob.id ? 'Decrypting Link...' : 'Execute Solve'}
                                 </button>
-                                {prob.status === 'SOLVED' && (
-                                    <button
-                                        onClick={() => handleViewSolution(prob)}
-                                        disabled={isFetchingSolutionId === prob.id}
-                                        className='px-4 py-4 bg-white border-2 border-slate-100 hover:border-blue-200 hover:bg-blue-50 text-slate-600 hover:text-blue-600 rounded-2xl transition-all active:scale-95 shadow-sm disabled:opacity-50'
-                                        title="View Logic"
-                                    >
-                                        {isFetchingSolutionId === prob.id ? <Loader2 size={18} className='animate-spin' /> : <BookOpen size={18} />}
-                                    </button>
-                                )}
+                                <button
+                                    onClick={() => handleViewSolution(prob)}
+                                    disabled={isFetchingSolutionId === prob.id || prob.status !== 'SOLVED'}
+                                    className={`px-4 py-4 bg-white border-2 border-slate-100 hover:border-blue-200 hover:bg-blue-50 text-slate-600 hover:text-blue-600 rounded-2xl transition-all active:scale-95 shadow-sm disabled:opacity-50 ${prob.status === 'SOLVED' ? 'visible' : 'invisible'}`}
+                                    title="View Logic"
+                                >
+                                    {isFetchingSolutionId === prob.id ? <Loader2 size={18} className='animate-spin' /> : <BookOpen size={18} />}
+                                </button>
                             </div>
                         </div>
                     ))}

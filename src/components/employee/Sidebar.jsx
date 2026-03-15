@@ -37,10 +37,13 @@ const Sidebar = ({ changeUser, firstName, isCollapsed, setIsCollapsed }) => {
                             <div className='w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-lg shadow-blue-900/20 text-blue-900'>
                                 <span className='font-bold text-lg'>E</span>
                             </div>
-                            <div>
+                            <button 
+                                onClick={() => navigate('/employee/profile')}
+                                className='text-left hover:opacity-80 transition-opacity'
+                            >
                                 <h1 className='text-sm font-black tracking-tighter text-white uppercase'>Employee</h1>
-                                <p className='text-[10px] text-blue-300'>Welcome, {(firstName === 'Sandbox Operator' || firstName === 'Chandra') ? 'Chandra Sekhar Bijibilla' : firstName}</p>
-                            </div>
+                                <p className='text-[10px] text-blue-300'>Welcome, {firstName || 'Employee'}</p>
+                            </button>
                         </div>
                     )}
                     <button

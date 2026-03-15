@@ -160,21 +160,19 @@ const CodingList = () => {
                                 <button
                                     onClick={() => handleSolve(prob.id, prob.solveUrl)}
                                     disabled={isSolvingId === prob.id}
-                                    className='flex-1 py-4 bg-slate-900 hover:bg-black text-white rounded-2xl transition-all font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg shadow-slate-200 active:scale-95 disabled:opacity-50'
+                                    className='flex-1 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl transition-all font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg shadow-blue-100 active:scale-95 disabled:opacity-50'
                                 >
                                     {isSolvingId === prob.id ? <Loader2 size={14} className='animate-spin' /> : <ExternalLink size={14} />}
                                     {isSolvingId === prob.id ? 'Decrypting Link...' : 'Execute Solve'}
                                 </button>
-                                {prob.status === 'SOLVED' && (
-                                    <button
-                                        onClick={() => handleViewSolution(prob)}
-                                        disabled={isFetchingSolutionId === prob.id}
-                                        className='px-4 py-4 bg-white border-2 border-slate-100 hover:border-blue-200 hover:bg-blue-50 text-slate-600 hover:text-blue-600 rounded-2xl transition-all active:scale-95 shadow-sm disabled:opacity-50'
-                                        title="View Logic"
-                                    >
-                                        {isFetchingSolutionId === prob.id ? <Loader2 size={18} className='animate-spin' /> : <BookOpen size={18} />}
-                                    </button>
-                                )}
+                                <button
+                                    onClick={() => handleViewSolution(prob)}
+                                    disabled={isFetchingSolutionId === prob.id || prob.status !== 'SOLVED'}
+                                    className={`px-4 py-4 bg-white border-2 border-slate-100 hover:border-blue-200 hover:bg-blue-50 text-slate-600 hover:text-blue-600 rounded-2xl transition-all active:scale-95 shadow-sm disabled:opacity-50 ${prob.status === 'SOLVED' ? 'visible' : 'invisible'}`}
+                                    title="View Logic"
+                                >
+                                    {isFetchingSolutionId === prob.id ? <Loader2 size={18} className='animate-spin' /> : <BookOpen size={18} />}
+                                </button>
                             </div>
                         </div>
                     ))}

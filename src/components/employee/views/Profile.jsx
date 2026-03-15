@@ -15,11 +15,12 @@ import {
   Upload,
   X,
   Check,
+  CheckCircle,
   RefreshCw
 } from "lucide-react";
 import { fetchEmployeeProfile, uploadProfileImage, createProfile } from "../../../api/employeeApi";
 import EditProfile from "./EditProfile";
-import profilePic from "../../../assets/profile-pic.jpg";
+const DEFAULT_AVATAR = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23cbd5e1'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08s5.97 1.09 6 3.08c-1.29 1.94-3.5 3.22-6 3.22z'/%3E%3C/svg%3E";
 
 const Profile = ({ data }) => {
   const navigate = useNavigate();
@@ -37,9 +38,8 @@ const Profile = ({ data }) => {
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
   const [croppedImage, setCroppedImage] = useState(null);
-  const [cropX, setCropX] = useState(0);
-  const [cropY, setCropY] = useState(0);
-  const [cropSize, setCropSize] = useState(200);
+  const [zoom, setZoom] = useState(1);
+  const [rotation, setRotation] = useState(0);
   const [uploading, setUploading] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [modal, setModal] = useState({ show: false, title: '', message: '', type: 'success' });
@@ -58,20 +58,24 @@ const Profile = ({ data }) => {
         // Handle array response if API returns a list
         const profileData = Array.isArray(apiData) ? apiData[0] : apiData;
 
+        // Check for persisted profile picture in local storage
+        const userId = data?.id || profileData.employeeId;
+        const persistedPic = userId ? localStorage.getItem(`aja_profile_pic_${userId}`) : null;
+
         // Map API fields to our UI structure
         setProfile({
-          fullName: profileData.name || [data?.firstName, data?.lastName].filter(Boolean).join(" ") || "Employee Node",
-          designation: profileData.designation || "Sr Backend Developer",
-          project: profileData.systemName || data?.project || "Not Assigned",
-          cohort: profileData.cohort || data?.cohort || "N/A",
-          location: profileData.location || "Hyderabad, India",
-          email: profileData.email || data?.email,
-          phone: profileData.phone || data?.phone,
-          id: profileData.employeeId || data?.id,
+          fullName: [data?.firstName, data?.lastName].filter(Boolean).join(" ") || profileData.name || "Employee Node",
+          designation: data?.designation || profileData.designation || "Sr Backend Developer",
+          project: data?.dept || data?.project || profileData.systemName || "Not Assigned",
+          cohort: data?.cohort || profileData.cohort || "N/A",
+          location: data?.location || profileData.location || "Hyderabad, India",
+          email: data?.email || profileData.email,
+          phone: data?.phone || profileData.phone,
+          id: userId,
           github: data?.github || "manucode",
           attendance: profileData.attendance ? `${profileData.attendance}%` : data?.analytics?.attendance || "0%",
           codingScore: profileData.codingScore || data?.analytics?.codingScore || 0,
-          profilePic: profileData.profileImage || profilePic
+          profilePic: persistedPic || profileData.profileImage || DEFAULT_AVATAR
         });
         setLastSynced(new Date().toLocaleTimeString());
         setIsLive(true);
@@ -84,21 +88,23 @@ const Profile = ({ data }) => {
         console.error("Failed to load profile:", err);
         
         // Fallback to local data if API fails
+        // Check for persisted profile picture in local storage
+        const userId = data?.id;
+        const persistedPic = userId ? localStorage.getItem(`aja_profile_pic_${userId}`) : null;
+
         setProfile({
           fullName: [data?.firstName, data?.lastName].filter(Boolean).join(" ") || "Employee Node",
-          designation: "Sr Backend Developer",
-          project: data?.project || "Not Assigned",
+          designation: data?.designation || "Sr Backend Developer",
+          project: data?.dept || data?.project || "Not Assigned",
           cohort: data?.cohort || "N/A",
           location: data?.location || "Hyderabad, India",
           email: data?.email,
           phone: data?.phone,
-          id: data?.id,
+          id: userId,
           github: data?.github || "manucode",
           attendance: data?.analytics?.attendance || "0%",
           codingScore: data?.analytics?.codingScore || 0,
-          profilePic: profilePic,
-          firstName: data?.firstName || (firstNameFallback === "undefined" ? "" : firstNameFallback) || "",
-          lastName: data?.lastName || (lastNameFallback === "undefined" ? "" : lastNameFallback) || "",
+          profilePic: persistedPic || DEFAULT_AVATAR,
         });
         setIsFallbackMode(true);
 
@@ -135,7 +141,7 @@ const Profile = ({ data }) => {
     reader.readAsDataURL(file);
   };
 
-  // Handle image cropping
+  // Handle image cropping (Centered Zoom Logic)
   const handleCrop = () => {
     if (!selectedImage || !canvasRef.current) return;
 
@@ -144,10 +150,34 @@ const Profile = ({ data }) => {
     const img = new Image();
 
     img.onload = () => {
-      canvas.width = cropSize;
-      canvas.height = cropSize;
-      ctx.drawImage(img, cropX, cropY, cropSize, cropSize, 0, 0, cropSize, cropSize);
-      setCroppedImage(canvas.toDataURL("image/jpeg", 0.9));
+      // Create a 400x400 high-res output
+      const targetSize = 400;
+      canvas.width = targetSize;
+      canvas.height = targetSize;
+
+      // Calculate source dimensions (smallest side)
+      const minDimension = Math.min(img.naturalWidth, img.naturalHeight);
+      const sourceSize = minDimension / zoom;
+      
+      // Calculate centered coordinates
+      const sx = (img.naturalWidth - sourceSize) / 2;
+      const sy = (img.naturalHeight - sourceSize) / 2;
+
+      // Draw to canvas
+      ctx.clearRect(0, 0, targetSize, targetSize);
+      
+      // circular clipping
+      ctx.beginPath();
+      ctx.arc(targetSize/2, targetSize/2, targetSize/2, 0, Math.PI * 2);
+      ctx.clip();
+      
+      ctx.drawImage(
+        img,
+        sx, sy, sourceSize, sourceSize,
+        0, 0, targetSize, targetSize
+      );
+
+      setCroppedImage(canvas.toDataURL("image/jpeg", 0.95));
     };
     img.src = selectedImage;
   };
@@ -162,20 +192,30 @@ const Profile = ({ data }) => {
     try {
       setUploading(true);
 
-      // Convert base64 to blob
-      const response = await fetch(croppedImage);
-      const blob = await response.blob();
-      const file = new File([blob], `profile-${profile.id}.jpg`, { type: "image/jpeg" });
+      // Convert base64 to blob (more robust method)
+      const byteString = atob(croppedImage.split(',')[1]);
+      const mimeString = croppedImage.split(',')[0].split(':')[1].split(';')[0];
+      const ab = new ArrayBuffer(byteString.length);
+      const ia = new Uint8Array(ab);
+      for (let i = 0; i < byteString.length; i++) {
+        ia[i] = byteString.charCodeAt(i);
+      }
+      const blob = new Blob([ab], { type: mimeString });
+      const file = new File([blob], `profile-${profile.id || 'default'}.jpg`, { type: "image/jpeg" });
 
       // Call API to upload
-      const result = await uploadProfileImage(file, profile.id);
+      const result = await uploadProfileImage(file, profile.id || '99');
       console.log("Upload response:", result);
 
-      // Update profile picture
+      // Update profile picture and persist to local storage
       setProfile(prev => ({
         ...prev,
         profilePic: croppedImage
       }));
+      
+      if (profile.id) {
+        localStorage.setItem(`aja_profile_pic_${profile.id}`, croppedImage);
+      }
 
       setUploadSuccess(true);
       setTimeout(() => {
@@ -260,7 +300,7 @@ const Profile = ({ data }) => {
         <div className="relative group">
           <div className="w-32 h-32 rounded-full overflow-hidden ring-4 ring-slate-100 bg-slate-100 flex items-center justify-center shadow-2xl">
             <img
-                src={profile.profilePic ? (profile.profilePic.startsWith('data:') ? profile.profilePic : profile.profilePic) : profilePic}
+                src={profile.profilePic || DEFAULT_AVATAR}
                 alt="Profile"
                 className="w-full h-full object-cover"
             />
@@ -481,50 +521,39 @@ const Profile = ({ data }) => {
                 // Crop section
                 <div className="space-y-6">
                   <div className="bg-gray-50 p-6 rounded-xl">
-                    <p className="text-sm text-gray-600 mb-4 font-medium">Preview & Adjust Position</p>
-                    <div className="mb-6">
+                    <p className="text-sm text-gray-600 mb-4 font-medium uppercase tracking-widest text-center">Smart Center-Crop Preview</p>
+                    <div className="mb-6 relative w-64 h-64 mx-auto overflow-hidden rounded-2xl border-4 border-white shadow-xl bg-slate-200">
                       <img
                         src={selectedImage}
                         alt="Preview"
-                        className="max-w-full max-h-64 mx-auto rounded-lg"
+                        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transition-transform duration-200 ease-out min-w-full min-h-full object-cover"
+                        style={{ transform: `translate(-50%, -50%) scale(${zoom})` }}
                       />
+                      {/* Circular Overlay Mask */}
+                      <div className="absolute inset-0 border-[40px] border-black/40 pointer-events-none flex items-center justify-center">
+                         <div className="w-full h-full rounded-full border-2 border-white/50 shadow-[0_0_0_1000px_rgba(0,0,0,0.3)]"></div>
+                      </div>
                     </div>
 
                     {/* Crop controls */}
                     <div className="space-y-4">
-                      <div>
-                        <label className="text-sm font-semibold text-gray-700">X Position: {cropX}</label>
-                        <input
-                          type="range"
-                          min="0"
-                          max="200"
-                          value={cropX}
-                          onChange={(e) => setCropX(Number(e.target.value))}
-                          className="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer"
-                        />
+                      <div className="flex items-center justify-between">
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Zoom Level: {Math.round(zoom * 100)}%</label>
+                        <button 
+                             onClick={() => setZoom(1)}
+                             className="text-[10px] font-bold text-blue-600 hover:text-blue-700"
+                        >Reset</button>
                       </div>
-                      <div>
-                        <label className="text-sm font-semibold text-gray-700">Y Position: {cropY}</label>
-                        <input
-                          type="range"
-                          min="0"
-                          max="200"
-                          value={cropY}
-                          onChange={(e) => setCropY(Number(e.target.value))}
-                          className="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-sm font-semibold text-gray-700">Crop Size: {cropSize}px</label>
-                        <input
-                          type="range"
-                          min="100"
-                          max="400"
-                          value={cropSize}
-                          onChange={(e) => setCropSize(Number(e.target.value))}
-                          className="w-full h-2 bg-green-200 rounded-lg appearance-none cursor-pointer"
-                        />
-                      </div>
+                      <input
+                        type="range"
+                        min="1"
+                        max="3"
+                        step="0.1"
+                        value={zoom}
+                        onChange={(e) => setZoom(Number(e.target.value))}
+                        className="w-full h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                      />
+                      <p className="text-[9px] text-gray-400 font-medium text-center italic">Drag the slider to zoom into your face for a perfect profile crop</p>
                     </div>
                   </div>
 

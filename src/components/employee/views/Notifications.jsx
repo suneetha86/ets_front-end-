@@ -290,7 +290,7 @@ const Notifications = () => {
                                 </button>
                                 <button
                                     onClick={() => setIsModalOpen(false)}
-                                    className='px-8 py-2.5 rounded-xl text-[10px] font-black text-white bg-slate-800 hover:bg-slate-900 shadow-xl shadow-slate-200 transition-all uppercase tracking-widest border border-transparent'
+                                    className='px-8 py-2.5 rounded-xl text-[10px] font-black text-white bg-blue-600 hover:bg-blue-700 shadow-xl shadow-blue-200 transition-all uppercase tracking-widest border border-transparent'
                                 >
                                     Close Terminal
                                 </button>

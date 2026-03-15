@@ -267,18 +267,25 @@ export default defineConfig({
             return;
           }
 
+          if (req.url === '/api/profiles/upload-image' && req.method === 'POST') {
+            res.setHeader('Content-Type', 'application/json');
+            res.statusCode = 200;
+            res.end(JSON.stringify({ message: "Profile picture updated successfully", status: "SUCCESS" }));
+            return;
+          }
+
           if (req.url === '/api/profiles/employee' && req.method === 'GET') {
             res.setHeader('Content-Type', 'application/json');
             res.statusCode = 200;
             res.end(JSON.stringify({
-              name: "Chandra Sekhar Bijibilla",
-              designation: "Sr Backend Developer",
-              systemName: "AJA Kernel",
+              name: "Employee Node",
+              designation: "Software Engineer",
+              systemName: "Core Project",
               cohort: "2026",
               location: "Hyderabad, India",
-              email: "chandrab@gmail.com",
-              phone: "+91 9948654321",
-              employeeId: 99,
+              email: "employee@aja.com",
+              phone: "+91 0000000000",
+              employeeId: 0,
               attendance: 100,
               codingScore: 100,
               profileImage: null

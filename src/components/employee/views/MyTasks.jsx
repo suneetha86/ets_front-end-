@@ -294,7 +294,7 @@ const MyTasks = ({ data }) => {
                             <div className='mt-10 pt-6 border-t border-slate-100 flex justify-end gap-3'>
                                 <button
                                     onClick={() => setIsModalOpen(false)}
-                                    className='px-8 py-2.5 rounded-xl text-[10px] font-black text-white bg-slate-800 hover:bg-slate-900 shadow-lg shadow-slate-900/20 transition-all uppercase tracking-widest'
+                                    className='px-8 py-2.5 rounded-xl text-[10px] font-black text-white bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all uppercase tracking-widest'
                                 >
                                     Review Completed
                                 </button>
@@ -357,7 +357,7 @@ const MyTasks = ({ data }) => {
                             <div className='flex justify-center'>
                                 <button
                                     onClick={() => handleDownload(currentSlip)}
-                                    className='w-full bg-slate-900 text-white py-4 rounded-xl font-black text-xs uppercase tracking-[0.2em] shadow-xl hover:bg-black transition-all active:scale-[0.98]'
+                                    className='w-full bg-blue-600 text-white py-4 rounded-xl font-black text-xs uppercase tracking-[0.2em] shadow-xl shadow-blue-200 hover:bg-blue-700 transition-all active:scale-[0.98]'
                                 >
                                     Download AJA Authenticated Payslip
                                 </button>
@@ -480,7 +480,7 @@ const MyTasks = ({ data }) => {
                         <div className='bg-white p-6 border-t border-slate-100 flex justify-center'>
                             <button
                                 onClick={() => setIsStatsModalOpen(false)}
-                                className='bg-slate-900 text-white px-12 py-3 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-black transition-all shadow-xl'
+                                className='bg-blue-600 text-white px-12 py-3 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-700 transition-all shadow-xl shadow-blue-200'
                             >
                                 Close Intelligence Hub
                             </button>

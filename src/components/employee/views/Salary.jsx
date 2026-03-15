@@ -1,4 +1,4 @@
-﻿import React, { useState, useMemo, useEffect, useContext } from 'react'
+import React, { useState, useMemo, useEffect, useContext } from 'react'
 import { DollarSign, Download, Eye, TrendingUp, CreditCard, PieChart, X, FileText, Filter, ChevronLeft, ChevronRight, ArrowUpDown, Loader2, CheckCircle } from 'lucide-react'
 import { fetchEmployeeSalariesByEmployeeId, fetchEmployeeSalaryById, filterEmployeeSalaries, fetchPaginatedSalaries, fetchEmployeeSalarySummary, fetchEmployeeSalaryDashboard } from '../../../api/employeeSalaryApi';
 
@@ -152,8 +152,10 @@ const Salary = () => {
         setSortConfig({ key, direction });
     };
 
-    const userName = "Chandra Sekhar Bijibilla"; // Force name for requirement
-    const userEmpId = currentUser?.empId || currentUser?.id || currentUser?.data?.id || 'EMP-XXXX';
+    const userName = [currentUser?.data?.firstName, currentUser?.data?.lastName].filter(Boolean).join(" ") || currentUser?.firstName || "Employee Node";
+    const userEmpId = currentUser?.data?.empId || currentUser?.id || currentUser?.data?.id || 'EMP-001';
+    const userDesignation = currentUser?.data?.designation || "Sr Backend Developer";
+    const userDept = currentUser?.data?.dept || currentUser?.data?.project || "Engineering";
 
     const handleViewSlip = async (record) => {
         try {
@@ -231,9 +233,9 @@ const Salary = () => {
         <div class="info-grid">
             <div class="info-item"><span class="info-label">Employee Name</span><span class="info-value">${userName}</span></div>
             <div class="info-item"><span class="info-label">Employee ID</span><span class="info-value">${userEmpId}</span></div>
-            <div class="info-item"><span class="info-label">Designation</span><span class="info-value">sr Backend Developer</span></div>
+            <div class="info-item"><span class="info-label">Designation</span><span class="info-value">${userDesignation}</span></div>
             
-            <div class="info-item"><span class="info-label">Department</span><span class="info-value">Engineering</span></div>
+            <div class="info-item"><span class="info-label">Department</span><span class="info-value">${userDept}</span></div>
             <div class="info-item"><span class="info-label">PAN (Tax ID)</span><span class="info-value">ABCPK1234D</span></div>
             <div class="info-item"><span class="info-label">UAN (PF Number)</span><span class="info-value">100987654321</span></div>
             
@@ -513,8 +515,8 @@ const Salary = () => {
                             <div className='bg-slate-50 border border-slate-200 rounded-2xl p-4 grid grid-cols-3 gap-y-3 gap-x-4 mb-4'>
                                 <div><p className='text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1'>Employee Name</p><p className='text-xs font-bold text-slate-800'>{userName}</p></div>
                                 <div><p className='text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1'>Employee ID</p><p className='text-xs font-bold text-slate-800'>{userEmpId}</p></div>
-                                <div><p className='text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1'>Designation</p><p className='text-xs font-bold text-slate-800'>sr Backend Developer</p></div>
-                                <div><p className='text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1'>Department</p><p className='text-xs font-bold text-slate-800'>Engineering</p></div>
+                                <div><p className='text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1'>Designation</p><p className='text-xs font-bold text-slate-800'>{userDesignation}</p></div>
+                                <div><p className='text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1'>Department</p><p className='text-xs font-bold text-slate-800'>{userDept}</p></div>
                                 <div><p className='text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1'>PAN</p><p className='text-xs font-bold text-slate-800'>ABCPK1234D</p></div>
                                 <div><p className='text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1'>UAN (PF)</p><p className='text-xs font-bold text-slate-800'>100987654321</p></div>
                                 <div><p className='text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1'>Bank Account</p><p className='text-xs font-bold text-slate-800'>**** **** **** 8821</p></div>

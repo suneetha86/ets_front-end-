@@ -354,7 +354,7 @@ const GithubRepo = () => {
                                     </button>
                                 )}
                                 <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg ${
-                                    viewingFile.type === 'folder' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-white'
+                                    viewingFile.type === 'folder' ? 'bg-blue-600 text-white' : 'bg-blue-600 text-white'
                                 }`}>
                                     {viewingFile.type === 'folder' ? <Folder size={24} /> : <File size={24} />}
                                 </div>
