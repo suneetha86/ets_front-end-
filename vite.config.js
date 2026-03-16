@@ -557,6 +557,54 @@ export default defineConfig({
             return;
           }
 
+          if (req.url.match(/employee-salary-management\/update\/(\d+)/) && req.method === 'PUT') {
+            const match = req.url.match(/employee-salary-management\/update\/(\d+)/);
+            const id = parseInt(match[1]);
+            let body = '';
+            req.on('data', chunk => body += chunk.toString());
+            req.on('end', () => {
+              try {
+                const data = JSON.parse(body || '{}');
+                const idx = mockSimplifiedSalaries.findIndex(s => s.id === id);
+                if (idx !== -1) {
+                  mockSimplifiedSalaries[idx] = { ...mockSimplifiedSalaries[idx], ...data, id };
+                  const stdIdx = mockStandardSalaries.findIndex(s => s.id === id);
+                  if (stdIdx !== -1) {
+                    mockStandardSalaries[stdIdx] = { 
+                      ...mockStandardSalaries[stdIdx], 
+                      grossSalary: data.gross, 
+                      deductions: data.deductions, 
+                      netSalary: data.netAmount, 
+                      status: data.transactionStatus 
+                    };
+                  }
+                  res.setHeader('Content-Type', 'application/json');
+                  res.statusCode = 200;
+                  res.end(JSON.stringify(mockSimplifiedSalaries[idx]));
+                } else {
+                  res.setHeader('Content-Type', 'application/json');
+                  res.statusCode = 404;
+                  res.end(JSON.stringify({ message: "Not Found" }));
+                }
+              } catch (e) {
+                res.statusCode = 400;
+                res.end(JSON.stringify({ message: "Error" }));
+              }
+            });
+            return;
+          }
+
+          if (req.url.match(/employee-salary-management\/delete\/(\d+)/) && req.method === 'DELETE') {
+            const match = req.url.match(/employee-salary-management\/delete\/(\d+)/);
+            const id = parseInt(match[1]);
+            mockSimplifiedSalaries = mockSimplifiedSalaries.filter(s => s.id !== id);
+            mockStandardSalaries = mockStandardSalaries.filter(s => s.id !== id);
+            res.setHeader('Content-Type', 'application/json');
+            res.statusCode = 200;
+            res.end(JSON.stringify({ message: "Deleted successfully" }));
+            return;
+          }
+
           if (req.url.includes('/api/employee-salary-management/filter')) {
             res.setHeader('Content-Type', 'application/json');
             res.statusCode = 200;
@@ -771,6 +819,54 @@ export default defineConfig({
                   res.end(JSON.stringify({ message: "Invalid JSON in mock handler" }));
                 }
               });
+              return;
+            }
+
+            if (req.method === 'PUT') {
+              let body = '';
+              req.on('data', chunk => body += chunk.toString());
+              req.on('end', () => {
+                try {
+                  const idMatch = req.url.match(/\/(\d+)$/);
+                  const id = idMatch ? parseInt(idMatch[1]) : null;
+                  const data = JSON.parse(body || '{}');
+                  const idx = mockStandardSalaries.findIndex(s => s.id === id);
+                  
+                  if (idx !== -1) {
+                    mockStandardSalaries[idx] = { ...mockStandardSalaries[idx], ...data, id };
+                    
+                    const simpIdx = mockSimplifiedSalaries.findIndex(s => s.id === id);
+                    if (simpIdx !== -1) {
+                      mockSimplifiedSalaries[simpIdx] = { 
+                        ...mockSimplifiedSalaries[simpIdx], 
+                        gross: data.grossSalary, 
+                        deductions: data.deductions, 
+                        netAmount: data.netSalary, 
+                        transactionStatus: data.status 
+                      };
+                    }
+                    
+                    res.statusCode = 200;
+                    res.end(JSON.stringify(mockStandardSalaries[idx]));
+                  } else {
+                    res.statusCode = 404;
+                    res.end(JSON.stringify({ message: 'Not Found' }));
+                  }
+                } catch (e) {
+                  res.statusCode = 400;
+                  res.end(JSON.stringify({ message: "Error" }));
+                }
+              });
+              return;
+            }
+
+            if (req.method === 'DELETE') {
+              const idMatch = req.url.match(/\/(\d+)$/);
+              const id = idMatch ? parseInt(idMatch[1]) : null;
+              mockStandardSalaries = mockStandardSalaries.filter(s => s.id !== id);
+              mockSimplifiedSalaries = mockSimplifiedSalaries.filter(s => s.id !== id);
+              res.statusCode = 200;
+              res.end(JSON.stringify({ message: "Salary record deleted successfully" }));
               return;
             }
           }

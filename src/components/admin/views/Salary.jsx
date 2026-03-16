@@ -221,7 +221,7 @@ const Salary = () => {
             setModal({
                 show: true,
                 title: "Record Terminated",
-                message: "Salary archive has been wiped from the core successfully.",
+                message: "Deleted successfully",
                 type: 'success'
             });
             loadSalaries(); // Refresh unified list
@@ -274,7 +274,7 @@ const Salary = () => {
                 setModal({
                     show: true,
                     title: "Sync Success",
-                    message: "Simplified salary record updated and synchronized with core.",
+                    message: "Update successfully",
                     type: 'success'
                 });
                 setIsEditingQuick(false);
@@ -505,7 +505,7 @@ const Salary = () => {
                 setModal({
                     show: true,
                     title: "Update Authorized",
-                    message: "Salary archive updated successfully.",
+                    message: "Update successfully",
                     type: 'success'
                 });
                 setIsEditing(false);
